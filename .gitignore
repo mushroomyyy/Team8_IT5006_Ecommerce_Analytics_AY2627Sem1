@@ -1,0 +1,14 @@
+# Python environments and generated files
+**/.venv/
+**/.venv-*/
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# Local Streamlit secrets
+**/.streamlit/secrets.toml
+
+# Olist data stays local and must never be pushed to GitHub
+*.csv
