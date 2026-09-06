@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import shutil
+import tempfile
+from urllib.request import Request, urlopen
+import zipfile
 
 import numpy as np
 import pandas as pd
@@ -19,33 +23,20 @@ st.set_page_config(
 )
 
 
-# =============================================================================
-# DATA DIRECTORY CONFIGURATION — EDIT ONLY THIS SECTION IF REQUIRED
-# =============================================================================
-# Recommended shared setup: leave CUSTOM_DATA_DIRECTORY blank and copy the nine
-# CSV files into:  <project folder>/data/Olist_CSV/
-#
-# To use CSV files stored elsewhere, replace the blank value with the folder
-# containing all nine files. Use a raw string (the r before the quote),
-# especially on Windows.
-#
-# macOS example:
-# CUSTOM_DATA_DIRECTORY = r"/Users/your-name/Google Drive/IT5006/Olist_CSV"
-#
-# Windows example:
-# CUSTOM_DATA_DIRECTORY = r"C:\Users\your-name\Google Drive\IT5006\Olist_CSV"
-#
-# Do not enter the path to an individual CSV. Enter its containing folder.
-CUSTOM_DATA_DIRECTORY = ""
-
-# These portable project-relative locations normally do not need to be changed.
 APP_DIR = Path(__file__).resolve().parent
-PROJECT_DATA_DIRECTORIES = (
+CUSTOM_DATA_DIRECTORY = ""
+IS_HOSTED_RELEASE = os.getenv("OLIST_HOSTED_RELEASE") == "1"
+LOCAL_DATA_DIRECTORIES = (
     APP_DIR / "data" / "Olist_CSV",
     APP_DIR / "Olist_CSV",
     APP_DIR.parent / "data" / "Olist_CSV",
 )
-# =============================================================================
+HOSTED_DATA_DIRECTORY = Path(tempfile.gettempdir()) / "olist_eda_dashboard" / "Olist_CSV"
+DEFAULT_DATA_ARCHIVE_URL = (
+    "https://github.com/mushroomyyy/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/"
+    "releases/download/olist-data-v1/olist_csv.zip"
+)
+DATA_ARCHIVE_URL = os.getenv("OLIST_DATA_URL", DEFAULT_DATA_ARCHIVE_URL)
 
 REQUIRED_FILES = {
     "orders": "olist_orders_dataset.csv",
@@ -76,8 +67,55 @@ st.markdown(
         background: white;
         border: 1px solid #DDE7EF;
         border-radius: 14px;
-        padding: 12px 14px;
+        min-width: 0;
+        padding: 10px 12px;
         box-shadow: 0 3px 12px rgba(22, 50, 79, 0.06);
+      }
+      [data-testid="stMetricLabel"] p {
+        font-size: 0.88rem;
+        line-height: 1.2;
+      }
+      [data-testid="stMetricValue"] {
+        font-size: 1.6rem;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.8rem;
+        margin: 0.2rem 0 1rem 0;
+      }
+      .kpi-card {
+        min-width: 0;
+        background: white;
+        border: 1px solid #DDE7EF;
+        border-radius: 14px;
+        padding: 0.75rem 0.85rem;
+        box-shadow: 0 3px 12px rgba(22, 50, 79, 0.06);
+      }
+      .kpi-label {
+        color: #29445D;
+        font-size: 0.82rem;
+        line-height: 1.2;
+        margin-bottom: 0.4rem;
+      }
+      .kpi-value {
+        color: #16324F;
+        font-size: clamp(1rem, 1.6vw, 1.6rem);
+        font-weight: 500;
+        line-height: 1.15;
+        white-space: nowrap;
+      }
+      .kpi-value-compact {
+        font-size: clamp(0.95rem, 1.3vw, 1.35rem);
+        letter-spacing: -0.015em;
+      }
+      @media (max-width: 1100px) {
+        .kpi-grid {grid-template-columns: repeat(3, minmax(0, 1fr));}
+      }
+      @media (max-width: 620px) {
+        .kpi-grid {grid-template-columns: repeat(2, minmax(0, 1fr));}
       }
       .hero {
         padding: 1.2rem 1.4rem;
@@ -96,8 +134,12 @@ st.markdown(
         margin: 0.5rem 0 1rem 0;
       }
       .small-note {color: #526777; font-size: 0.88rem;}
-      div[data-baseweb="tab-list"] {gap: 0.25rem;}
-      button[data-baseweb="tab"] {font-weight: 600;}
+      div[data-baseweb="tab-list"] {gap: 0.75rem;}
+      button[data-baseweb="tab"] {
+        font-weight: 600;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+      }
     </style>
     """,
     unsafe_allow_html=True,
@@ -110,22 +152,54 @@ def path_from_text(value: str) -> Path:
     return Path(os.path.expandvars(cleaned)).expanduser()
 
 
-def first_existing_data_dir() -> Path:
-    """Resolve a portable local data path in priority order."""
+def first_existing_data_dir() -> Path | None:
+    """Use an available local dataset; otherwise allow the hosted fallback."""
     candidates = []
     if os.getenv("OLIST_DATA_DIR"):
         candidates.append(path_from_text(os.environ["OLIST_DATA_DIR"]))
-    if CUSTOM_DATA_DIRECTORY.strip():
-        candidates.append(path_from_text(CUSTOM_DATA_DIRECTORY))
-    candidates.extend(PROJECT_DATA_DIRECTORIES)
+    candidates.extend(LOCAL_DATA_DIRECTORIES)
     for candidate in candidates:
-        if candidate.is_dir():
+        if candidate.is_dir() and not missing_files(candidate):
             return candidate
-    return PROJECT_DATA_DIRECTORIES[0]
+    return None
 
 
 def missing_files(data_dir: Path) -> list[str]:
     return [filename for filename in REQUIRED_FILES.values() if not (data_dir / filename).is_file()]
+
+
+@st.cache_resource(show_spinner="Loading Olist data...")
+def resolve_data_dir() -> Path:
+    """Resolve local data when present, or download the hosted release once."""
+    local_data_dir = first_existing_data_dir()
+    if local_data_dir is not None:
+        return local_data_dir
+    if HOSTED_DATA_DIRECTORY.is_dir() and not missing_files(HOSTED_DATA_DIRECTORY):
+        return HOSTED_DATA_DIRECTORY
+
+    HOSTED_DATA_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    request = Request(DATA_ARCHIVE_URL, headers={"User-Agent": "Olist-EDA-Dashboard"})
+    with tempfile.NamedTemporaryFile(suffix=".zip") as archive_file:
+        with urlopen(request, timeout=180) as response:
+            shutil.copyfileobj(response, archive_file)
+        archive_file.flush()
+        with zipfile.ZipFile(archive_file.name) as archive:
+            archive_members = {
+                Path(member).name: member
+                for member in archive.namelist()
+                if not member.endswith("/")
+            }
+            unavailable = [
+                filename for filename in REQUIRED_FILES.values() if filename not in archive_members
+            ]
+            if unavailable:
+                raise RuntimeError("The hosted data package is incomplete.")
+            for filename in REQUIRED_FILES.values():
+                with archive.open(archive_members[filename]) as source:
+                    with (HOSTED_DATA_DIRECTORY / filename).open("wb") as destination:
+                        shutil.copyfileobj(source, destination)
+
+    return HOSTED_DATA_DIRECTORY
 
 
 def haversine_km(lat1, lon1, lat2, lon2):
@@ -196,6 +270,54 @@ def prepare_data(data_dir_text: str):
             for name, frame in raw_tables.items()
         ]
     ).sort_values("Rows", ascending=False)
+
+    orphan_checks = {
+        "Order items → orders": (~items["order_id"].isin(orders["order_id"])).sum(),
+        "Order items → products": (~items["product_id"].isin(products["product_id"])).sum(),
+        "Order items → sellers": (~items["seller_id"].isin(sellers["seller_id"])).sum(),
+        "Payments → orders": (~payments["order_id"].isin(orders["order_id"])).sum(),
+        "Reviews → orders": (~reviews["order_id"].isin(orders["order_id"])).sum(),
+        "Orders → customers": (~orders["customer_id"].isin(customers["customer_id"])).sum(),
+    }
+    items_per_order = items.groupby("order_id").size()
+    payments_per_order = payments.groupby("order_id").size()
+    reviews_per_order = reviews.groupby("order_id").size()
+    joined_order_rows = len(orders[["order_id"]].merge(items[["order_id"]], on="order_id", how="left"))
+    quality_checks = pd.DataFrame(
+        [
+            (
+                "Foreign-key orphan rows",
+                f"{sum(orphan_checks.values()):,}",
+                "Across six tested table relationships",
+            ),
+            (
+                "Order-to-item join fan-out",
+                f"{joined_order_rows / len(orders):.2f}×",
+                "Order counts must use unique order_id",
+            ),
+            (
+                "Items per order (median / maximum)",
+                f"{items_per_order.median():.0f} / {items_per_order.max():,}",
+                "Joining items multiplies order-level rows",
+            ),
+            (
+                "Payments per order (median / maximum)",
+                f"{payments_per_order.median():.0f} / {payments_per_order.max():,}",
+                "Payments are aggregated before joining",
+            ),
+            (
+                "Reviews per order (median / maximum)",
+                f"{reviews_per_order.median():.0f} / {reviews_per_order.max():,}",
+                "Reviews are aggregated before joining",
+            ),
+            (
+                "Orders without line items",
+                f"{(~orders['order_id'].isin(items['order_id'])).sum():,}",
+                "Mostly cancelled or unavailable orders",
+            ),
+        ],
+        columns=["Validation check", "Result", "Modelling implication"],
+    )
 
     category_map = translation.set_index("product_category_name")[
         "product_category_name_english"
@@ -357,6 +479,18 @@ def prepare_data(data_dir_text: str):
     order_df["estimated_window_days"] = (
         order_df["order_estimated_delivery_date"] - order_df["order_purchase_timestamp"]
     ).dt.total_seconds() / 86400
+    order_df["purchase_to_approval_days"] = (
+        order_df["order_approved_at"].dt.normalize()
+        - order_df["order_purchase_timestamp"].dt.normalize()
+    ).dt.days
+    order_df["approval_to_carrier_days"] = (
+        order_df["order_delivered_carrier_date"].dt.normalize()
+        - order_df["order_approved_at"].dt.normalize()
+    ).dt.days
+    order_df["carrier_to_customer_days"] = (
+        order_df["order_delivered_customer_date"].dt.normalize()
+        - order_df["order_delivered_carrier_date"].dt.normalize()
+    ).dt.days
     order_df["valid_delivery_target"] = (
         order_df["order_status"].eq("delivered")
         & order_df["delivery_deviation_days"].notna()
@@ -463,7 +597,38 @@ def prepare_data(data_dir_text: str):
     )
     order_df = order_df.merge(order_history, on="order_id", how="left")
 
-    return order_df, seller_history, inventory
+    customer_months = (
+        order_df[["customer_unique_id", "purchase_month"]]
+        .dropna()
+        .drop_duplicates()
+    )
+    repeat_origin_months = pd.concat(
+        [
+            customer_months.assign(
+                purchase_month=customer_months["purchase_month"] - pd.DateOffset(months=offset)
+            )
+            for offset in (1, 2, 3)
+        ],
+        ignore_index=True,
+    ).drop_duplicates()
+    repeat_origin_months["repeat_next_3m"] = 1
+    customer_months = customer_months.merge(
+        repeat_origin_months,
+        on=["customer_unique_id", "purchase_month"],
+        how="left",
+    )
+    customer_months["repeat_next_3m"] = customer_months["repeat_next_3m"].fillna(0)
+    repeat_monthly = (
+        customer_months.groupby("purchase_month", as_index=False)
+        .agg(
+            customers=("customer_unique_id", "nunique"),
+            repeat_customers=("repeat_next_3m", "sum"),
+            repeat_rate=("repeat_next_3m", "mean"),
+        )
+    )
+    repeat_monthly["repeat_rate_pct"] = 100 * repeat_monthly["repeat_rate"]
+
+    return order_df, seller_history, inventory, quality_checks, repeat_monthly
 
 
 def chart_style(fig, height=440):
@@ -493,41 +658,54 @@ st.markdown(
 )
 
 
-with st.sidebar:
-    st.header("Data and filters")
-    initial_dir = first_existing_data_dir()
-    with st.expander("Data location", expanded=not initial_dir.is_dir()):
-        st.caption(
-            "Paste the folder containing all nine CSV files here, or set "
-            "CUSTOM_DATA_DIRECTORY in the configuration block at the top of app.py."
+if IS_HOSTED_RELEASE:
+    try:
+        data_dir = resolve_data_dir()
+        order_df, seller_history, inventory, quality_checks, repeat_monthly = prepare_data(
+            str(data_dir.resolve())
         )
-        data_dir_text = st.text_input(
-            "Folder containing the nine Olist CSV files",
-            value=str(initial_dir),
-            help="For hosting, place the files in data/Olist_CSV or set OLIST_DATA_DIR.",
+    except Exception:
+        st.error("The dashboard data could not be loaded. Please try again later.")
+        st.stop()
+else:
+    with st.sidebar:
+        st.header("Data and filters")
+        initial_dir = first_existing_data_dir() or LOCAL_DATA_DIRECTORIES[0]
+        with st.expander("Data location", expanded=not initial_dir.is_dir()):
+            st.caption(
+                "Paste the folder containing all nine CSV files here, or set "
+                "CUSTOM_DATA_DIRECTORY near the top of app.py."
+            )
+            data_dir_text = st.text_input(
+                "Folder containing the nine Olist CSV files",
+                value=str(initial_dir),
+            )
+
+    data_dir = path_from_text(data_dir_text)
+    missing = missing_files(data_dir)
+    if missing:
+        st.error(
+            f"The selected data folder `{data_dir}` is missing {len(missing)} required file(s)."
         )
+        st.code("\n".join(missing), language="text")
+        st.markdown(
+            "Place the files in `data/Olist_CSV/`, paste the correct folder under "
+            "**Data location**, or change `CUSTOM_DATA_DIRECTORY` near the top of `app.py`."
+        )
+        st.stop()
 
-data_dir = path_from_text(data_dir_text)
-missing = missing_files(data_dir)
-if missing:
-    st.error(
-        f"The selected data folder `{data_dir}` is missing {len(missing)} required file(s)."
-    )
-    st.code("\n".join(missing), language="text")
-    st.markdown(
-        "Place the files in `data/Olist_CSV/`, paste the correct folder under **Data location**, "
-        "or change `CUSTOM_DATA_DIRECTORY` near the top of `app.py`."
-    )
-    st.stop()
-
-try:
-    order_df, seller_history, inventory = prepare_data(str(data_dir.resolve()))
-except Exception as exc:
-    st.exception(exc)
-    st.stop()
+    try:
+        order_df, seller_history, inventory, quality_checks, repeat_monthly = prepare_data(
+            str(data_dir.resolve())
+        )
+    except Exception as exc:
+        st.exception(exc)
+        st.stop()
 
 
 with st.sidebar:
+    if IS_HOSTED_RELEASE:
+        st.header("Filters")
     min_date = order_df["purchase_date"].min().date()
     max_date = order_df["purchase_date"].max().date()
     analysis_start = max(min_date, pd.Timestamp("2017-01-01").date())
@@ -622,7 +800,7 @@ history_filtered = seller_history[seller_history["order_id"].isin(filtered["orde
 with st.sidebar:
     st.divider()
     st.caption(f"{len(filtered):,} orders match the current filters")
-    if st.button("Clear cached data", use_container_width=True):
+    if not IS_HOSTED_RELEASE and st.button("Clear cached data", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
@@ -632,7 +810,6 @@ if filtered.empty:
     st.stop()
 
 
-metric_columns = st.columns(6)
 metrics = [
     ("Orders", f"{filtered['order_id'].nunique():,}"),
     ("Customers", f"{filtered['customer_unique_id'].nunique():,}"),
@@ -654,8 +831,13 @@ metrics = [
         else "N/A",
     ),
 ]
-for column, (label, value) in zip(metric_columns, metrics):
-    column.metric(label, value)
+metric_cards = "".join(
+    f'<div class="kpi-card"><div class="kpi-label">{label}</div>'
+    f'<div class="kpi-value{" kpi-value-compact" if label == "Order value" else ""}">'
+    f'{value}</div></div>'
+    for label, value in metrics
+)
+st.markdown(f'<div class="kpi-grid">{metric_cards}</div>', unsafe_allow_html=True)
 
 
 overview_tab, delivery_tab, geography_tab, seller_tab, review_tab, data_tab = st.tabs(
@@ -664,7 +846,7 @@ overview_tab, delivery_tab, geography_tab, seller_tab, review_tab, data_tab = st
         "Delivery promises",
         "Geography",
         "Seller reliability",
-        "Customer experience",
+        "Customer behavior",
         "Data quality",
     ]
 )
@@ -674,43 +856,69 @@ with overview_tab:
     left, right = st.columns([1.25, 1])
     monthly = (
         filtered.groupby("purchase_month", as_index=False)
-        .agg(orders=("order_id", "nunique"), order_value=("order_value", "sum"))
+        .agg(
+            orders=("order_id", "nunique"),
+            revenue=("order_value", "sum"),
+            average_order_value=("order_value", "mean"),
+        )
     )
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
-        go.Bar(x=monthly["purchase_month"], y=monthly["orders"], name="Orders", marker_color=BLUE),
+        go.Bar(
+            x=monthly["purchase_month"],
+            y=monthly["revenue"],
+            name="Revenue",
+            marker_color=BLUE,
+            customdata=monthly[["orders"]],
+            hovertemplate="Revenue: R$ %{y:,.0f}<br>Orders: %{customdata[0]:,}<extra></extra>",
+        ),
         secondary_y=False,
     )
     fig.add_trace(
         go.Scatter(
             x=monthly["purchase_month"],
-            y=monthly["order_value"],
-            name="Order value",
+            y=monthly["average_order_value"],
+            name="Average order value",
             mode="lines+markers",
             line=dict(color=ORANGE, width=3),
+            hovertemplate="Average order value: R$ %{y:,.2f}<extra></extra>",
         ),
         secondary_y=True,
     )
-    fig.update_yaxes(title_text="Orders", secondary_y=False)
-    fig.update_yaxes(title_text="Order value (R$)", secondary_y=True)
-    fig.update_layout(title="Monthly Demand and Order Value")
+    fig.update_yaxes(title_text="Revenue (R$)", secondary_y=False)
+    fig.update_yaxes(title_text="Average order value (R$)", secondary_y=True)
+    fig.update_layout(title="Monthly Revenue and Average Order Value")
     left.plotly_chart(chart_style(fig), use_container_width=True)
 
     categories_summary = (
         filtered.groupby("primary_category", as_index=False)
-        .agg(orders=("order_id", "nunique"), order_value=("order_value", "sum"))
-        .nlargest(12, "order_value")
-        .sort_values("order_value")
+        .agg(
+            orders=("order_id", "nunique"),
+            item_quantity=("item_count", "sum"),
+            order_value=("order_value", "sum"),
+        )
     )
+    category_measure = right.radio(
+        "Rank product categories by",
+        ["Order value", "Items sold"],
+        horizontal=True,
+        key="category_measure",
+    )
+    category_column = "order_value" if category_measure == "Order value" else "item_quantity"
+    categories_summary = categories_summary.nlargest(12, category_column).sort_values(category_column)
     fig = px.bar(
         categories_summary,
-        x="order_value",
+        x=category_column,
         y="primary_category",
         orientation="h",
         color_discrete_sequence=[TEAL],
-        labels={"order_value": "Order value (R$)", "primary_category": "Category"},
-        title="Top Categories by Order Value",
-        hover_data=["orders"],
+        labels={
+            "order_value": "Order value (R$)",
+            "item_quantity": "Items sold",
+            "primary_category": "Category",
+        },
+        title=f"Top Categories by {category_measure}",
+        hover_data=["orders", "item_quantity", "order_value"],
     )
     right.plotly_chart(chart_style(fig), use_container_width=True)
 
@@ -749,6 +957,42 @@ with overview_tab:
         title="Order Rhythm by Weekday and Hour",
     )
     c2.plotly_chart(chart_style(fig, 390), use_container_width=True)
+
+    with st.expander("Product-category seasonality", expanded=False):
+        top_categories = (
+            filtered.groupby("primary_category")["item_count"].sum().nlargest(6).index
+        )
+        category_monthly = (
+            filtered[filtered["primary_category"].isin(top_categories)]
+            .groupby(["purchase_month", "primary_category"], as_index=False)
+            .agg(items_sold=("item_count", "sum"))
+        )
+        fig = px.line(
+            category_monthly,
+            x="purchase_month",
+            y="items_sold",
+            color="primary_category",
+            markers=True,
+            title="Monthly Items Sold for Leading Product Categories",
+            labels={
+                "purchase_month": "Purchase month",
+                "items_sold": "Items sold",
+                "primary_category": "Category",
+            },
+        )
+        fig.add_vrect(
+            x0="2017-11-01",
+            x1="2017-12-01",
+            fillcolor=ORANGE,
+            opacity=0.10,
+            line_width=0,
+            annotation_text="November 2017",
+            annotation_position="top left",
+        )
+        st.plotly_chart(chart_style(fig, 480), use_container_width=True)
+        st.caption(
+            "November 2017 includes the Black Friday and Cyber Monday demand spike identified in V2."
+        )
 
 
 with delivery_tab:
@@ -796,6 +1040,177 @@ with delivery_tab:
         fig.update_traces(textposition="outside", cliponaxis=False)
         fig.update_yaxes(range=[0, 105])
         c2.plotly_chart(chart_style(fig), use_container_width=True)
+
+        route_order = ["All same-state", "All interstate", "Mixed"]
+        route_summary = (
+            delivery_filtered.dropna(subset=["route_type"])
+            .groupby("route_type", as_index=False)
+            .agg(
+                delivered_orders=("order_id", "nunique"),
+                late_rate=("late", "mean"),
+            )
+        )
+        late_route_summary = (
+            delivery_filtered[delivery_filtered["late"].eq(1)]
+            .dropna(subset=["route_type"])
+            .groupby("route_type", as_index=False)
+            .agg(median_days_late=("delivery_deviation_days", "median"))
+        )
+        route_summary = route_summary.merge(late_route_summary, on="route_type", how="left")
+        route_summary["late_rate_pct"] = 100 * route_summary["late_rate"]
+        route_summary["route_type"] = pd.Categorical(
+            route_summary["route_type"], categories=route_order, ordered=True
+        )
+        route_summary = route_summary.sort_values("route_type")
+        route_summary["route_label"] = route_summary["route_type"].map(
+            {
+                "All same-state": "Same-state",
+                "All interstate": "Interstate",
+                "Mixed": "Mixed seller routes",
+            }
+        )
+        fig = px.bar(
+            route_summary,
+            x="route_label",
+            y="late_rate_pct",
+            text=route_summary["late_rate_pct"].map(lambda value: f"{value:.1f}%"),
+            color_discrete_sequence=[BLUE],
+            title="Late-delivery Rate by Route Type",
+            labels={"route_label": "Route type", "late_rate_pct": "Late rate (%)"},
+            hover_data={
+                "delivered_orders": ":,",
+                "median_days_late": ":.1f",
+                "route_type": False,
+            },
+        )
+        fig.update_traces(textposition="outside", cliponaxis=False)
+        if not route_summary.empty:
+            fig.update_yaxes(range=[0, route_summary["late_rate_pct"].max() * 1.18])
+        st.plotly_chart(chart_style(fig, 440), use_container_width=True)
+        st.caption(
+            "Same-state orders use sellers located entirely within the customer’s state; "
+            "interstate orders use sellers entirely outside it; mixed orders contain both."
+        )
+
+        monthly_delivery = (
+            delivery_filtered.groupby("purchase_month", as_index=False)
+            .agg(
+                delivered_orders=("order_id", "nunique"),
+                late_rate=("late", "mean"),
+            )
+        )
+        monthly_delivery["late_rate_pct"] = 100 * monthly_delivery["late_rate"]
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(
+            go.Bar(
+                x=monthly_delivery["purchase_month"],
+                y=monthly_delivery["delivered_orders"],
+                name="Delivered orders",
+                marker_color=BLUE,
+            ),
+            secondary_y=False,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=monthly_delivery["purchase_month"],
+                y=monthly_delivery["late_rate_pct"],
+                name="Late-delivery rate",
+                mode="lines+markers",
+                line=dict(color=ORANGE, width=3),
+                hovertemplate="Late-delivery rate: %{y:.1f}%<extra></extra>",
+            ),
+            secondary_y=True,
+        )
+        fig.update_yaxes(title_text="Delivered orders", secondary_y=False)
+        fig.update_yaxes(title_text="Late-delivery rate (%)", secondary_y=True)
+        fig.update_layout(title="Monthly Delivered Orders and Late-delivery Rate")
+        st.plotly_chart(chart_style(fig, 460), use_container_width=True)
+
+        stage_columns = [
+            "purchase_to_approval_days",
+            "approval_to_carrier_days",
+            "carrier_to_customer_days",
+        ]
+        stage_data = delivery_filtered.dropna(subset=stage_columns).copy()
+        stage_data = stage_data[(stage_data[stage_columns] >= 0).all(axis=1)]
+        stage_data["total_stage_days"] = stage_data[stage_columns].sum(axis=1)
+        stage_data = stage_data[stage_data["total_stage_days"].gt(0)]
+        for stage in stage_columns:
+            stage_data[stage] = 100 * stage_data[stage] / stage_data["total_stage_days"]
+        stage_summary = (
+            stage_data.assign(
+                delivery_outcome=np.where(stage_data["late"].eq(1), "Late", "By promised date")
+            )
+            .groupby("delivery_outcome", as_index=False)[stage_columns]
+            .mean()
+            .melt(
+                id_vars="delivery_outcome",
+                var_name="delivery_stage",
+                value_name="share_pct",
+            )
+        )
+        stage_summary["delivery_stage"] = stage_summary["delivery_stage"].map(
+            {
+                "purchase_to_approval_days": "Purchase to approval",
+                "approval_to_carrier_days": "Approval to carrier",
+                "carrier_to_customer_days": "Carrier to customer",
+            }
+        )
+
+        window_labels = ["0–10", "11–20", "21–30", "31–40", "41+"]
+        window_data = delivery_filtered.copy()
+        window_data["estimated_window_band"] = pd.cut(
+            window_data["estimated_window_days"],
+            bins=[0, 10, 20, 30, 40, np.inf],
+            labels=window_labels,
+            include_lowest=True,
+        )
+        window_summary = (
+            window_data.groupby("estimated_window_band", observed=True)
+            .agg(
+                delivered_orders=("order_id", "nunique"),
+                late_rate=("late", "mean"),
+            )
+            .reset_index()
+        )
+        window_summary["late_rate_pct"] = 100 * window_summary["late_rate"]
+
+        c1, c2 = st.columns(2)
+        fig = px.bar(
+            stage_summary,
+            x="delivery_outcome",
+            y="share_pct",
+            color="delivery_stage",
+            barmode="stack",
+            text=stage_summary["share_pct"].map(lambda value: f"{value:.0f}%"),
+            color_discrete_sequence=[LIGHT_BLUE, ORANGE, BLUE],
+            title="Delivery Time by Stage: On-time versus Late",
+            labels={
+                "delivery_outcome": "Delivery outcome",
+                "share_pct": "Average share of delivery time (%)",
+                "delivery_stage": "Delivery stage",
+            },
+        )
+        fig.update_traces(textposition="inside")
+        c1.plotly_chart(chart_style(fig, 480), use_container_width=True)
+
+        fig = px.bar(
+            window_summary,
+            x="estimated_window_band",
+            y="late_rate_pct",
+            text=window_summary["late_rate_pct"].map(lambda value: f"{value:.1f}%"),
+            color_discrete_sequence=[BLUE],
+            title="Late-delivery Rate by Estimated Delivery Window",
+            labels={
+                "estimated_window_band": "Estimated delivery window (days)",
+                "late_rate_pct": "Late rate (%)",
+            },
+            hover_data={"delivered_orders": ":,", "late_rate_pct": ":.1f"},
+        )
+        fig.update_traces(textposition="outside", cliponaxis=False)
+        if not window_summary.empty:
+            fig.update_yaxes(range=[0, window_summary["late_rate_pct"].max() * 1.18])
+        c2.plotly_chart(chart_style(fig, 480), use_container_width=True)
 
         distance_bins = [0, 100, 300, 600, 1000, 2000, np.inf]
         distance_labels = ["0-100", "101-300", "301-600", "601-1,000", "1,001-2,000", "2,000+"]
@@ -882,6 +1297,64 @@ with delivery_tab:
             if not late_only:
                 fig.add_hline(y=0, line_color=NAVY)
             c2.plotly_chart(chart_style(fig), use_container_width=True)
+
+        with st.expander("Pre-outcome order attributes and late-delivery signal", expanded=False):
+            feature_options = {
+                "Order value": "order_value",
+                "Freight value": "freight_value",
+                "Product weight": "total_weight_g",
+                "Items per order": "item_count",
+            }
+            feature_label = st.selectbox(
+                "Order attribute",
+                list(feature_options),
+                key="continuous_feature",
+            )
+            feature_column = feature_options[feature_label]
+            feature_data = delivery_filtered.dropna(subset=[feature_column]).copy()
+            if feature_column == "item_count":
+                feature_data["feature_band"] = pd.cut(
+                    feature_data[feature_column],
+                    bins=[0, 1, 2, 3, np.inf],
+                    labels=["1 item", "2 items", "3 items", "4+ items"],
+                    include_lowest=True,
+                )
+            else:
+                feature_data["feature_band"] = pd.qcut(
+                    feature_data[feature_column], q=5, duplicates="drop"
+                )
+                category_count = len(feature_data["feature_band"].cat.categories)
+                feature_data["feature_band"] = feature_data["feature_band"].cat.rename_categories(
+                    [f"Q{index + 1}" for index in range(category_count)]
+                )
+            feature_summary = (
+                feature_data.groupby("feature_band", observed=True)
+                .agg(
+                    orders=("order_id", "nunique"),
+                    late_rate=("late", "mean"),
+                    minimum=(feature_column, "min"),
+                    maximum=(feature_column, "max"),
+                )
+                .reset_index()
+            )
+            feature_summary["late_rate_pct"] = 100 * feature_summary["late_rate"]
+            fig = px.bar(
+                feature_summary,
+                x="feature_band",
+                y="late_rate_pct",
+                text=feature_summary["late_rate_pct"].map(lambda value: f"{value:.1f}%"),
+                color_discrete_sequence=[BLUE],
+                title=f"Late-delivery Rate by {feature_label}",
+                labels={"feature_band": f"{feature_label} band", "late_rate_pct": "Late rate (%)"},
+                hover_data={"orders": ":,", "minimum": ":,.1f", "maximum": ":,.1f"},
+            )
+            fig.update_traces(textposition="outside", cliponaxis=False)
+            if not feature_summary.empty:
+                fig.update_yaxes(range=[0, feature_summary["late_rate_pct"].max() * 1.18])
+            st.plotly_chart(chart_style(fig, 430), use_container_width=True)
+            st.caption(
+                "Q1 is the lowest-value group and Q5 the highest; item counts use explicit basket-size bands."
+            )
 
         st.subheader("Historical cohort explorer")
         st.caption("Interactive historical comparison only; this is not yet a predictive model.")
@@ -1099,6 +1572,57 @@ with seller_tab:
 
 
 with review_tab:
+    st.subheader("Three-month Repeat-purchase Rate")
+    repeat_plot = repeat_monthly[
+        repeat_monthly["purchase_month"].between(
+            pd.Timestamp(selected_start).to_period("M").to_timestamp(),
+            min(
+                pd.Timestamp(selected_end).to_period("M").to_timestamp(),
+                pd.Timestamp("2018-05-01"),
+            ),
+        )
+    ].copy()
+    if repeat_plot.empty:
+        empty_state("No complete three-month repeat-purchase cohorts match the date selection.")
+    else:
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(
+            go.Bar(
+                x=repeat_plot["purchase_month"],
+                y=repeat_plot["customers"],
+                name="Customers",
+                marker_color=LIGHT_BLUE,
+            ),
+            secondary_y=False,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=repeat_plot["purchase_month"],
+                y=repeat_plot["repeat_rate_pct"],
+                name="Repeat-purchase rate",
+                mode="lines+markers+text",
+                text=repeat_plot["repeat_rate_pct"].map(lambda value: f"{value:.1f}%"),
+                textposition="top center",
+                line=dict(color=ORANGE, width=3),
+                customdata=repeat_plot[["repeat_customers"]],
+                hovertemplate=(
+                    "Repeat-purchase rate: %{y:.2f}%<br>"
+                    "Repeat customers: %{customdata[0]:,.0f}<extra></extra>"
+                ),
+            ),
+            secondary_y=True,
+        )
+        fig.update_yaxes(title_text="Customers in monthly cohort", secondary_y=False)
+        fig.update_yaxes(title_text="Repeat-purchase rate (%)", secondary_y=True)
+        fig.update_layout(title="Customers Purchasing Again Within the Next Three Months")
+        st.plotly_chart(chart_style(fig, 470), use_container_width=True)
+        st.caption(
+            "Only cohorts through May 2018 are shown so every customer has a complete "
+            "three-month opportunity to purchase again."
+        )
+
+    st.divider()
+    st.subheader("Customer Review Outcomes")
     if review_filtered.empty:
         empty_state("No reviewed orders match the current filters.")
     else:
@@ -1154,6 +1678,56 @@ with review_tab:
 
 
 with data_tab:
+    st.subheader("Observation Completeness by Month")
+    monthly_coverage = (
+        order_df.dropna(subset=["purchase_month", "purchase_date"])
+        .groupby("purchase_month", as_index=False)
+        .agg(
+            orders=("order_id", "nunique"),
+            observed_days=("purchase_date", "nunique"),
+        )
+    )
+    monthly_coverage["orders_per_observed_day"] = (
+        monthly_coverage["orders"] / monthly_coverage["observed_days"]
+    )
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Bar(
+            x=monthly_coverage["purchase_month"],
+            y=monthly_coverage["observed_days"],
+            name="Observed days",
+            marker_color=LIGHT_BLUE,
+        ),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=monthly_coverage["purchase_month"],
+            y=monthly_coverage["orders_per_observed_day"],
+            name="Orders per observed day",
+            mode="lines+markers",
+            line=dict(color=ORANGE, width=3),
+        ),
+        secondary_y=True,
+    )
+    fig.add_vrect(
+        x0="2017-01-01",
+        x1="2018-09-01",
+        fillcolor=TEAL,
+        opacity=0.07,
+        line_width=0,
+        annotation_text="Recommended complete-month window",
+        annotation_position="top left",
+    )
+    fig.update_yaxes(title_text="Observed purchase days", secondary_y=False)
+    fig.update_yaxes(title_text="Orders per observed day", secondary_y=True)
+    fig.update_layout(title="Coverage and Normalised Order Activity")
+    st.plotly_chart(chart_style(fig, 470), use_container_width=True)
+    st.caption(
+        "Sparse 2016 records and the truncated September–October 2018 tail are excluded "
+        "from the recommended January 2017–August 2018 analysis window."
+    )
+
     st.subheader("Source-table inventory")
     inventory_display = inventory.copy()
     inventory_display["Rows"] = inventory_display["Rows"].map(lambda value: f"{value:,}")
@@ -1161,6 +1735,13 @@ with data_tab:
         lambda value: f"{value:.2f}%"
     )
     st.dataframe(inventory_display, use_container_width=True, hide_index=True)
+
+    st.subheader("Join Integrity and Fan-out")
+    st.dataframe(quality_checks, use_container_width=True, hide_index=True)
+    st.caption(
+        "Payments and reviews are aggregated before joining, while order-level counts use "
+        "unique order_id to avoid multiplication from line items."
+    )
 
     st.subheader("Feature timing and leakage guardrails")
     feature_dictionary = pd.DataFrame(

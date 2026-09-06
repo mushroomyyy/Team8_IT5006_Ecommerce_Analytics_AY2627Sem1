@@ -4,7 +4,7 @@
 
 The CSV files are intentionally not stored in GitHub. Each user must point the app to the folder containing all nine Olist CSV files.
 
-Open `app.py`, find **DATA DIRECTORY CONFIGURATION** near the top, and change only:
+Open `app.py`, find `CUSTOM_DATA_DIRECTORY` near the top, and change only:
 
 ```python
 CUSTOM_DATA_DIRECTORY = ""
