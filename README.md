@@ -4,4 +4,4 @@
 
 The Olist exploratory data analysis dashboard and its setup instructions are in [`phase1_eda_dashboard/`](phase1_eda_dashboard/README.md).
 
-The Olist CSV files are intentionally excluded from this repository because of their size. Each group member should follow the data-directory instructions in the Phase 1 README.
+The compressed Olist dataset is bundled for both local use and Streamlit deployment. Follow the Phase 1 README to run the dashboard; no separate data download or path configuration is required.

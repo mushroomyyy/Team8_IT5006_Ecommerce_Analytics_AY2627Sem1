@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from urllib.request import Request, urlopen
 import zipfile
 
 import numpy as np
@@ -31,12 +30,10 @@ LOCAL_DATA_DIRECTORIES = (
     APP_DIR / "Olist_CSV",
     APP_DIR.parent / "data" / "Olist_CSV",
 )
-HOSTED_DATA_DIRECTORY = Path(tempfile.gettempdir()) / "olist_eda_dashboard" / "Olist_CSV"
-DEFAULT_DATA_ARCHIVE_URL = (
-    "https://github.com/mushroomyyy/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/"
-    "releases/download/olist-data-v1/olist_csv.zip"
+HOSTED_DATA_DIRECTORY = (
+    Path(tempfile.gettempdir()) / "olist_eda_dashboard" / "v1" / "Olist_CSV"
 )
-DATA_ARCHIVE_URL = os.getenv("OLIST_DATA_URL", DEFAULT_DATA_ARCHIVE_URL)
+BUNDLED_DATA_ARCHIVE = APP_DIR.parent / "streamlit_release" / "data" / "olist_csv.zip"
 
 REQUIRED_FILES = {
     "orders": "olist_orders_dataset.csv",
@@ -157,6 +154,8 @@ def first_existing_data_dir() -> Path | None:
     candidates = []
     if os.getenv("OLIST_DATA_DIR"):
         candidates.append(path_from_text(os.environ["OLIST_DATA_DIR"]))
+    if CUSTOM_DATA_DIRECTORY:
+        candidates.append(path_from_text(CUSTOM_DATA_DIRECTORY))
     candidates.extend(LOCAL_DATA_DIRECTORIES)
     for candidate in candidates:
         if candidate.is_dir() and not missing_files(candidate):
@@ -170,34 +169,32 @@ def missing_files(data_dir: Path) -> list[str]:
 
 @st.cache_resource(show_spinner="Loading Olist data...")
 def resolve_data_dir() -> Path:
-    """Resolve local data when present, or download the hosted release once."""
+    """Resolve local data when present, or extract the bundled hosted data once."""
     local_data_dir = first_existing_data_dir()
     if local_data_dir is not None:
         return local_data_dir
     if HOSTED_DATA_DIRECTORY.is_dir() and not missing_files(HOSTED_DATA_DIRECTORY):
         return HOSTED_DATA_DIRECTORY
 
+    if not BUNDLED_DATA_ARCHIVE.is_file():
+        raise RuntimeError("The bundled Olist data package is unavailable.")
+
     HOSTED_DATA_DIRECTORY.mkdir(parents=True, exist_ok=True)
-    request = Request(DATA_ARCHIVE_URL, headers={"User-Agent": "Olist-EDA-Dashboard"})
-    with tempfile.NamedTemporaryFile(suffix=".zip") as archive_file:
-        with urlopen(request, timeout=180) as response:
-            shutil.copyfileobj(response, archive_file)
-        archive_file.flush()
-        with zipfile.ZipFile(archive_file.name) as archive:
-            archive_members = {
-                Path(member).name: member
-                for member in archive.namelist()
-                if not member.endswith("/")
-            }
-            unavailable = [
-                filename for filename in REQUIRED_FILES.values() if filename not in archive_members
-            ]
-            if unavailable:
-                raise RuntimeError("The hosted data package is incomplete.")
-            for filename in REQUIRED_FILES.values():
-                with archive.open(archive_members[filename]) as source:
-                    with (HOSTED_DATA_DIRECTORY / filename).open("wb") as destination:
-                        shutil.copyfileobj(source, destination)
+    with zipfile.ZipFile(BUNDLED_DATA_ARCHIVE) as archive:
+        archive_members = {
+            Path(member).name: member
+            for member in archive.namelist()
+            if not member.endswith("/")
+        }
+        unavailable = [
+            filename for filename in REQUIRED_FILES.values() if filename not in archive_members
+        ]
+        if unavailable:
+            raise RuntimeError("The bundled data package is incomplete.")
+        for filename in REQUIRED_FILES.values():
+            with archive.open(archive_members[filename]) as source:
+                with (HOSTED_DATA_DIRECTORY / filename).open("wb") as destination:
+                    shutil.copyfileobj(source, destination)
 
     return HOSTED_DATA_DIRECTORY
 
@@ -670,11 +667,11 @@ if IS_HOSTED_RELEASE:
 else:
     with st.sidebar:
         st.header("Data and filters")
-        initial_dir = first_existing_data_dir() or LOCAL_DATA_DIRECTORIES[0]
-        with st.expander("Data location", expanded=not initial_dir.is_dir()):
+        initial_dir = first_existing_data_dir() or resolve_data_dir()
+        with st.expander("Data location", expanded=False):
             st.caption(
-                "Paste the folder containing all nine CSV files here, or set "
-                "CUSTOM_DATA_DIRECTORY near the top of app.py."
+                "The bundled dataset is used automatically. To use another copy, paste "
+                "the folder containing all nine CSV files here."
             )
             data_dir_text = st.text_input(
                 "Folder containing the nine Olist CSV files",

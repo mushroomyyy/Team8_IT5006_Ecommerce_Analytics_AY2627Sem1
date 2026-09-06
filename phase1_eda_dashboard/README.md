@@ -1,10 +1,10 @@
 # IT5006 Olist E-Commerce EDA Dashboard
 
-## Set your local data folder
+## Data
 
-The CSV files are intentionally not stored in GitHub. Each user must point the app to the folder containing all nine Olist CSV files.
+The compressed Olist dataset is included in `streamlit_release/data/olist_csv.zip`. The app extracts and uses it automatically, so no data-directory setup is required.
 
-Open `app.py`, find `CUSTOM_DATA_DIRECTORY` near the top, and change only:
+To use a different copy of the nine CSV files, either paste its folder into **Data location** in the sidebar or open `app.py` and set:
 
 ```python
 CUSTOM_DATA_DIRECTORY = ""
@@ -23,8 +23,6 @@ CUSTOM_DATA_DIRECTORY = r"C:\Users\your-name\path\to\Olist_CSV"
 ```
 
 Use the folder containing the CSVs—not an individual CSV file. Keep the `r` before the path, especially on Windows. Do not commit your personal path; restore `CUSTOM_DATA_DIRECTORY = ""` before committing.
-
-Alternatively, start the app and paste the folder path into **Data location** in the sidebar.
 
 ## First-time setup
 
