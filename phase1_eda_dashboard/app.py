@@ -131,6 +131,52 @@ st.markdown(
         margin: 0.5rem 0 1rem 0;
       }
       .small-note {color: #526777; font-size: 0.88rem;}
+      .kpi-subheader {
+        color: #29445D;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0.2rem 0 0.6rem 0;
+      }
+      .kpi-help-wrap {
+        position: relative;
+        display: inline-flex;
+        margin-left: 0.3rem;
+        vertical-align: middle;
+      }
+      .kpi-help-icon {
+        display: flex;
+        width: 16px;
+        height: 16px;
+        color: #16324F;
+        cursor: pointer;
+      }
+      .kpi-help-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        bottom: 135%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #F0F5F9;
+        color: #16324F;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.4;
+        text-align: left;
+        white-space: normal;
+        width: max-content;
+        max-width: 220px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
+        transition: opacity 0.15s ease;
+        z-index: 999;
+      }
+      .kpi-help-wrap:hover .kpi-help-tooltip,
+      .kpi-help-wrap:focus-within .kpi-help-tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
       div[data-baseweb="tab-list"] {gap: 0.75rem;}
       button[data-baseweb="tab"] {
         font-weight: 600;
@@ -647,8 +693,8 @@ def empty_state(message: str):
 st.markdown(
     """
     <div class="hero">
-      <h1>Olist E-Commerce EDA Dashboard</h1>
-      <p>Interactive exploratory analysis of orders, delivery performance, geography, sellers and customer experience.</p>
+      <h1>IT5006 Olist E-Commerce EDA Dashboard (Team 8)</h1>
+      <p>Interactive exploratory data analysis of orders, delivery performance, geography, sellers and customer experience.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -707,26 +753,24 @@ with st.sidebar:
     max_date = order_df["purchase_date"].max().date()
     analysis_start = max(min_date, pd.Timestamp("2017-01-01").date())
     analysis_end = min(max_date, pd.Timestamp("2018-08-31").date())
-    use_complete_window = st.toggle(
-        "Use recommended complete-month window",
-        value=True,
-        help=(
-            "Uses January 2017 through August 2018, excluding the partial/test period "
-            "before 2017 and the incomplete months after August 2018."
-        ),
-    )
-    st.caption(
-        "Recommended window: January 2017–August 2018. Earlier records are sparse and "
-        "discontinuous, while September–October 2018 are incomplete; excluding them avoids "
-        "misleading monthly comparisons."
-    )
     selected_dates = st.date_input(
-        "Purchase date range",
+        "Date range",
         value=(analysis_start, analysis_end),
         min_value=min_date,
         max_value=max_date,
-        disabled=use_complete_window,
+        disabled=st.session_state.get("use_complete_window", True),
     )
+    use_complete_window = st.toggle(
+        "Use recommended date range of Jan 2017 to Aug 2018",
+        value=True,
+        key="use_complete_window",
+        help=(
+            "Records before January 2017 and after August 2018 are sparse and incomplete. "
+            "While we have made all dates available for analysis, preliminary observations indicate "
+            "that analysis beyond the recommended date range is potentially misleading."
+        ),
+    )
+
     if use_complete_window:
         selected_start, selected_end = analysis_start, analysis_end
     elif len(selected_dates) == 2:
@@ -808,31 +852,55 @@ if filtered.empty:
 
 
 metrics = [
-    ("Orders", f"{filtered['order_id'].nunique():,}"),
-    ("Customers", f"{filtered['customer_unique_id'].nunique():,}"),
-    ("Order value", f"R$ {filtered['order_value'].sum():,.0f}"),
+    ("Total Orders", f"{filtered['order_id'].nunique():,}"),
+    ("Total Customers", f"{filtered['customer_unique_id'].nunique():,}"),
+    ("Total Order Value", f"R$ {filtered['order_value'].sum():,.0f}"),
     (
-        "Late-delivery rate",
+        "Late-delivery Rate",
         f"{delivery_filtered['late'].mean():.1%}" if not delivery_filtered.empty else "N/A",
     ),
     (
-        "Median deviation",
+        "Median Delivery Deviation",
         f"{delivery_filtered['delivery_deviation_days'].median():.0f} days"
         if not delivery_filtered.empty
         else "N/A",
     ),
     (
-        "Average review",
+        "Average Review Score",
         f"{review_filtered['review_score'].mean():.2f} / 5"
         if not review_filtered.empty
         else "N/A",
     ),
 ]
+KPI_HELP = {
+    "Median Delivery Deviation": (
+        "How many days early or late a typical delivered order arrives, compared to the "
+        "estimated delivery date. Negative means early, positive means late."
+    ),
+}
+KPI_HELP_ICON = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" '
+    'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+    'stroke-linejoin="round" class="kpi-help-icon"><circle cx="12" cy="12" r="10"></circle>'
+    '<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>'
+    '<line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+)
 metric_cards = "".join(
-    f'<div class="kpi-card"><div class="kpi-label">{label}</div>'
+    f'<div class="kpi-card"><div class="kpi-label">{label}'
+    + (
+        f'<span class="kpi-help-wrap">{KPI_HELP_ICON}'
+        f'<span class="kpi-help-tooltip">{KPI_HELP[label]}</span></span>'
+        if label in KPI_HELP
+        else ""
+    )
+    + "</div>"
     f'<div class="kpi-value{" kpi-value-compact" if label == "Order value" else ""}">'
     f'{value}</div></div>'
     for label, value in metrics
+)
+st.markdown(
+    '<div class="kpi-subheader">Totals for orders matching the current filters</div>',
+    unsafe_allow_html=True,
 )
 st.markdown(f'<div class="kpi-grid">{metric_cards}</div>', unsafe_allow_html=True)
 
@@ -850,7 +918,6 @@ overview_tab, delivery_tab, geography_tab, seller_tab, review_tab, data_tab = st
 
 
 with overview_tab:
-    left, right = st.columns([1.25, 1])
     monthly = (
         filtered.groupby("purchase_month", as_index=False)
         .agg(
@@ -859,6 +926,7 @@ with overview_tab:
             average_order_value=("order_value", "mean"),
         )
     )
+
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
         go.Bar(
@@ -885,7 +953,30 @@ with overview_tab:
     fig.update_yaxes(title_text="Revenue (R$)", secondary_y=False)
     fig.update_yaxes(title_text="Average order value (R$)", secondary_y=True)
     fig.update_layout(title="Monthly Revenue and Average Order Value")
-    left.plotly_chart(chart_style(fig), use_container_width=True)
+    st.plotly_chart(chart_style(fig), use_container_width=True)
+
+    top_categories = (
+        filtered.groupby("primary_category")["item_count"].sum().nlargest(6).index
+    )
+    category_monthly = (
+        filtered[filtered["primary_category"].isin(top_categories)]
+        .groupby(["purchase_month", "primary_category"], as_index=False)
+        .agg(items_sold=("item_count", "sum"))
+    )
+    fig = px.line(
+        category_monthly,
+        x="purchase_month",
+        y="items_sold",
+        color="primary_category",
+        markers=True,
+        title="Monthly Items Sold for Leading Product Categories",
+        labels={
+            "purchase_month": "Purchase month",
+            "items_sold": "Items sold",
+            "primary_category": "Category",
+        },
+    )
+    st.plotly_chart(chart_style(fig, 480), use_container_width=True)
 
     categories_summary = (
         filtered.groupby("primary_category", as_index=False)
@@ -895,26 +986,35 @@ with overview_tab:
             order_value=("order_value", "sum"),
         )
     )
-    category_measure = right.radio(
-        "Rank product categories by",
-        ["Order value", "Items sold"],
-        horizontal=True,
-        key="category_measure",
-    )
-    category_column = "order_value" if category_measure == "Order value" else "item_quantity"
-    categories_summary = categories_summary.nlargest(12, category_column).sort_values(category_column)
+    left, right = st.columns(2)
+    items_ranked = categories_summary.nlargest(12, "item_quantity").sort_values("item_quantity")
     fig = px.bar(
-        categories_summary,
-        x=category_column,
+        items_ranked,
+        x="item_quantity",
+        y="primary_category",
+        orientation="h",
+        color_discrete_sequence=[TEAL],
+        labels={
+            "item_quantity": "Items sold",
+            "primary_category": "Category",
+        },
+        title="Top Categories by Items Sold",
+        hover_data=["orders", "item_quantity", "order_value"],
+    )
+    left.plotly_chart(chart_style(fig), use_container_width=True)
+
+    value_ranked = categories_summary.nlargest(12, "order_value").sort_values("order_value")
+    fig = px.bar(
+        value_ranked,
+        x="order_value",
         y="primary_category",
         orientation="h",
         color_discrete_sequence=[TEAL],
         labels={
             "order_value": "Order value (R$)",
-            "item_quantity": "Items sold",
             "primary_category": "Category",
         },
-        title=f"Top Categories by {category_measure}",
+        title="Top Categories by Order Value",
         hover_data=["orders", "item_quantity", "order_value"],
     )
     right.plotly_chart(chart_style(fig), use_container_width=True)
@@ -951,55 +1051,15 @@ with overview_tab:
         aspect="auto",
         color_continuous_scale=[[0, "#EDF4F8"], [0.5, BLUE], [1, NAVY]],
         labels=dict(x="Hour", y="Weekday", color="Orders"),
-        title="Order Rhythm by Weekday and Hour",
+        title="Number of Orders by Weekday and Hour",
     )
     c2.plotly_chart(chart_style(fig, 390), use_container_width=True)
-
-    with st.expander("Product-category seasonality", expanded=False):
-        top_categories = (
-            filtered.groupby("primary_category")["item_count"].sum().nlargest(6).index
-        )
-        category_monthly = (
-            filtered[filtered["primary_category"].isin(top_categories)]
-            .groupby(["purchase_month", "primary_category"], as_index=False)
-            .agg(items_sold=("item_count", "sum"))
-        )
-        fig = px.line(
-            category_monthly,
-            x="purchase_month",
-            y="items_sold",
-            color="primary_category",
-            markers=True,
-            title="Monthly Items Sold for Leading Product Categories",
-            labels={
-                "purchase_month": "Purchase month",
-                "items_sold": "Items sold",
-                "primary_category": "Category",
-            },
-        )
-        fig.add_vrect(
-            x0="2017-11-01",
-            x1="2017-12-01",
-            fillcolor=ORANGE,
-            opacity=0.10,
-            line_width=0,
-            annotation_text="November 2017",
-            annotation_position="top left",
-        )
-        st.plotly_chart(chart_style(fig, 480), use_container_width=True)
-        st.caption(
-            "November 2017 includes the Black Friday and Cyber Monday demand spike identified in V2."
-        )
 
 
 with delivery_tab:
     if delivery_filtered.empty:
         empty_state("No delivered orders with valid promise dates match the filters.")
     else:
-        st.markdown(
-            '<div class="callout"><b>Target definition:</b> delivery deviation = actual delivery date - estimated delivery date. Negative values are early; positive values are late.</div>',
-            unsafe_allow_html=True,
-        )
         c1, c2 = st.columns([1.25, 0.75])
         low_clip = delivery_filtered["delivery_deviation_days"].quantile(0.01)
         high_clip = delivery_filtered["delivery_deviation_days"].quantile(0.99)
@@ -1037,6 +1097,10 @@ with delivery_tab:
         fig.update_traces(textposition="outside", cliponaxis=False)
         fig.update_yaxes(range=[0, 105])
         c2.plotly_chart(chart_style(fig), use_container_width=True)
+        st.caption(
+            "Delivery deviation is the difference between the actual delivery date and estimated delivery date. "
+            "Negative values indicate early delivery, while positive values indicate late delivery."
+        )
 
         route_order = ["All same-state", "All interstate", "Mixed"]
         route_summary = (
@@ -1085,8 +1149,9 @@ with delivery_tab:
             fig.update_yaxes(range=[0, route_summary["late_rate_pct"].max() * 1.18])
         st.plotly_chart(chart_style(fig, 440), use_container_width=True)
         st.caption(
-            "Same-state orders use sellers located entirely within the customer’s state; "
-            "interstate orders use sellers entirely outside it; mixed orders contain both."
+            "Same-state routes are those with sellers located entirely within the customer’s state. "
+            "Interstate routes are those with sellers entirely outside the customer's state. "
+            "Mixed orders contain both."
         )
 
         monthly_delivery = (
