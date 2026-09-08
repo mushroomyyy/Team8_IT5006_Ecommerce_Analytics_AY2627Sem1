@@ -1060,7 +1060,42 @@ with delivery_tab:
     if delivery_filtered.empty:
         empty_state("No delivered orders with valid promise dates match the filters.")
     else:
-        c1, c2 = st.columns([1.25, 0.75])
+        # Row 1: Monthly Delivered Orders and Late-delivery Rate (full width)
+        monthly_delivery = (
+            delivery_filtered.groupby("purchase_month", as_index=False)
+            .agg(
+                delivered_orders=("order_id", "nunique"),
+                late_rate=("late", "mean"),
+            )
+        )
+        monthly_delivery["late_rate_pct"] = 100 * monthly_delivery["late_rate"]
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(
+            go.Bar(
+                x=monthly_delivery["purchase_month"],
+                y=monthly_delivery["delivered_orders"],
+                name="Delivered orders",
+                marker_color=BLUE,
+            ),
+            secondary_y=False,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=monthly_delivery["purchase_month"],
+                y=monthly_delivery["late_rate_pct"],
+                name="Late-delivery rate",
+                mode="lines+markers",
+                line=dict(color=ORANGE, width=3),
+                hovertemplate="Late-delivery rate: %{y:.1f}%<extra></extra>",
+            ),
+            secondary_y=True,
+        )
+        fig.update_yaxes(title_text="Delivered orders", secondary_y=False)
+        fig.update_yaxes(title_text="Late-delivery rate (%)", secondary_y=True)
+        fig.update_layout(title="Monthly Delivered Orders and Late-delivery Rate")
+        st.plotly_chart(chart_style(fig, 460), use_container_width=True)
+
+        # Row 2: Delivery Deviation Distribution (full width)
         low_clip = delivery_filtered["delivery_deviation_days"].quantile(0.01)
         high_clip = delivery_filtered["delivery_deviation_days"].quantile(0.99)
         deviation_plot = delivery_filtered[
@@ -1075,8 +1110,14 @@ with delivery_tab:
             labels={"delivery_deviation_days": "Days early (-) / late (+)"},
         )
         fig.add_vline(x=0, line_dash="dash", line_color=ORANGE, annotation_text="Promised date")
-        c1.plotly_chart(chart_style(fig), use_container_width=True)
+        st.plotly_chart(chart_style(fig), use_container_width=True)
+        st.caption(
+            "Delivery deviation is the difference between the actual delivery date and estimated delivery date. "
+            "Negative values indicate early delivery, while positive values indicate late delivery."
+        )
 
+        # Row 3: Delivery Promise Outcome Distribution and Late-delivery Rate by Estimated
+        # Delivery Window (equal-width columns)
         late_mix = pd.DataFrame(
             {
                 "Delivery status": ["By promised date", "Late"],
@@ -1084,6 +1125,26 @@ with delivery_tab:
             }
         )
         late_mix["share_pct"] = 100 * late_mix["Orders"] / late_mix["Orders"].sum()
+
+        window_labels = ["0–10", "11–20", "21–30", "31–40", "41+"]
+        window_data = delivery_filtered.copy()
+        window_data["estimated_window_band"] = pd.cut(
+            window_data["estimated_window_days"],
+            bins=[0, 10, 20, 30, 40, np.inf],
+            labels=window_labels,
+            include_lowest=True,
+        )
+        window_summary = (
+            window_data.groupby("estimated_window_band", observed=True)
+            .agg(
+                delivered_orders=("order_id", "nunique"),
+                late_rate=("late", "mean"),
+            )
+            .reset_index()
+        )
+        window_summary["late_rate_pct"] = 100 * window_summary["late_rate"]
+
+        c1, c2 = st.columns(2)
         fig = px.bar(
             late_mix,
             x="Delivery status",
@@ -1096,12 +1157,27 @@ with delivery_tab:
         )
         fig.update_traces(textposition="outside", cliponaxis=False)
         fig.update_yaxes(range=[0, 105])
-        c2.plotly_chart(chart_style(fig), use_container_width=True)
-        st.caption(
-            "Delivery deviation is the difference between the actual delivery date and estimated delivery date. "
-            "Negative values indicate early delivery, while positive values indicate late delivery."
-        )
+        c1.plotly_chart(chart_style(fig), use_container_width=True)
 
+        fig = px.bar(
+            window_summary,
+            x="estimated_window_band",
+            y="late_rate_pct",
+            text=window_summary["late_rate_pct"].map(lambda value: f"{value:.1f}%"),
+            color_discrete_sequence=[BLUE],
+            title="Late-delivery Rate by Estimated Delivery Window",
+            labels={
+                "estimated_window_band": "Estimated delivery window (days)",
+                "late_rate_pct": "Late rate (%)",
+            },
+            hover_data={"delivered_orders": ":,", "late_rate_pct": ":.1f"},
+        )
+        fig.update_traces(textposition="outside", cliponaxis=False)
+        if not window_summary.empty:
+            fig.update_yaxes(range=[0, window_summary["late_rate_pct"].max() * 1.18])
+        c2.plotly_chart(chart_style(fig, 480), use_container_width=True)
+
+        # Row 4: Late-delivery Rate by Route Type (full width)
         route_order = ["All same-state", "All interstate", "Mixed"]
         route_summary = (
             delivery_filtered.dropna(subset=["route_type"])
@@ -1154,40 +1230,8 @@ with delivery_tab:
             "Mixed orders contain both."
         )
 
-        monthly_delivery = (
-            delivery_filtered.groupby("purchase_month", as_index=False)
-            .agg(
-                delivered_orders=("order_id", "nunique"),
-                late_rate=("late", "mean"),
-            )
-        )
-        monthly_delivery["late_rate_pct"] = 100 * monthly_delivery["late_rate"]
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fig.add_trace(
-            go.Bar(
-                x=monthly_delivery["purchase_month"],
-                y=monthly_delivery["delivered_orders"],
-                name="Delivered orders",
-                marker_color=BLUE,
-            ),
-            secondary_y=False,
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=monthly_delivery["purchase_month"],
-                y=monthly_delivery["late_rate_pct"],
-                name="Late-delivery rate",
-                mode="lines+markers",
-                line=dict(color=ORANGE, width=3),
-                hovertemplate="Late-delivery rate: %{y:.1f}%<extra></extra>",
-            ),
-            secondary_y=True,
-        )
-        fig.update_yaxes(title_text="Delivered orders", secondary_y=False)
-        fig.update_yaxes(title_text="Late-delivery rate (%)", secondary_y=True)
-        fig.update_layout(title="Monthly Delivered Orders and Late-delivery Rate")
-        st.plotly_chart(chart_style(fig, 460), use_container_width=True)
-
+        # Row 5: Delivery Time by Stage: On-time versus Late, then Late-delivery Rate by
+        # Seller-Customer Distance (each full width)
         stage_columns = [
             "purchase_to_approval_days",
             "approval_to_carrier_days",
@@ -1218,26 +1262,6 @@ with delivery_tab:
                 "carrier_to_customer_days": "Carrier to customer",
             }
         )
-
-        window_labels = ["0–10", "11–20", "21–30", "31–40", "41+"]
-        window_data = delivery_filtered.copy()
-        window_data["estimated_window_band"] = pd.cut(
-            window_data["estimated_window_days"],
-            bins=[0, 10, 20, 30, 40, np.inf],
-            labels=window_labels,
-            include_lowest=True,
-        )
-        window_summary = (
-            window_data.groupby("estimated_window_band", observed=True)
-            .agg(
-                delivered_orders=("order_id", "nunique"),
-                late_rate=("late", "mean"),
-            )
-            .reset_index()
-        )
-        window_summary["late_rate_pct"] = 100 * window_summary["late_rate"]
-
-        c1, c2 = st.columns(2)
         fig = px.bar(
             stage_summary,
             x="delivery_outcome",
@@ -1254,25 +1278,7 @@ with delivery_tab:
             },
         )
         fig.update_traces(textposition="inside")
-        c1.plotly_chart(chart_style(fig, 480), use_container_width=True)
-
-        fig = px.bar(
-            window_summary,
-            x="estimated_window_band",
-            y="late_rate_pct",
-            text=window_summary["late_rate_pct"].map(lambda value: f"{value:.1f}%"),
-            color_discrete_sequence=[BLUE],
-            title="Late-delivery Rate by Estimated Delivery Window",
-            labels={
-                "estimated_window_band": "Estimated delivery window (days)",
-                "late_rate_pct": "Late rate (%)",
-            },
-            hover_data={"delivered_orders": ":,", "late_rate_pct": ":.1f"},
-        )
-        fig.update_traces(textposition="outside", cliponaxis=False)
-        if not window_summary.empty:
-            fig.update_yaxes(range=[0, window_summary["late_rate_pct"].max() * 1.18])
-        c2.plotly_chart(chart_style(fig, 480), use_container_width=True)
+        st.plotly_chart(chart_style(fig, 480), use_container_width=True)
 
         distance_bins = [0, 100, 300, 600, 1000, 2000, np.inf]
         distance_labels = ["0-100", "101-300", "301-600", "601-1,000", "1,001-2,000", "2,000+"]
@@ -1294,27 +1300,6 @@ with delivery_tab:
         )
         distance_summary["late_rate_pct"] = 100 * distance_summary["late_rate"]
 
-        deviation_scope = st.radio(
-            "Delivery-deviation chart scope",
-            ["Late deliveries only", "All delivered orders"],
-            horizontal=True,
-            help="This selection applies to the right-hand severity chart. The late-rate chart always uses all delivered orders.",
-        )
-        deviation_data = (
-            distance_data[distance_data["late"].eq(1)].copy()
-            if deviation_scope == "Late deliveries only"
-            else distance_data.copy()
-        )
-        deviation_summary = (
-            deviation_data.groupby("distance_band", observed=True)
-            .agg(
-                orders=("order_id", "nunique"),
-                median_deviation=("delivery_deviation_days", "median"),
-            )
-            .reset_index()
-        )
-
-        c1, c2 = st.columns(2)
         fig = px.bar(
             distance_summary,
             x="distance_band",
@@ -1326,133 +1311,129 @@ with delivery_tab:
             hover_data=["orders"],
         )
         fig.update_traces(textposition="outside", cliponaxis=False)
-        c1.plotly_chart(chart_style(fig), use_container_width=True)
+        st.plotly_chart(chart_style(fig), use_container_width=True)
 
-        if deviation_summary.empty:
-            c2.info("No orders match the selected delivery-deviation scope.")
+        # Row 6: Median Delay Among Late Orders by Distance and Median Delivery Deviation by
+        # Distance (side by side, equal width)
+        late_deviation_summary = (
+            distance_data[distance_data["late"].eq(1)]
+            .groupby("distance_band", observed=True)
+            .agg(
+                orders=("order_id", "nunique"),
+                median_deviation=("delivery_deviation_days", "median"),
+            )
+            .reset_index()
+        )
+        all_deviation_summary = (
+            distance_data.groupby("distance_band", observed=True)
+            .agg(
+                orders=("order_id", "nunique"),
+                median_deviation=("delivery_deviation_days", "median"),
+            )
+            .reset_index()
+        )
+
+        c1, c2 = st.columns(2)
+        if late_deviation_summary.empty:
+            c1.info("No late orders match the current filters.")
         else:
-            late_only = deviation_scope == "Late deliveries only"
             fig = px.bar(
-                deviation_summary,
+                late_deviation_summary,
                 x="distance_band",
                 y="median_deviation",
-                text=deviation_summary["median_deviation"].map(
+                text=late_deviation_summary["median_deviation"].map(
                     lambda value: f"{value:.1f} days"
                 ),
                 color_discrete_sequence=[BLUE],
-                title=(
-                    "Median Delay Among Late Orders by Distance"
-                    if late_only
-                    else "Median Delivery Deviation by Distance"
-                ),
+                title="Median Delay Among Late Orders by Distance",
                 labels={
                     "distance_band": "Maximum distance (km)",
-                    "median_deviation": (
-                        "Median days late"
-                        if late_only
-                        else "Days early (-) / late (+)"
-                    ),
+                    "median_deviation": "Median days late",
                 },
                 hover_data=["orders"],
             )
             fig.update_traces(textposition="outside", cliponaxis=False)
-            if not late_only:
-                fig.add_hline(y=0, line_color=NAVY)
-            c2.plotly_chart(chart_style(fig), use_container_width=True)
+            c1.plotly_chart(chart_style(fig), use_container_width=True)
 
-        with st.expander("Pre-outcome order attributes and late-delivery signal", expanded=False):
-            feature_options = {
-                "Order value": "order_value",
-                "Freight value": "freight_value",
-                "Product weight": "total_weight_g",
-                "Items per order": "item_count",
-            }
-            feature_label = st.selectbox(
-                "Order attribute",
-                list(feature_options),
-                key="continuous_feature",
-            )
-            feature_column = feature_options[feature_label]
-            feature_data = delivery_filtered.dropna(subset=[feature_column]).copy()
-            if feature_column == "item_count":
-                feature_data["feature_band"] = pd.cut(
-                    feature_data[feature_column],
-                    bins=[0, 1, 2, 3, np.inf],
-                    labels=["1 item", "2 items", "3 items", "4+ items"],
-                    include_lowest=True,
-                )
-            else:
-                feature_data["feature_band"] = pd.qcut(
-                    feature_data[feature_column], q=5, duplicates="drop"
-                )
-                category_count = len(feature_data["feature_band"].cat.categories)
-                feature_data["feature_band"] = feature_data["feature_band"].cat.rename_categories(
-                    [f"Q{index + 1}" for index in range(category_count)]
-                )
-            feature_summary = (
-                feature_data.groupby("feature_band", observed=True)
-                .agg(
-                    orders=("order_id", "nunique"),
-                    late_rate=("late", "mean"),
-                    minimum=(feature_column, "min"),
-                    maximum=(feature_column, "max"),
-                )
-                .reset_index()
-            )
-            feature_summary["late_rate_pct"] = 100 * feature_summary["late_rate"]
+        if all_deviation_summary.empty:
+            c2.info("No delivered orders match the current filters.")
+        else:
             fig = px.bar(
-                feature_summary,
-                x="feature_band",
-                y="late_rate_pct",
-                text=feature_summary["late_rate_pct"].map(lambda value: f"{value:.1f}%"),
+                all_deviation_summary,
+                x="distance_band",
+                y="median_deviation",
+                text=all_deviation_summary["median_deviation"].map(
+                    lambda value: f"{value:.1f} days"
+                ),
                 color_discrete_sequence=[BLUE],
-                title=f"Late-delivery Rate by {feature_label}",
-                labels={"feature_band": f"{feature_label} band", "late_rate_pct": "Late rate (%)"},
-                hover_data={"orders": ":,", "minimum": ":,.1f", "maximum": ":,.1f"},
+                title="Median Delivery Deviation by Distance",
+                labels={
+                    "distance_band": "Maximum distance (km)",
+                    "median_deviation": "Days early (-) / late (+)",
+                },
+                hover_data=["orders"],
             )
             fig.update_traces(textposition="outside", cliponaxis=False)
-            if not feature_summary.empty:
-                fig.update_yaxes(range=[0, feature_summary["late_rate_pct"].max() * 1.18])
-            st.plotly_chart(chart_style(fig, 430), use_container_width=True)
-            st.caption(
-                "Q1 is the lowest-value group and Q5 the highest; item counts use explicit basket-size bands."
-            )
+            fig.add_hline(y=0, line_color=NAVY)
+            c2.plotly_chart(chart_style(fig), use_container_width=True)
 
-        st.subheader("Historical cohort explorer")
-        st.caption("Interactive historical comparison only; this is not yet a predictive model.")
-        s1, s2, s3 = st.columns(3)
-        max_scenario_distance = int(max(100, np.ceil(delivery_filtered["max_distance_km"].max() / 100) * 100))
-        minimum_distance = s1.slider(
-            "Minimum distance (km)", 0, max_scenario_distance, 0, 100, key="scenario_distance"
+        # Row 7: Pre-outcome order attributes and late-delivery signal (plain section, full width)
+        st.subheader("Pre-outcome order attributes and late-delivery signal")
+        feature_options = {
+            "Order value": "order_value",
+            "Freight value": "freight_value",
+            "Product weight": "total_weight_g",
+            "Items per order": "item_count",
+        }
+        feature_label = st.selectbox(
+            "Order attribute",
+            list(feature_options),
+            key="continuous_feature",
         )
-        max_window = int(max(1, np.ceil(delivery_filtered["estimated_window_days"].max())))
-        maximum_promise_window = s2.slider(
-            "Maximum estimated window (days)", 1, max_window, max_window, key="scenario_window"
+        feature_column = feature_options[feature_label]
+        feature_data = delivery_filtered.dropna(subset=[feature_column]).copy()
+        if feature_column == "item_count":
+            feature_data["feature_band"] = pd.cut(
+                feature_data[feature_column],
+                bins=[0, 1, 2, 3, np.inf],
+                labels=["1 item", "2 items", "3 items", "4+ items"],
+                include_lowest=True,
+            )
+        else:
+            feature_data["feature_band"] = pd.qcut(
+                feature_data[feature_column], q=5, duplicates="drop"
+            )
+            category_count = len(feature_data["feature_band"].cat.categories)
+            feature_data["feature_band"] = feature_data["feature_band"].cat.rename_categories(
+                [f"Q{index + 1}" for index in range(category_count)]
+            )
+        feature_summary = (
+            feature_data.groupby("feature_band", observed=True)
+            .agg(
+                orders=("order_id", "nunique"),
+                late_rate=("late", "mean"),
+                minimum=(feature_column, "min"),
+                maximum=(feature_column, "max"),
+            )
+            .reset_index()
         )
-        minimum_prior_late = s3.slider(
-            "Minimum prior seller late rate (%)",
-            0,
-            50,
-            0,
-            1,
-            key="scenario_seller_rate",
+        feature_summary["late_rate_pct"] = 100 * feature_summary["late_rate"]
+        fig = px.bar(
+            feature_summary,
+            x="feature_band",
+            y="late_rate_pct",
+            text=feature_summary["late_rate_pct"].map(lambda value: f"{value:.1f}%"),
+            color_discrete_sequence=[BLUE],
+            title=f"Late-delivery Rate by {feature_label}",
+            labels={"feature_band": f"{feature_label} band", "late_rate_pct": "Late rate (%)"},
+            hover_data={"orders": ":,", "minimum": ":,.1f", "maximum": ":,.1f"},
         )
-        scenario = delivery_filtered[
-            delivery_filtered["max_distance_km"].ge(minimum_distance)
-            & delivery_filtered["estimated_window_days"].le(maximum_promise_window)
-            & delivery_filtered["maximum_prior_late_rate"].fillna(0).ge(minimum_prior_late / 100)
-        ]
-        scenario_metrics = st.columns(4)
-        scenario_metrics[0].metric("Comparable orders", f"{len(scenario):,}")
-        scenario_metrics[1].metric(
-            "Observed late rate", f"{scenario['late'].mean():.1%}" if len(scenario) else "N/A"
-        )
-        scenario_metrics[2].metric(
-            "Median deviation",
-            f"{scenario['delivery_deviation_days'].median():.0f} days" if len(scenario) else "N/A",
-        )
-        scenario_metrics[3].metric(
-            "Average review", f"{scenario['review_score'].mean():.2f} / 5" if len(scenario) else "N/A"
+        fig.update_traces(textposition="outside", cliponaxis=False)
+        if not feature_summary.empty:
+            fig.update_yaxes(range=[0, feature_summary["late_rate_pct"].max() * 1.18])
+        st.plotly_chart(chart_style(fig, 430), use_container_width=True)
+        st.caption(
+            "Q1 is the lowest-value group and Q5 the highest; item counts use explicit basket-size bands."
         )
 
 
@@ -1498,13 +1479,7 @@ with geography_tab:
             .agg(orders=("order_id", "nunique"), late_rate=("late", "mean"))
         )
         route_slider_max = max(10, min(1000, int(routes["orders"].max())))
-        minimum_route_orders = st.slider(
-            "Minimum orders per state-to-state route",
-            10,
-            route_slider_max,
-            min(100, route_slider_max),
-            10,
-        )
+        minimum_route_orders = min(100, route_slider_max)
         routes = routes[routes["orders"].ge(minimum_route_orders)].copy()
         routes["route"] = routes["primary_seller_state"] + " → " + routes["customer_state"]
         routes["late_rate_pct"] = 100 * routes["late_rate"]
@@ -1516,8 +1491,8 @@ with geography_tab:
             orientation="h",
             text=routes["late_rate_pct"].map(lambda value: f"{value:.1f}%"),
             color_discrete_sequence=[BLUE],
-            title="Late-delivery Rate Call-outs for High-volume Routes",
-            labels={"orders": "Delivered orders", "route": "Seller → Customer", "late_rate_pct": "Late rate (%)"},
+            title="Late-delivery Rate for High-volume Routes (by State)",
+            labels={"orders": "Delivered orders", "route": "Seller State → Customer State", "late_rate_pct": "Late rate (%)"},
             hover_data={"late_rate_pct": ":.1f"},
         )
         fig.update_traces(textposition="outside", cliponaxis=False)
@@ -1734,9 +1709,6 @@ with review_tab:
             "On-time low reviews",
             f"{review_delivery.loc[review_delivery['review_score'].le(2), 'late'].eq(0).mean():.1%}",
         )
-        st.caption(
-            "Review text is diagnostic, not a pre-outcome predictor: it is written after the customer experience."
-        )
 
 
 with data_tab:
@@ -1804,22 +1776,6 @@ with data_tab:
         "Payments and reviews are aggregated before joining, while order-level counts use "
         "unique order_id to avoid multiplication from line items."
     )
-
-    st.subheader("Feature timing and leakage guardrails")
-    feature_dictionary = pd.DataFrame(
-        [
-            ("Purchase timing", "Before outcome", "Candidate predictor"),
-            ("Estimated delivery window", "Before outcome", "Candidate predictor"),
-            ("Seller/customer location and distance", "Before outcome", "Candidate predictor"),
-            ("Basket, product, price and freight", "Before outcome", "Candidate predictor"),
-            ("Seller history completed before purchase", "Before outcome", "Candidate predictor"),
-            ("Actual carrier handover", "After purchase", "Exclude from order-time model"),
-            ("Actual customer delivery", "Outcome", "Target construction only"),
-            ("Review score and comments", "After outcome", "Diagnostic analysis only"),
-        ],
-        columns=["Feature", "Availability", "Modelling use"],
-    )
-    st.dataframe(feature_dictionary, use_container_width=True, hide_index=True)
 
     st.subheader("Definitions")
     st.markdown(
