@@ -908,7 +908,7 @@ st.markdown(f'<div class="kpi-grid">{metric_cards}</div>', unsafe_allow_html=Tru
 overview_tab, delivery_tab, geography_tab, seller_tab, review_tab, data_tab = st.tabs(
     [
         "Executive overview",
-        "Delivery promises",
+        "Delivery rate",
         "Geography",
         "Seller reliability",
         "Customer behavior",
@@ -1378,7 +1378,7 @@ with delivery_tab:
             c2.plotly_chart(chart_style(fig), use_container_width=True)
 
         # Row 7: Pre-outcome order attributes and late-delivery signal (plain section, full width)
-        st.subheader("Pre-outcome order attributes and late-delivery signal")
+        st.subheader("Late Delivery Rates by Order Attribute")
         feature_options = {
             "Order value": "order_value",
             "Freight value": "freight_value",
@@ -1433,7 +1433,10 @@ with delivery_tab:
             fig.update_yaxes(range=[0, feature_summary["late_rate_pct"].max() * 1.18])
         st.plotly_chart(chart_style(fig, 430), use_container_width=True)
         st.caption(
-            "Q1 is the lowest-value group and Q5 the highest; item counts use explicit basket-size bands."
+            "For Order value, Freight value, and Product weight, orders are split into 5 equal-sized "
+            "groups (quintiles) from lowest to highest: Q1 is the bottom 20% of orders by that "
+            "attribute and Q5 is the top 20%. Items per order instead uses fixed groups "
+            "(1 item, 2 items, 3 items, 4+ items) rather than quintiles."
         )
 
 
@@ -1594,7 +1597,6 @@ with seller_tab:
             seller_performance,
             x="delivered_orders",
             y="late_rate_pct",
-            size="delivered_orders",
             color_discrete_sequence=[BLUE],
             hover_name="seller_id",
             title="Seller Volume and Late-delivery Rate",
@@ -1604,8 +1606,14 @@ with seller_tab:
                 "median_deviation": "Median deviation (days)",
             },
             hover_data={"late_rate_pct": ":.1f", "median_deviation": ":.1f"},
+            log_x=True,
         )
+        fig.update_traces(marker=dict(opacity=0.55, line=dict(width=0.5, color=NAVY)))
         st.plotly_chart(chart_style(fig, 520), use_container_width=True)
+        st.caption(
+            "Each circle represents a seller. The x-axis uses a log scale to spread out the "
+            "large number of lower-volume sellers, who would otherwise overlap near the left edge."
+        )
 
 
 with review_tab:
