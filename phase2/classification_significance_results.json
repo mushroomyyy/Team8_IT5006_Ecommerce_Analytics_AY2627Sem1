@@ -1,0 +1,388 @@
+{
+  "status": "exploratory_conditional_inference_not_final",
+  "method": "Paired circular day-block resampling within each validation month; centered-null approximate p-values; Holm within each block-length analysis.",
+  "limitations": "Fixed predictions, no retraining. Assumes local dependence adequately captured by block length; monthly drift and adaptive feature/model search are not fully accounted for. CIs are marginal, not simultaneous.",
+  "analyses": [
+    {
+      "block_days": 7,
+      "repeats": 1999,
+      "metric": "equal-month mean average precision",
+      "macro_ap": {
+        "base_catboost": 0.1829971552883607,
+        "base_logistic_regression": 0.1981420837793352,
+        "base_random_forest": 0.1708079735490973,
+        "base_xgboost": 0.18446877487438582,
+        "enriched_catboost": 0.19104645662178774,
+        "enriched_logistic_regression": 0.19751098570971562,
+        "enriched_random_forest": 0.18504704652359583,
+        "enriched_xgboost": 0.18764231778532003
+      },
+      "comparisons": [
+        {
+          "candidate": "base_catboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.015144928490974513,
+          "ci95_percentile": [
+            -0.020688603609556246,
+            -0.009471660310753666
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "base_random_forest",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.027334110230237907,
+          "ci95_percentile": [
+            -0.03417899673257172,
+            -0.019968238709956405
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "base_xgboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.013673308904949388,
+          "ci95_percentile": [
+            -0.021611890444023053,
+            -0.005968993334918205
+          ],
+          "p_approx_two_sided": 0.001,
+          "p_holm": 0.007
+        },
+        {
+          "candidate": "enriched_catboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.007095627157547468,
+          "ci95_percentile": [
+            -0.012096480873820764,
+            -0.0019685130382729255
+          ],
+          "p_approx_two_sided": 0.0065,
+          "p_holm": 0.0195
+        },
+        {
+          "candidate": "enriched_logistic_regression",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.0006310980696195845,
+          "ci95_percentile": [
+            -0.005186925435091552,
+            0.003973189629754121
+          ],
+          "p_approx_two_sided": 0.7985,
+          "p_holm": 0.7985
+        },
+        {
+          "candidate": "enriched_random_forest",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.013095037255739378,
+          "ci95_percentile": [
+            -0.02114073381080036,
+            -0.005328779115242359
+          ],
+          "p_approx_two_sided": 0.001,
+          "p_holm": 0.007
+        },
+        {
+          "candidate": "enriched_xgboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.01049976599401517,
+          "ci95_percentile": [
+            -0.01689613027843346,
+            -0.0038978926171151173
+          ],
+          "p_approx_two_sided": 0.003,
+          "p_holm": 0.012
+        },
+        {
+          "candidate": "enriched_random_forest",
+          "reference": "base_random_forest",
+          "delta_macro_ap": 0.014239072974498529,
+          "ci95_percentile": [
+            0.007753919377791746,
+            0.020559616564305775
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "enriched_xgboost",
+          "reference": "base_xgboost",
+          "delta_macro_ap": 0.0031735429109342184,
+          "ci95_percentile": [
+            -0.0028858570494998694,
+            0.009071070435932208
+          ],
+          "p_approx_two_sided": 0.294,
+          "p_holm": 0.588
+        },
+        {
+          "candidate": "enriched_catboost",
+          "reference": "base_catboost",
+          "delta_macro_ap": 0.008049301333427045,
+          "ci95_percentile": [
+            0.0035634369357776226,
+            0.012702295949302096
+          ],
+          "p_approx_two_sided": 0.0015,
+          "p_holm": 0.0075
+        }
+      ]
+    },
+    {
+      "block_days": 3,
+      "repeats": 1999,
+      "metric": "equal-month mean average precision",
+      "macro_ap": {
+        "base_catboost": 0.1829971552883607,
+        "base_logistic_regression": 0.1981420837793352,
+        "base_random_forest": 0.1708079735490973,
+        "base_xgboost": 0.18446877487438582,
+        "enriched_catboost": 0.19104645662178774,
+        "enriched_logistic_regression": 0.19751098570971562,
+        "enriched_random_forest": 0.18504704652359583,
+        "enriched_xgboost": 0.18764231778532003
+      },
+      "comparisons": [
+        {
+          "candidate": "base_catboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.015144928490974513,
+          "ci95_percentile": [
+            -0.02159951994624244,
+            -0.009089404120017559
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "base_random_forest",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.027334110230237907,
+          "ci95_percentile": [
+            -0.034429053393116055,
+            -0.02004524662964865
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "base_xgboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.013673308904949388,
+          "ci95_percentile": [
+            -0.02162908658918601,
+            -0.006108525625000398
+          ],
+          "p_approx_two_sided": 0.001,
+          "p_holm": 0.007
+        },
+        {
+          "candidate": "enriched_catboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.007095627157547468,
+          "ci95_percentile": [
+            -0.013017316345768252,
+            -0.0010373681095615453
+          ],
+          "p_approx_two_sided": 0.023,
+          "p_holm": 0.069
+        },
+        {
+          "candidate": "enriched_logistic_regression",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.0006310980696195845,
+          "ci95_percentile": [
+            -0.0059614767268235695,
+            0.0047068705509025885
+          ],
+          "p_approx_two_sided": 0.8105,
+          "p_holm": 0.8105
+        },
+        {
+          "candidate": "enriched_random_forest",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.013095037255739378,
+          "ci95_percentile": [
+            -0.020338514590830675,
+            -0.004948368041089084
+          ],
+          "p_approx_two_sided": 0.002,
+          "p_holm": 0.012
+        },
+        {
+          "candidate": "enriched_xgboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.01049976599401517,
+          "ci95_percentile": [
+            -0.017801865679709053,
+            -0.003904054550423062
+          ],
+          "p_approx_two_sided": 0.003,
+          "p_holm": 0.015
+        },
+        {
+          "candidate": "enriched_random_forest",
+          "reference": "base_random_forest",
+          "delta_macro_ap": 0.014239072974498529,
+          "ci95_percentile": [
+            0.0074734278912573695,
+            0.021537294049141557
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "enriched_xgboost",
+          "reference": "base_xgboost",
+          "delta_macro_ap": 0.0031735429109342184,
+          "ci95_percentile": [
+            -0.00317394135279245,
+            0.00925292405563345
+          ],
+          "p_approx_two_sided": 0.307,
+          "p_holm": 0.614
+        },
+        {
+          "candidate": "enriched_catboost",
+          "reference": "base_catboost",
+          "delta_macro_ap": 0.008049301333427045,
+          "ci95_percentile": [
+            0.0031137777329131103,
+            0.014092420607097127
+          ],
+          "p_approx_two_sided": 0.005,
+          "p_holm": 0.02
+        }
+      ]
+    },
+    {
+      "block_days": 14,
+      "repeats": 1999,
+      "metric": "equal-month mean average precision",
+      "macro_ap": {
+        "base_catboost": 0.1829971552883607,
+        "base_logistic_regression": 0.1981420837793352,
+        "base_random_forest": 0.1708079735490973,
+        "base_xgboost": 0.18446877487438582,
+        "enriched_catboost": 0.19104645662178774,
+        "enriched_logistic_regression": 0.19751098570971562,
+        "enriched_random_forest": 0.18504704652359583,
+        "enriched_xgboost": 0.18764231778532003
+      },
+      "comparisons": [
+        {
+          "candidate": "base_catboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.015144928490974513,
+          "ci95_percentile": [
+            -0.020042352372821346,
+            -0.010114357026917759
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "base_random_forest",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.027334110230237907,
+          "ci95_percentile": [
+            -0.03335420947702721,
+            -0.020802744815821086
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "base_xgboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.013673308904949388,
+          "ci95_percentile": [
+            -0.02086220782902369,
+            -0.006314550347856226
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "enriched_catboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.007095627157547468,
+          "ci95_percentile": [
+            -0.011076349989836568,
+            -0.0022658304114254214
+          ],
+          "p_approx_two_sided": 0.004,
+          "p_holm": 0.012
+        },
+        {
+          "candidate": "enriched_logistic_regression",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.0006310980696195845,
+          "ci95_percentile": [
+            -0.004294852843204813,
+            0.0027530917670632277
+          ],
+          "p_approx_two_sided": 0.7255,
+          "p_holm": 0.7255
+        },
+        {
+          "candidate": "enriched_random_forest",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.013095037255739378,
+          "ci95_percentile": [
+            -0.019797963664426953,
+            -0.005699559341167532
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "enriched_xgboost",
+          "reference": "base_logistic_regression",
+          "delta_macro_ap": -0.01049976599401517,
+          "ci95_percentile": [
+            -0.016424069427326646,
+            -0.004182075909790389
+          ],
+          "p_approx_two_sided": 0.0015,
+          "p_holm": 0.006
+        },
+        {
+          "candidate": "enriched_random_forest",
+          "reference": "base_random_forest",
+          "delta_macro_ap": 0.014239072974498529,
+          "ci95_percentile": [
+            0.009113090296894517,
+            0.019539691031834013
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        },
+        {
+          "candidate": "enriched_xgboost",
+          "reference": "base_xgboost",
+          "delta_macro_ap": 0.0031735429109342184,
+          "ci95_percentile": [
+            -0.002106502178851016,
+            0.0086975412041406
+          ],
+          "p_approx_two_sided": 0.272,
+          "p_holm": 0.544
+        },
+        {
+          "candidate": "enriched_catboost",
+          "reference": "base_catboost",
+          "delta_macro_ap": 0.008049301333427045,
+          "ci95_percentile": [
+            0.004171282529228665,
+            0.012192907559591437
+          ],
+          "p_approx_two_sided": 0.0005,
+          "p_holm": 0.005
+        }
+      ]
+    }
+  ]
+}
