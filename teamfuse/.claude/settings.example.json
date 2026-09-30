@@ -1,0 +1,33 @@
+{
+  "enabledPlugins": {
+    "agentdm@agentdm": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm run dev)",
+      "Bash(npm run build)",
+      "Bash(npm run typecheck)",
+      "Skill(teamfuse)",
+      "Skill(teamfuse-init)",
+      "Skill(teamfuse-add-agent)",
+      "Skill(teamfuse-add-channel)",
+      "Skill(teamfuse-list)",
+      "Skill(teamfuse-remove-agent)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ ! -f .claude/.teamfuse-greeted ]; then cat <<'EOF'\n\n ████████╗███████╗ █████╗ ███╗   ███╗███████╗██╗   ██╗███████╗███████╗\n ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██╔════╝██║   ██║██╔════╝██╔════╝\n    ██║   █████╗  ███████║██╔████╔██║█████╗  ██║   ██║███████╗█████╗\n    ██║   ██╔══╝  ██╔══██║██║╚██╔╝██║██╔══╝  ██║   ██║╚════██║██╔══╝\n    ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║     ╚██████╔╝███████║███████╗\n    ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝      ╚═════╝ ╚══════╝╚══════╝\n\n        Fuse Claude Code agents into a working team.\n\nRun /teamfuse to see commands, /teamfuse-init to bootstrap a company.\n\nEOF\ntouch .claude/.teamfuse-greeted; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
