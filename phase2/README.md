@@ -7,8 +7,7 @@ Dual framing of one delivery-performance problem:
 ## Layout
 | Path | Contents |
 |---|---|
-| `model_classification_dev.ipynb` | Classification pipeline, label availability audit, pooled monthly backtest |
-| `model_classification_tuning.ipynb` | Classification time-series CV, hyperparameter tuning, threshold selection; saves `results/classification_tuning.json` |
+| `model_classification_dev.ipynb` | Classification pipeline, label availability audit, pooled monthly backtest; time-series CV, hyperparameter tuning and threshold selection (saves `results/classification_tuning.json`) |
 | `classification_evaluation.ipynb` | Classification model comparison and seller/product history check |
 | `model_regression_dev.ipynb` | Lead-time target and horizon audit, chronological split and CV, tuning, backtest |
 | `src/data.py` | Locates and loads the Olist CSVs (extracts the bundled zip on first run) |
