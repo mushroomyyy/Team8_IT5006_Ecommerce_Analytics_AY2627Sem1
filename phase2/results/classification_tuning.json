@@ -1,0 +1,69 @@
+{
+  "run_date": "2018-06-02",
+  "cv": "5-fold day-blocked expanding window",
+  "scoring": "average_precision",
+  "models": {
+    "Logistic Regression": {
+      "family": "Linear",
+      "best_params": {
+        "classifier__C": 100.0
+      },
+      "f1_threshold": 0.4533616786598222,
+      "cv_pr_auc_default": 0.24422918464538562,
+      "cv_pr_auc_tuned": 0.2576067853261545
+    },
+    "Decision Tree": {
+      "family": "Tree-based",
+      "best_params": {
+        "classifier__min_samples_leaf": 50,
+        "classifier__max_depth": 8,
+        "classifier__criterion": "gini"
+      },
+      "f1_threshold": 0.4673005892801751,
+      "cv_pr_auc_default": 0.22937753985414266,
+      "cv_pr_auc_tuned": 0.2584938295672641
+    },
+    "Random Forest": {
+      "family": "Tree-based",
+      "best_params": {
+        "classifier__n_estimators": 100,
+        "classifier__min_samples_leaf": 5,
+        "classifier__max_features": "sqrt",
+        "classifier__max_depth": 10
+      },
+      "f1_threshold": 0.45650166784486035,
+      "cv_pr_auc_default": 0.2976697381653895,
+      "cv_pr_auc_tuned": 0.29860865031806183
+    },
+    "XGBoost": {
+      "family": "Tree-based",
+      "best_params": {
+        "classifier__subsample": 0.7,
+        "classifier__n_estimators": 100,
+        "classifier__min_child_weight": 1,
+        "classifier__max_depth": 3,
+        "classifier__learning_rate": 0.05,
+        "classifier__colsample_bytree": 0.6
+      },
+      "f1_threshold": 0.35704517364501953,
+      "cv_pr_auc_default": 0.2931222836912792,
+      "cv_pr_auc_tuned": 0.305071840147629
+    },
+    "LightGBM": {
+      "family": "Tree-based",
+      "best_params": {
+        "classifier__subsample_freq": 1,
+        "classifier__subsample": 0.7,
+        "classifier__reg_lambda": 0.0,
+        "classifier__num_leaves": 15,
+        "classifier__n_estimators": 200,
+        "classifier__min_child_samples": 50,
+        "classifier__learning_rate": 0.03,
+        "classifier__colsample_bytree": 1.0
+      },
+      "f1_threshold": 0.38312725688694854,
+      "cv_pr_auc_default": 0.2906943845639577,
+      "cv_pr_auc_tuned": 0.30561451994201105
+    }
+  }
+}
