@@ -103,7 +103,7 @@ def cv_summary(model, X, y, folds, scoring=CV_SCORING, n_jobs=-1):
     row = {}
     for metric in scoring:
         values = scores[f'test_{metric}']
-        row[f'cv_{metric}_mean'], row[f'cv_{metric}_std'] = values.mean(), values.std()
+        row[f'cv_{metric}_mean'] = values.mean()
     return row
 
 
