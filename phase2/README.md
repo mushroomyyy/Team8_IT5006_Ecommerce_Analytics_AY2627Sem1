@@ -15,6 +15,7 @@ Dual framing of one delivery-performance problem:
 | `src/labels.py` | `get_required_dates`, `labels_as_of`, `regression_targets_as_of`, cohort evaluation helpers |
 | `src/splits.py` | `chronological_split`, `day_blocked_time_series_folds` |
 | `src/evaluation.py` | Classification, regression and decile coverage metrics |
+| `src/report_figures.py` | Report figures for the regression notebook; each call draws inline and saves a PNG to `results/figures/` |
 | `src/tuning.py` | Default classifier pipelines, search spaces, CV summary, random search, out-of-fold threshold selection |
 
 `src/` holds the v2 helpers without behaviour changes: at run date 2018-06-02 it reproduces v2's 39,960 window orders and 39,956 known labels.
