@@ -1,0 +1,69 @@
+{
+  "run_date": "2018-06-02",
+  "horizon_days": 45,
+  "test_days": 45,
+  "cv": "5-fold day-blocked expanding window",
+  "scoring": "neg_mean_absolute_error",
+  "champion": {
+    "model": "LightGBM",
+    "variant": "tuned",
+    "cv_mae": 6.116957743249393
+  },
+  "backtest_champions": {
+    "2018-04": "LightGBM (tuned)",
+    "2018-05": "LightGBM (tuned)",
+    "2018-06": "LightGBM (tuned)",
+    "2018-07": "LightGBM (tuned)"
+  },
+  "models": {
+    "Linear Regression": {
+      "family": "Linear",
+      "best_params": {},
+      "cv_mae_default": 7.921229704541891,
+      "cv_mae_tuned": null
+    },
+    "Ridge": {
+      "family": "Linear",
+      "best_params": {
+        "model__alpha": 1000.0
+      },
+      "cv_mae_default": 7.851365385831554,
+      "cv_mae_tuned": 7.466878292203377
+    },
+    "Decision Tree": {
+      "family": "Tree-based",
+      "best_params": {
+        "model__min_samples_leaf": 200,
+        "model__max_depth": 12
+      },
+      "cv_mae_default": 8.748025436598647,
+      "cv_mae_tuned": 6.4039645355382815
+    },
+    "Random Forest": {
+      "family": "Tree-based",
+      "best_params": {
+        "model__n_estimators": 200,
+        "model__min_samples_leaf": 10,
+        "model__max_features": 0.3,
+        "model__max_depth": 12
+      },
+      "cv_mae_default": 6.342097338399386,
+      "cv_mae_tuned": 6.231352929827908
+    },
+    "LightGBM": {
+      "family": "Tree-based",
+      "best_params": {
+        "model__subsample_freq": 1,
+        "model__subsample": 0.7,
+        "model__objective": "regression_l1",
+        "model__num_leaves": 63,
+        "model__n_estimators": 600,
+        "model__min_child_samples": 50,
+        "model__learning_rate": 0.02,
+        "model__colsample_bytree": 0.6
+      },
+      "cv_mae_default": 6.24728877605728,
+      "cv_mae_tuned": 6.116957743249393
+    }
+  }
+}
