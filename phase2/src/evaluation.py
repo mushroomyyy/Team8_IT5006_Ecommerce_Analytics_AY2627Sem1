@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
-    accuracy_score, average_precision_score, balanced_accuracy_score, f1_score,
+    accuracy_score, average_precision_score, f1_score,
     mean_absolute_error, mean_squared_error, median_absolute_error, precision_score,
     r2_score, recall_score, roc_auc_score,
 )
@@ -12,13 +12,12 @@ def classification_metrics(y_true, y_pred, y_prob=None):
     """Imbalance-aware classification metrics; the late class (1) is positive."""
     two_classes = pd.Series(y_true).nunique() == 2
     return {
+        'roc_auc': roc_auc_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
+        'pr_auc': average_precision_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
         'accuracy': accuracy_score(y_true, y_pred),
-        'balanced_accuracy': balanced_accuracy_score(y_true, y_pred),
         'precision': precision_score(y_true, y_pred, zero_division=0),
         'recall': recall_score(y_true, y_pred, zero_division=0),
         'f1_score': f1_score(y_true, y_pred, zero_division=0),
-        'roc_auc': roc_auc_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
-        'pr_auc': average_precision_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
     }
 
 

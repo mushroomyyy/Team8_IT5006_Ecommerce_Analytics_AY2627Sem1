@@ -21,7 +21,10 @@ from xgboost import XGBClassifier
 
 from . import RANDOM_STATE
 
-CV_SCORING = {'pr_auc': 'average_precision', 'roc_auc': 'roc_auc', 'f1_at_0.5': 'f1'}
+CV_SCORING = {'roc_auc': 'roc_auc', 
+              'pr_auc': 'average_precision', 
+              'f1_at_0.5': 'f1'
+              }
 
 # Model family for each classifier (the brief allows 2-3 families in total)
 MODEL_FAMILY = {
@@ -35,32 +38,32 @@ MODEL_FAMILY = {
 # Small random-search spaces; widen them once the feature set is frozen
 CLASSIFIER_SEARCH_SPACES = {
     'Logistic Regression': {
-        'classifier__C': np.logspace(-3, 2, 12),
+        'classifier__C': np.logspace(-3, 4, 15),
     },
     'Decision Tree': {
-        'classifier__max_depth': [4, 6, 8, 10, 12, None],
-        'classifier__min_samples_leaf': [1, 20, 50, 100, 200],
+        'classifier__max_depth': [4, 6, 8, 10, 12],
+        'classifier__min_samples_leaf': [20, 35, 50, 75, 100],
         'classifier__criterion': ['gini', 'entropy'],
     },
     'Random Forest': {
         'classifier__n_estimators': [100, 200],
-        'classifier__max_depth': [6, 10, 14, None],
-        'classifier__min_samples_leaf': [5, 20, 50],
+        'classifier__max_depth': [4, 6, 8, 10, 12],
+        'classifier__min_samples_leaf': [1, 5, 10, 20, 50, 100],
         'classifier__max_features': ['sqrt', 0.3, 0.5],
     },
     'XGBoost': {
-        'classifier__n_estimators': [100, 200, 400],
-        'classifier__max_depth': [3, 4, 6, 8],
-        'classifier__learning_rate': [0.03, 0.05, 0.1],
+        'classifier__n_estimators': [200, 400, 600, 800],
+        'classifier__max_depth': [2, 4, 6, 8],
+        'classifier__learning_rate': [0.01, 0.03, 0.05, 0.1],
         'classifier__subsample': [0.7, 1.0],
         'classifier__colsample_bytree': [0.6, 0.8, 1.0],
-        'classifier__min_child_weight': [1, 5, 10],
+        'classifier__min_child_weight': [1, 5, 10, 20],
     },
     'LightGBM': {
         'classifier__n_estimators': [100, 200, 400],
-        'classifier__learning_rate': [0.03, 0.05, 0.1],
-        'classifier__num_leaves': [15, 31, 63],
-        'classifier__min_child_samples': [20, 50, 100],
+        'classifier__learning_rate': [0.01, 0.03, 0.05, 0.1],
+        'classifier__num_leaves': [7, 15, 31, 63],
+        'classifier__min_child_samples': [20, 35, 50, 75, 100],
         'classifier__subsample': [0.7, 1.0],
         'classifier__subsample_freq': [1],
         'classifier__colsample_bytree': [0.6, 0.8, 1.0],
@@ -69,8 +72,31 @@ CLASSIFIER_SEARCH_SPACES = {
 }
 
 
-def build_classifiers(num_cols, cat_cols, scale_pos_weight, random_state=RANDOM_STATE):
-    """Return the default (untuned) pipelines used in model_classification_dev.ipynb."""
+class FoldWeightedPipeline(Pipeline):
+    """Recompute boosting class weight using only the labels passed to each fit.
+
+    Inheriting Pipeline preserves cloning, classifier__ parameter search and
+    named_steps access for feature importance and inference.
+    """
+
+    def fit(self, X, y=None, **params):
+        labels = np.asarray(y)
+        if labels.ndim != 1 or not np.isin(labels, [0, 1]).all():
+            raise ValueError('Boosting class weights require one-dimensional binary 0/1 labels.')
+        negatives = np.count_nonzero(labels == 0)
+        positives = np.count_nonzero(labels == 1)
+        if not negatives or not positives:
+            raise ValueError('Boosting training labels must contain both classes 0 and 1.')
+        self.set_params(classifier__scale_pos_weight=float(negatives / positives))
+        return super().fit(X, y, **params)
+
+
+def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE):
+    """Return default pipelines, with boosting weights computed on every fit.
+
+    scale_pos_weight is retained for compatibility with older callers; its value
+    is ignored because a global ratio would include future CV validation labels.
+    """
     plain = ColumnTransformer([
         ('numeric', SimpleImputer(strategy='median'), num_cols),
         ('categorical', OneHotEncoder(handle_unknown='ignore'), cat_cols),
@@ -81,24 +107,60 @@ def build_classifiers(num_cols, cat_cols, scale_pos_weight, random_state=RANDOM_
         ('categorical', OneHotEncoder(handle_unknown='ignore'), cat_cols),
     ])
     return {
-        'Logistic Regression': Pipeline([('preprocessor', scaled), ('classifier', LogisticRegression(
-            class_weight='balanced', max_iter=2000, random_state=random_state))]),
-        'Decision Tree': Pipeline([('preprocessor', clone(plain)), ('classifier', DecisionTreeClassifier(
-            max_depth=10, class_weight='balanced', random_state=random_state))]),
-        'Random Forest': Pipeline([('preprocessor', clone(plain)), ('classifier', RandomForestClassifier(
-            n_estimators=100, max_depth=10, class_weight='balanced',
-            random_state=random_state, n_jobs=1))]),
-        'XGBoost': Pipeline([('preprocessor', clone(plain)), ('classifier', XGBClassifier(
-            n_estimators=100, max_depth=6, learning_rate=0.1, scale_pos_weight=scale_pos_weight,
-            random_state=random_state, eval_metric='logloss', n_jobs=1))]),
-        'LightGBM': Pipeline([('preprocessor', clone(plain)), ('classifier', LGBMClassifier(
-            scale_pos_weight=scale_pos_weight, random_state=random_state,
-            verbosity=-1, n_jobs=1))]),
+        'Logistic Regression': Pipeline(
+            [('preprocessor', scaled), 
+             ('classifier', LogisticRegression(
+                class_weight='balanced', 
+                max_iter=2000, 
+                random_state=random_state
+                ))
+                ]
+            ),
+        'Decision Tree': Pipeline(
+            [('preprocessor', clone(plain)), 
+             ('classifier', DecisionTreeClassifier(
+                max_depth=10, 
+                class_weight='balanced', 
+                random_state=random_state
+                ))
+                ]
+            ),
+        'Random Forest': Pipeline(
+            [('preprocessor', clone(plain)), 
+             ('classifier', RandomForestClassifier(
+                n_estimators=100, 
+                max_depth=10, 
+                class_weight='balanced',
+                random_state=random_state, 
+                n_jobs=1
+                ))
+                ]
+            ),
+        'XGBoost': FoldWeightedPipeline(
+            [('preprocessor', clone(plain)), 
+             ('classifier', XGBClassifier(
+                n_estimators=100, 
+                max_depth=6, 
+                learning_rate=0.1, 
+                random_state=random_state, 
+                eval_metric='logloss', 
+                n_jobs=1
+                ))
+                ]
+            ),
+        'LightGBM': FoldWeightedPipeline(
+            [('preprocessor', clone(plain)), 
+             ('classifier', LGBMClassifier(
+                random_state=random_state,
+                verbosity=-1, 
+                n_jobs=1))
+                ]
+            ),
     }
 
 
 def cv_summary(model, X, y, folds, scoring=CV_SCORING, n_jobs=-1):
-    """Mean and standard deviation of each CV score across the given folds."""
+    """Mean of each CV score across the given folds."""
     scores = cross_validate(model, X, y, cv=folds, scoring=scoring, n_jobs=n_jobs)
     row = {}
     for metric in scoring:
