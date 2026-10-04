@@ -5,21 +5,21 @@
   "cv": "5-fold day-blocked expanding window",
   "scoring": "neg_mean_absolute_error",
   "champion": {
-    "model": "LightGBM",
+    "model": "Random Forest",
     "variant": "tuned",
-    "cv_mae": 6.116957743249393
+    "cv_mae": 6.225871584283412
   },
   "backtest_champions": {
-    "2018-04": "LightGBM (tuned)",
+    "2018-04": "Random Forest (tuned)",
     "2018-05": "LightGBM (tuned)",
-    "2018-06": "LightGBM (tuned)",
-    "2018-07": "LightGBM (tuned)"
+    "2018-06": "Random Forest (tuned)",
+    "2018-07": "LightGBM (default)"
   },
   "models": {
     "Linear Regression": {
       "family": "Linear",
       "best_params": {},
-      "cv_mae_default": 7.921229704541891,
+      "cv_mae_default": 18.1731253846827,
       "cv_mae_tuned": null
     },
     "Ridge": {
@@ -27,17 +27,17 @@
       "best_params": {
         "model__alpha": 1000.0
       },
-      "cv_mae_default": 7.851365385831554,
-      "cv_mae_tuned": 7.466878292203377
+      "cv_mae_default": 18.150879999235382,
+      "cv_mae_tuned": 16.29953132293386
     },
     "Decision Tree": {
       "family": "Tree-based",
       "best_params": {
-        "model__min_samples_leaf": 200,
-        "model__max_depth": 12
+        "model__min_samples_leaf": 100,
+        "model__max_depth": 6
       },
-      "cv_mae_default": 8.748025436598647,
-      "cv_mae_tuned": 6.4039645355382815
+      "cv_mae_default": 9.296026755673362,
+      "cv_mae_tuned": 6.626541313511787
     },
     "Random Forest": {
       "family": "Tree-based",
@@ -47,8 +47,8 @@
         "model__max_features": 0.3,
         "model__max_depth": 12
       },
-      "cv_mae_default": 6.342097338399386,
-      "cv_mae_tuned": 6.231352929827908
+      "cv_mae_default": 6.446358045401157,
+      "cv_mae_tuned": 6.225871584283412
     },
     "LightGBM": {
       "family": "Tree-based",
@@ -62,8 +62,10 @@
         "model__learning_rate": 0.02,
         "model__colsample_bytree": 0.6
       },
-      "cv_mae_default": 6.24728877605728,
-      "cv_mae_tuned": 6.116957743249393
+      "cv_mae_default": 6.335085708168344,
+      "cv_mae_tuned": 6.281252884166219
     }
-  }
+  },
+  "cv_gap_days": 45,
+  "cv_initial_train_days": 45
 }

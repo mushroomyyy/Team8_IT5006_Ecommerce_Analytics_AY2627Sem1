@@ -6,7 +6,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.base import clone
 from sklearn.model_selection import cross_validate
 
-from src.splits import day_blocked_time_series_folds
+from src.splits import day_blocked_time_series_folds, available_outcome_folds
+from src.labels import labels_as_of, regression_targets_as_of
 from src.tuning import best_f1_threshold, out_of_fold_scores, build_classifiers, tune_classifier
 
 
@@ -52,6 +53,47 @@ class TimeSeriesFoldTests(unittest.TestCase):
         for train_idx, valid_idx in day_blocked_time_series_folds(dates, n_splits=3):
             self.assertLess(dates.iloc[train_idx].max(), dates.iloc[valid_idx].min())
             self.assertFalse(set(dates.iloc[train_idx]) & set(dates.iloc[valid_idx]))
+
+    def test_gap_and_initial_period_keep_all_five_regression_folds(self):
+        dates = pd.Series(pd.date_range('2018-01-01', periods=135).repeat(2))
+        folds = day_blocked_time_series_folds(dates, n_splits=5, gap_days=45,
+                                              min_train_days=45)
+        self.assertEqual(len(folds), 5)
+        for tr, va in folds:
+            self.assertGreater((dates.iloc[va].min() - dates.iloc[tr].max()).days, 45)
+            self.assertGreaterEqual(len(tr), 90)
+            self.assertFalse(set(dates.iloc[tr]) & set(dates.iloc[va]))
+
+    def test_empty_folds_raise_instead_of_disappearing(self):
+        dates = pd.date_range('2018-01-01', periods=135)
+        with self.assertRaisesRegex(ValueError, 'Empty CV fold'):
+            day_blocked_time_series_folds(dates, n_splits=5, gap_days=45)
+
+    def test_classification_excludes_unknown_labels_despite_approval_gap(self):
+        rows = pd.DataFrame({
+            'order_approved_at': pd.to_datetime(['2018-01-01'] * 3 + ['2018-03-01']),
+            'order_delivered_customer_date': pd.to_datetime(['2018-01-10', '2018-03-10', None, None]),
+            'order_estimated_delivery_date': pd.to_datetime(['2018-01-20', '2018-03-20', '2018-02-01', '2018-03-20'])})
+        rows['order_approved_dt'] = rows['order_approved_at']
+        targets = labels_as_of(rows, '2018-04-01')['label_as_of_run']
+        folds = available_outcome_folds(rows, [(np.arange(3), np.array([3]))],
+                                        targets, labels_as_of, 'label_as_of_run')
+        np.testing.assert_array_equal(folds[0][0], [0, 2])
+        audit = labels_as_of(rows.iloc[folds[0][0]], '2018-03-01')
+        self.assertTrue(audit['label_as_of_run'].notna().all())
+
+    def test_regression_capped_outcome_is_known_without_delivery(self):
+        rows = pd.DataFrame({
+            'order_approved_at': pd.to_datetime(['2018-01-01', '2018-02-20', '2018-03-01']),
+            'order_delivered_customer_date': pd.to_datetime(['2018-03-10', '2018-03-05', None])})
+        rows['order_approved_dt'] = rows['order_approved_at']
+        targets = regression_targets_as_of(rows, '2018-04-01', 45)['target_as_of_run']
+        folds = available_outcome_folds(
+            rows, [(np.arange(2), np.array([2]))], targets,
+            lambda r, d: regression_targets_as_of(r, d, 45), 'target_as_of_run')
+        np.testing.assert_array_equal(folds[0][0], [0])
+        self.assertEqual(regression_targets_as_of(rows.iloc[[0]], '2018-03-01', 45)
+                         ['target_as_of_run'].iloc[0], 45)
 
 
 class ThresholdTests(unittest.TestCase):
