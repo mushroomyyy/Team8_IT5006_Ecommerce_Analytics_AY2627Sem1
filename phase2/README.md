@@ -8,7 +8,6 @@ Dual framing of one delivery-performance problem:
 | Path | Contents |
 |---|---|
 | `model_classification_dev.ipynb` | Classification pipeline, label availability audit, pooled monthly backtest; time-series CV, hyperparameter tuning and threshold selection (saves `results/classification_tuning.json`) |
-| `classification_evaluation.ipynb` | Classification model comparison and seller/product history check |
 | `model_regression_dev.ipynb` | Lead-time target and horizon audit, 45-day chronological hold-out and time-series CV, hyperparameter tuning, champion selection by CV MAE, pooled monthly backtest that re-selects the champion at each run date (saves `results/regression_tuning.json`) |
 | `src/data.py` | Locates and loads the Olist CSVs (extracts the bundled zip on first run) |
 | `src/features.py` | `build_feature_table` (v2's `final_df`), as-of seller/product history, `add_extra_features`, feature lists |
@@ -20,14 +19,12 @@ Dual framing of one delivery-performance problem:
 
 `src/` holds the v2 helpers without behaviour changes: at run date 2018-06-02 it reproduces v2's 39,960 window orders and 39,956 known labels.
 
-`classification_evaluation.ipynb` uses the 31 base predictors plus four seller/product history predictors for every classifier: mean smoothed late rate and no-history share for each entity type. Its feature check compares this set with the original 31 predictors and with each history group separately on the same development months. History is reconstructed for each order's approval day; validation orders are excluded from fitted histories, and scored-month orders are excluded from that month's histories. The number of known prior orders is used to smooth each late rate but is not a model predictor. Entities with no known earlier outcomes receive the overall late rate known that day and an explicit no-history share. Orders without item records receive the same fallback, so the no-history share also includes missing entity identities.
-
 ## Running
 ```bash
 pip install -r requirements.txt matplotlib seaborn jupyter
 cd phase2
 jupyter nbconvert --to notebook --execute model_regression_dev.ipynb   # or open it in Jupyter
-python -m unittest test_tuning test_classification_eval test_historical_features
+python -m unittest test_tuning
 ```
 Notebooks add `phase2/` to `sys.path`, so `from src... import ...` works from either the project root or `phase2/`.
 
