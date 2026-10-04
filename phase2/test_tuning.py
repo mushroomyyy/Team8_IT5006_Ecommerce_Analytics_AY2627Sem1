@@ -6,7 +6,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.base import clone
 from sklearn.model_selection import cross_validate
 
-from src.splits import day_blocked_time_series_folds, available_outcome_folds
+from src.splits import (day_blocked_time_series_folds, available_outcome_folds,
+                        chronological_split, available_training_rows)
 from src.labels import labels_as_of, regression_targets_as_of
 from src.tuning import best_f1_threshold, out_of_fold_scores, build_classifiers, tune_classifier
 
@@ -48,6 +49,24 @@ class BoostingWeightTests(unittest.TestCase):
 
 
 class TimeSeriesFoldTests(unittest.TestCase):
+    def test_holdout_excludes_45_days_and_keeps_known_targets(self):
+        rows = pd.DataFrame({'order_approved_dt': pd.date_range('2018-01-01', periods=180)})
+        train, holdout = chronological_split(rows, test_days=45, gap_days=45)
+        self.assertEqual(len(train), 90)
+        self.assertEqual(len(holdout), 45)
+        self.assertGreater((holdout['order_approved_dt'].min() - train['order_approved_dt'].max()).days, 45)
+        folds = day_blocked_time_series_folds(train['order_approved_dt'], n_splits=5,
+                                              gap_days=45, min_train_days=30)
+        self.assertEqual(len(folds), 5)
+        self.assertTrue(all(len(tr) and len(va) for tr, va in folds))
+        train = train.iloc[:3].assign(y=[0, 1, 1])
+        def audit(r, date):
+            self.assertEqual(date, holdout['order_approved_dt'].min().strftime('%Y-%m-%d'))
+            return r.assign(known=pd.Series([0, pd.NA, 0], index=r.index, dtype='Int64'))
+        available = available_training_rows(train, holdout['order_approved_dt'].min(),
+                                             'y', audit, 'known')
+        self.assertEqual(available.index.tolist(), [0])
+
     def test_folds_validate_on_later_days_and_never_split_a_day(self):
         dates = pd.Series(pd.date_range('2018-01-01', periods=12).repeat(3))
         for train_idx, valid_idx in day_blocked_time_series_folds(dates, n_splits=3):

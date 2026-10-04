@@ -77,7 +77,7 @@ def plot_horizon_audit(horizon_audit, save_path=None):
 
 
 def plot_split_and_folds(train_dates, test_dates, folds, save_path=None):
-    """Timeline of the expanding-window CV folds and the final hold-out.
+    """Timeline of historical CV folds and the development holdout.
 
     `train_dates` must be positionally aligned with the fold indices in `folds`.
     """
@@ -91,38 +91,47 @@ def plot_split_and_folds(train_dates, test_dates, folds, save_path=None):
         ax.barh(y, num(right) - num(left) - pad, left=num(left) + pad, height=height, color=color)
 
     with plt.rc_context(STYLE):
-        fig, ax = plt.subplots(figsize=(8.5, 4.3))
-        fig.subplots_adjust(left=0.13, right=0.98, top=0.76, bottom=0.11)
+        fig, ax = plt.subplots(figsize=(8.5, 4.6))
+        fig.subplots_adjust(left=0.17, right=0.98, top=0.76, bottom=0.17)
         labels = []
-        for k, (_, valid_idx) in enumerate(folds, 1):
+        for k, (train_idx, valid_idx) in enumerate(folds, 1):
             y = len(folds) - k + 1
+            train_from = train_dates.iloc[train_idx].min()
+            train_to = train_dates.iloc[train_idx].max() + one_day
             valid_from, valid_to = train_dates.iloc[valid_idx].min(), train_dates.iloc[valid_idx].max() + one_day
-            block(ax, y, start, valid_from, BLUE)
+            block(ax, y, start, test_end, UNUSED)
+            block(ax, y, train_from, train_to, BLUE)
             block(ax, y, valid_from, valid_to, ORANGE, pad=gap)
-            block(ax, y, valid_to, test_end, UNUSED, pad=gap)
             ax.text((num(valid_from) + num(valid_to)) / 2, y + height / 2 + 0.06, f'{len(valid_idx):,}',
                     ha='center', va='bottom', fontsize=8.5, color=INK2)
             labels.append((y, f'CV fold {k}'))
-        block(ax, 0, start, test_start, BLUE)
+        block(ax, 0, start, test_end, UNUSED)
+        train_end = train_dates.max() + one_day
+        block(ax, 0, start, train_end, BLUE)
         block(ax, 0, test_start, test_end, AQUA, pad=gap)
+        if train_end < test_start:
+            ax.text((num(train_end) + num(test_start)) / 2, 0, '45-day gap',
+                    ha='center', va='center', fontsize=8, color=INK2)
         ax.text((num(test_start) + num(test_end)) / 2, height / 2 + 0.06, f'{len(test_dates):,}',
                 ha='center', va='bottom', fontsize=8.5, color=INK2)
-        labels.append((0, 'Final hold-out'))
+        labels.append((0, 'Development\nholdout split'))
         ax.set_yticks([y for y, _ in labels], [text for _, text in labels])
         ax.set_ylim(-0.6, len(folds) + 0.75)
         ax.set_xlim(num(start) - 2, num(test_end) + 2)
-        ax.xaxis.set_major_locator(mdates.MonthLocator())
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2 if (test_end - start).days > 240 else 1))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
         _style(ax, 'x')
         ax.spines['left'].set_visible(False)
         test_days = (test_end - test_start).days
-        ax.legend(handles=[Patch(color=BLUE, label='Train'), Patch(color=ORANGE, label='Validate'),
-                           Patch(color=AQUA, label=f'Hold-out test (newest {test_days} days)'),
-                           Patch(color=UNUSED, label='Not used in this fold')],
+        ax.legend(handles=[Patch(color=BLUE, label='Train'), Patch(color=ORANGE, label='CV validation'),
+                           Patch(color=AQUA, label=f'Development holdout ({test_days} days)'),
+                           Patch(color=UNUSED, label='Excluded')],
                   ncol=4, loc='lower left', bbox_to_anchor=(-0.02, 1.0), columnspacing=1.4, handlelength=1.2)
-        _titles(fig, 'Chronological hold-out and expanding-window CV folds',
-                'Approval-date ranges within the training window. '
-                'Numbers are orders in each validation or test block.')
+        _titles(fig, 'Historical training, CV and development holdout',
+                'Historical data only. Grey gaps separate training from CV validation; numbers are order counts.')
+        fig.text(0.04, 0.025,
+                 'The green historical holdout is separate from the later out-of-sample monthly evaluation.',
+                 fontsize=8.5, color=INK2)
         _finish(fig, save_path)
 
 

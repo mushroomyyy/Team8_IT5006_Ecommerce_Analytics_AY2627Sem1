@@ -3,32 +3,34 @@
   "horizon_days": 45,
   "test_days": 45,
   "cv": "5-fold day-blocked expanding window",
+  "cv_gap_days": 45,
+  "cv_initial_train_days": 45,
   "scoring": "neg_mean_absolute_error",
   "champion": {
-    "model": "Random Forest",
+    "model": "LightGBM",
     "variant": "tuned",
-    "cv_mae": 6.225871584283412
+    "cv_mae": 5.123867706374553
   },
   "backtest_champions": {
-    "2018-04": "Random Forest (tuned)",
+    "2018-04": "LightGBM (tuned)",
     "2018-05": "LightGBM (tuned)",
-    "2018-06": "Random Forest (tuned)",
-    "2018-07": "LightGBM (default)"
+    "2018-06": "LightGBM (tuned)",
+    "2018-07": "LightGBM (tuned)"
   },
   "models": {
     "Linear Regression": {
       "family": "Linear",
       "best_params": {},
-      "cv_mae_default": 18.1731253846827,
+      "cv_mae_default": 6.0779399896334425,
       "cv_mae_tuned": null
     },
     "Ridge": {
       "family": "Linear",
       "best_params": {
-        "model__alpha": 1000.0
+        "model__alpha": 0.01
       },
-      "cv_mae_default": 18.150879999235382,
-      "cv_mae_tuned": 16.29953132293386
+      "cv_mae_default": 6.091747002207514,
+      "cv_mae_tuned": 5.891081481963996
     },
     "Decision Tree": {
       "family": "Tree-based",
@@ -36,19 +38,19 @@
         "model__min_samples_leaf": 100,
         "model__max_depth": 6
       },
-      "cv_mae_default": 9.296026755673362,
-      "cv_mae_tuned": 6.626541313511787
+      "cv_mae_default": 8.052382761013206,
+      "cv_mae_tuned": 5.3028656040933395
     },
     "Random Forest": {
       "family": "Tree-based",
       "best_params": {
         "model__n_estimators": 200,
-        "model__min_samples_leaf": 10,
-        "model__max_features": 0.3,
-        "model__max_depth": 12
+        "model__min_samples_leaf": 60,
+        "model__max_features": 0.5,
+        "model__max_depth": 16
       },
-      "cv_mae_default": 6.446358045401157,
-      "cv_mae_tuned": 6.225871584283412
+      "cv_mae_default": 5.376383765188147,
+      "cv_mae_tuned": 5.24782943832591
     },
     "LightGBM": {
       "family": "Tree-based",
@@ -62,10 +64,8 @@
         "model__learning_rate": 0.02,
         "model__colsample_bytree": 0.6
       },
-      "cv_mae_default": 6.335085708168344,
-      "cv_mae_tuned": 6.281252884166219
+      "cv_mae_default": 5.284486853895987,
+      "cv_mae_tuned": 5.123867706374553
     }
-  },
-  "cv_gap_days": 45,
-  "cv_initial_train_days": 45
+  }
 }

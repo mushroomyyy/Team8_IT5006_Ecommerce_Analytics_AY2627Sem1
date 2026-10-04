@@ -9,13 +9,29 @@ import numpy as np
 import pandas as pd
 
 
-def chronological_split(df, date_col='order_approved_dt', test_days=30):
-    """Split `df` into (train, test): test holds the last `test_days` approval days."""
+def chronological_split(df, date_col='order_approved_dt', test_days=30, gap_days=0):
+    """Hold out the newest approval days, excluding a calendar gap before them."""
+    if test_days < 1 or gap_days < 0:
+        raise ValueError('Require positive test_days and non-negative gap_days')
     dates = pd.to_datetime(df[date_col]).dt.normalize()
     test_start = dates.max() - pd.Timedelta(days=test_days - 1)
-    train, test = df.loc[dates.lt(test_start)].copy(), df.loc[dates.ge(test_start)].copy()
+    train_end = test_start - pd.Timedelta(days=gap_days)
+    train, test = df.loc[dates.lt(train_end)].copy(), df.loc[dates.ge(test_start)].copy()
+    if train.empty or test.empty:
+        raise ValueError('Empty historical split: increase the window or reduce the gap')
     assert pd.to_datetime(train[date_col]).max() < pd.to_datetime(test[date_col]).min()
     return train, test
+
+
+def available_training_rows(train, validation_start, target_col, target_as_of, audit_col):
+    """Keep only training targets already known, and unchanged, at validation start."""
+    date = pd.Timestamp(validation_start).normalize().strftime('%Y-%m-%d')
+    known = target_as_of(train, date)[audit_col]
+    available = known.notna() & known.eq(train[target_col])
+    result = train.loc[available.fillna(False)].copy()
+    if result.empty:
+        raise ValueError('No training outcomes available at validation start')
+    return result
 
 
 def day_blocked_time_series_folds(dates, n_splits=5, gap_days=0, min_train_days=None):

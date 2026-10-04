@@ -12,3 +12,13 @@ __pycache__/
 
 # Olist data stays local and must never be pushed to GitHub
 *.csv
+
+# Local report drafts and working notes
+/CLASSIFICATION_INTEGRATION_HANDOFF.md
+/MILESTONE2_CLASSIFICATION_REPORT_DRAFT.md
+*.docx
+
+# Retired local classification evaluation workflow
+/phase2/classification_eval.py
+/phase2/classification_evaluation.ipynb
+/phase2/test_classification_eval.py
