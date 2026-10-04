@@ -92,11 +92,7 @@ class FoldWeightedPipeline(Pipeline):
 
 
 def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE):
-    """Return default pipelines, with boosting weights computed on every fit.
-
-    scale_pos_weight is retained for compatibility with older callers; its value
-    is ignored because a global ratio would include future CV validation labels.
-    """
+    """Return default pipelines, with boosting weights computed on every fit."""
     plain = ColumnTransformer([
         ('numeric', SimpleImputer(strategy='median'), num_cols),
         ('categorical', OneHotEncoder(handle_unknown='ignore'), cat_cols),

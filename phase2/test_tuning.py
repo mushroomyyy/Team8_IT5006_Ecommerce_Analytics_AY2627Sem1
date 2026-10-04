@@ -29,7 +29,7 @@ class BoostingWeightTests(unittest.TestCase):
         y = pd.Series([0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0])
         folds = [(np.arange(6), np.arange(6, 12)),
                  (np.arange(12), np.arange(12, 18))]
-        models = build_classifiers(['x'], [], scale_pos_weight=999)
+        models = build_classifiers(['x'], [])
         for name in ['XGBoost', 'LightGBM']:
             with self.subTest(model=name):
                 model = models[name].set_params(classifier__n_estimators=2)
