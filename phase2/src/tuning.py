@@ -8,18 +8,16 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMClassifier
 from sklearn.base import clone
-from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_curve
 from sklearn.model_selection import RandomizedSearchCV, cross_validate
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 from . import RANDOM_STATE
+from .preprocessing import make_preprocessor
 
 CV_SCORING = {'roc_auc': 'roc_auc', 
               'pr_auc': 'average_precision', 
@@ -93,15 +91,8 @@ class FoldWeightedPipeline(Pipeline):
 
 def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE):
     """Return default pipelines, with boosting weights computed on every fit."""
-    plain = ColumnTransformer([
-        ('numeric', SimpleImputer(strategy='median'), num_cols),
-        ('categorical', OneHotEncoder(handle_unknown='ignore'), cat_cols),
-    ], sparse_threshold=0)
-    scaled = ColumnTransformer([
-        ('numeric', Pipeline([('imputer', SimpleImputer(strategy='median')),
-                              ('scaler', StandardScaler())]), num_cols),
-        ('categorical', OneHotEncoder(handle_unknown='ignore'), cat_cols),
-    ])
+    plain = make_preprocessor(num_cols, cat_cols)
+    scaled = make_preprocessor(num_cols, cat_cols, scale=True)
     return {
         'Logistic Regression': Pipeline(
             [('preprocessor', scaled), 
