@@ -10,7 +10,7 @@ __pycache__/
 # Local Streamlit secrets
 **/.streamlit/secrets.toml
 
-# Olist data stays local and must never be pushed to GitHub
+# Extracted Olist CSVs and generated predictions stay local; the bundled ZIP is tracked
 *.csv
 
 # Local report drafts and working notes
@@ -22,3 +22,8 @@ __pycache__/
 /phase2/classification_eval.py
 /phase2/classification_evaluation.ipynb
 /phase2/test_classification_eval.py
+
+# Publish report summary CSVs; keep prediction caches and working prose local
+!/phase2/results/report_tables/*.csv
+/phase2/results/report_tables/*predictions.csv
+/phase2/results/report_tables/CV_HYPERPARAMETER_PROSE.md

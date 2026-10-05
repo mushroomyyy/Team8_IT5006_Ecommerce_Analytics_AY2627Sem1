@@ -1,0 +1,12 @@
+Model,Configuration,June 2018,July 2018,August 2018,Pooled
+Decision Tree,default,0.620,0.523,0.472,0.529
+Decision Tree,tuned,0.631,0.553,0.477,0.556
+LightGBM,default,0.691,0.614,0.500,0.635
+LightGBM,tuned,0.700,0.618,0.473,0.615
+Logistic Regression,default,0.698,0.586,0.615,0.675
+Logistic Regression,tuned,0.717,0.608,0.616,0.687
+Monthly selected model,Holdout-selected,0.717,0.608,0.444,0.588
+Random Forest,default,0.665,0.577,0.434,0.539
+Random Forest,tuned,0.681,0.550,0.423,0.563
+XGBoost,default,0.692,0.604,0.489,0.612
+XGBoost,tuned,0.650,0.603,0.444,0.545

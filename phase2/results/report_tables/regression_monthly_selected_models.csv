@@ -1,0 +1,4 @@
+Period,Development_train_orders,Holdout_orders,Selected_model,Selected_variant,Selected_CV_MAE_days,Holdout_MAE_days,Full_refit_orders,Selected_parameters
+2018-06,45371,6847,LightGBM,tuned,5.536699477841979,5.394492630307906,62841,"{""model__colsample_bytree"": 0.6, ""model__learning_rate"": 0.02, ""model__min_child_samples"": 50, ""model__n_estimators"": 600, ""model__num_leaves"": 63, ""model__objective"": ""regression_l1"", ""model__subsample"": 0.7, ""model__subsample_freq"": 1}"
+2018-07,49415,7699,Linear Regression,default,6.107091949057382,5.818005414762395,67399,Default parameters
+2018-08,52930,5254,Ridge,default,6.49337965237776,5.987536240936477,69427,Default parameters

@@ -70,7 +70,8 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
         _bar(ax, gap_start, valid_start - pd.Timedelta(days=1), y,
              COLORS['buffer'], f'{gap_days}d')
         _bar(ax, valid_start, valid_end, y, COLORS['validation'])
-        label_y = y + (0.36 if i % 2 == 0 else 0.55)
+        # Keep every annotation in its own row, clear of the preceding bar.
+        label_y = y + 0.34
         ax.text(mdates.date2num(valid_start + (valid_end - valid_start) / 2), label_y,
                 f'{valid_start:%d %b}–{valid_end:%d %b} | '
                 f'{validation_days}d | {len(fold_valid):,} orders',
@@ -87,7 +88,7 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
     _bar(ax, hold_start, hold_end, y, COLORS['holdout'])
     ax.text(mdates.date2num(hold_start + (hold_end - hold_start) / 2), y + 0.34,
             f'{hold_start:%d %b}–{hold_end:%d %b} | {test_days}d | {hold_count:,} orders',
-            ha='left', va='bottom', fontsize=7.5, color='#202020', clip_on=False)
+            ha='center', va='bottom', fontsize=7.5, color='#202020', clip_on=False)
 
     # Final model is refit on the full eligible history at the June run date.
     y = ys[n_splits + 1]
@@ -136,7 +137,7 @@ def plot_validation_timelines(classification, regression, output_path,
     the corresponding model notebook.
     """
     fig, axes = plt.subplots(2, 1, figsize=(15, 10), sharex=True,
-                             gridspec_kw={'height_ratios': [1, 1], 'hspace': 0.42})
+                             gridspec_kw={'height_ratios': [1, 1], 'hspace': 0.30})
     _draw_panel(axes[0], 'Classification — June 2018 run', classification,
                 n_splits, validation_days, gap_days, holdout_gap_days,
                 test_days, inference_start, inference_end)

@@ -1,0 +1,113 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Average precision by evaluation month (\%)}
+\begin{tabular}{lrrrrr}
+\toprule
+Model & Configuration & June 2018 & July 2018 & August 2018 & Pooled \\
+\midrule
+Decision Tree & default & 4.98 & 7.79 & 7.70 & 6.79 \\
+Decision Tree & tuned & 7.41 & 9.50 & 7.81 & 7.88 \\
+LightGBM & default & 15.09 & 13.29 & 10.89 & 11.84 \\
+LightGBM & tuned & 14.51 & 13.65 & 11.26 & 11.73 \\
+Logistic Regression & default & 7.60 & 9.98 & 13.14 & 11.15 \\
+Logistic Regression & tuned & 11.93 & 14.40 & 13.19 & 13.36 \\
+Monthly selected model & Holdout-selected & 11.93 & 14.40 & 10.93 & 11.40 \\
+Random Forest & default & 12.85 & 11.96 & 9.65 & 10.28 \\
+Random Forest & tuned & 14.08 & 9.03 & 7.97 & 8.50 \\
+XGBoost & default & 13.64 & 13.54 & 11.20 & 11.68 \\
+XGBoost & tuned & 7.85 & 12.69 & 10.93 & 10.15 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize The monthly selected-model row reflects each run’s buffered holdout choice. Evaluation orders: Jun: 6,155 evaluated, 9 excluded; Jul: 6,125 evaluated, 4 excluded; Aug: 6,606 evaluated, 0 excluded.\end{minipage}
+\end{table}
+The monthly selected-model row follows each month’s holdout decision; all other rows compare fixed model families. The pooled sample combines all three months.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{ROC-AUC by evaluation month}
+\begin{tabular}{lrrrrr}
+\toprule
+Model & Configuration & June 2018 & July 2018 & August 2018 & Pooled \\
+\midrule
+Decision Tree & default & 0.620 & 0.523 & 0.472 & 0.529 \\
+Decision Tree & tuned & 0.631 & 0.553 & 0.477 & 0.556 \\
+LightGBM & default & 0.691 & 0.614 & 0.500 & 0.635 \\
+LightGBM & tuned & 0.700 & 0.618 & 0.473 & 0.615 \\
+Logistic Regression & default & 0.698 & 0.586 & 0.615 & 0.675 \\
+Logistic Regression & tuned & 0.717 & 0.608 & 0.616 & 0.687 \\
+Monthly selected model & Holdout-selected & 0.717 & 0.608 & 0.444 & 0.588 \\
+Random Forest & default & 0.665 & 0.577 & 0.434 & 0.539 \\
+Random Forest & tuned & 0.681 & 0.550 & 0.423 & 0.563 \\
+XGBoost & default & 0.692 & 0.604 & 0.489 & 0.612 \\
+XGBoost & tuned & 0.650 & 0.603 & 0.444 & 0.545 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize ROC-AUC measures ranking across possible decision thresholds.\end{minipage}
+\end{table}
+Monthly and pooled values use the same evaluation samples as the average-precision table.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Tuned-minus-default change in average precision (percentage points)}
+\begin{tabular}{lrrrr}
+\toprule
+Model & June 2018 & July 2018 & August 2018 & Pooled \\
+\midrule
+Decision Tree & +2.43 & +1.71 & +0.11 & +1.09 \\
+LightGBM & -0.58 & +0.36 & +0.37 & -0.11 \\
+Logistic Regression & +4.33 & +4.43 & +0.05 & +2.21 \\
+Random Forest & +1.23 & -2.93 & -1.68 & -1.79 \\
+XGBoost & -5.79 & -0.85 & -0.27 & -1.53 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Change = tuned minus default, in percentage points; positive values indicate higher AP. Each monthly comparison uses the same evaluation orders.\end{minipage}
+\end{table}
+The table shows the change associated with tuning for each monthly and pooled evaluation sample.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Tuned-minus-default change in ROC-AUC (percentage points)}
+\begin{tabular}{lrrrr}
+\toprule
+Model & June 2018 & July 2018 & August 2018 & Pooled \\
+\midrule
+Decision Tree & +1.05 & +2.95 & +0.50 & +2.67 \\
+LightGBM & +0.92 & +0.35 & -2.77 & -2.09 \\
+Logistic Regression & +1.89 & +2.14 & +0.10 & +1.24 \\
+Random Forest & +1.56 & -2.73 & -1.06 & +2.39 \\
+XGBoost & -4.24 & -0.11 & -4.48 & -6.66 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Change = tuned minus default, in percentage points; positive values indicate higher ROC-AUC. Each monthly comparison uses the same evaluation orders.\end{minipage}
+\end{table}
+The table shows the change associated with tuning for each monthly and pooled evaluation sample.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Pooled classification performance, June–August 2018}
+\begin{tabular}{lrrrrrrr}
+\toprule
+Model & Configuration & AP & ROC-AUC & Precision & Recall & F1 & Top-10\% coverage \\
+\midrule
+Decision Tree & default & 6.79 & 0.529 & 6.12 & 44.38 & 10.75 & 14.93 \\
+Decision Tree & tuned & 7.88 & 0.556 & 6.18 & 44.48 & 10.86 & 13.91 \\
+LightGBM & default & 11.84 & 0.635 & 7.12 & 41.31 & 12.15 & 17.38 \\
+LightGBM & tuned & 11.73 & 0.615 & 6.73 & 34.97 & 11.29 & 17.28 \\
+Logistic Regression & default & 11.15 & 0.675 & 8.77 & 65.44 & 15.47 & 20.55 \\
+Logistic Regression & tuned & 13.36 & 0.687 & 9.19 & 63.70 & 16.06 & 21.57 \\
+Random Forest & default & 10.28 & 0.539 & 7.38 & 20.65 & 10.88 & 16.87 \\
+Random Forest & tuned & 8.50 & 0.563 & 5.91 & 31.90 & 9.98 & 16.97 \\
+XGBoost & default & 11.68 & 0.612 & 7.45 & 41.31 & 12.62 & 18.61 \\
+XGBoost & tuned & 10.15 & 0.545 & 6.13 & 32.62 & 10.32 & 18.61 \\
+Monthly selected model & Holdout-selected & 11.40 & 0.588 & 6.65 & 36.50 & 11.25 & 19.02 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize AP, precision, recall, F1 and top-decile coverage are percentages; ROC-AUC is on a 0–1 scale. Threshold metrics use 0.5. 18,886 of 18,899 scored orders had known outcomes.\end{minipage}
+\end{table}
+Pooled results summarize ranking, threshold decisions and fixed-capacity targeting for each candidate and the monthly selected-model policy.

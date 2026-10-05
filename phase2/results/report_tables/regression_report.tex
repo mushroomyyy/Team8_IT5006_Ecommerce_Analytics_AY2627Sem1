@@ -1,0 +1,113 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Regression MAE by monthly inference cohort}
+\begin{tabular}{lrrrrr}
+\toprule
+Model & Variant & June & July & August & Pooled Jun–Aug \\
+\midrule
+Decision Tree & default & 7.685756002595717 & 7.542295827244683 & 7.237598306110103 & 7.482598362820174 \\
+Decision Tree & tuned & 7.546635711506315 & 5.3322574612499345 & 4.646710178657435 & 5.813725055761618 \\
+Dummy (median) & reference & 9.24805321219987 & 5.719759701250203 & 6.161826981246219 & 7.022709268550304 \\
+LightGBM & default & 6.1813674141730495 & 5.220868518313579 & 4.686037530684668 & 5.346784161507422 \\
+LightGBM & tuned & 4.845505076733031 & 5.297866308800289 & 4.773648991175795 & 4.967553156511103 \\
+Linear Regression & default & 6.548511763499381 & 5.665836224197541 & 5.124226503263583 & 5.764050565335182 \\
+Monthly champion & selected & 4.845505076733031 & 5.665836224197541 & 5.057075759782487 & 5.1862140756005735 \\
+Olist promise & reference & 19.30726800778715 & 12.3899983763598 & 9.10798548094374 & 13.495748613678373 \\
+Random Forest & default & 7.027264995064415 & 5.21354739411432 & 4.627514172222713 & 5.59933580864345 \\
+Random Forest & tuned & 6.349643185841473 & 5.0687546852700684 & 4.681085193314464 & 5.3503562715764685 \\
+Ridge & default & 6.544297157761956 & 5.656484046487891 & 5.057075759782487 & 5.736187897884627 \\
+Ridge & tuned & 6.688574733302619 & 5.61300671535093 & 5.123304133348023 & 5.792139949597087 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize MAE in days; lower is better. Pooled values combine eligible June–August evaluation orders.\end{minipage}
+\end{table}
+Monthly champions are selected on buffered development holdouts.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Tuning gains in cross-validation and monthly inference}
+\begin{tabular}{lrrr}
+\toprule
+Month & Model & CV gain (days) & Evaluation gain (days) \\
+\midrule
+June & Ridge & 0.1 & -0.144 \\
+June & Decision Tree & 3.066 & 0.139 \\
+June & Random Forest & 0.317 & 0.678 \\
+June & LightGBM & 0.117 & 1.336 \\
+July & Ridge & 0.034 & 0.043 \\
+July & Decision Tree & 3.188 & 2.21 \\
+July & Random Forest & 0.158 & 0.145 \\
+July & LightGBM & 0.016 & -0.077 \\
+August & Ridge & 0.039 & -0.066 \\
+August & Decision Tree & 3.207 & 2.591 \\
+August & Random Forest & 0.128 & -0.054 \\
+August & LightGBM & -0.018 & -0.088 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Gain = default MAE minus tuned MAE, in days; positive favors tuning. Evaluation gains use eligible monthly evaluation orders.\end{minipage}
+\end{table}
+The two columns compare tuning within CV folds and on each month’s evaluation sample.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Pooled regression performance, June–August}
+\begin{tabular}{lrrrr}
+\toprule
+Model & Variant & MAE (days) & RMSE (days) & R² \\
+\midrule
+Decision Tree & default & 7.483 & 11.801 & -0.213 \\
+Decision Tree & tuned & 5.814 & 8.242 & 0.408 \\
+Dummy (median) & reference & 7.023 & 10.02 & 0.125 \\
+LightGBM & default & 5.347 & 7.708 & 0.482 \\
+LightGBM & tuned & 4.968 & 7.426 & 0.52 \\
+Linear Regression & default & 5.764 & 7.832 & 0.466 \\
+Monthly champion & selected & 5.186 & 7.43 & 0.519 \\
+Olist promise & reference & 13.496 & 16.079 & -1.252 \\
+Random Forest & default & 5.599 & 7.996 & 0.443 \\
+Random Forest & tuned & 5.35 & 7.766 & 0.475 \\
+Ridge & default & 5.736 & 7.815 & 0.468 \\
+Ridge & tuned & 5.792 & 7.861 & 0.462 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Pooled statistics combine eligible June–August evaluation orders; lower MAE/RMSE is better.\end{minipage}
+\end{table}
+MAE reports average absolute error in days; RMSE gives greater weight to large errors, and R² summarises variance explained.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{June–August evaluation cohort sizes}
+\begin{tabular}{lrrrr}
+\toprule
+Period & Scored & Evaluated & Full\_followup & Excluded \\
+\midrule
+2018-06 & 6164 & 6164 & 6164 & 0 \\
+2018-07 & 6176 & 6159 & 6176 & 17 \\
+2018-08 & 6620 & 6612 & 6620 & 8 \\
+Pooled & 18960 & 18935 & 18960 & 25 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Scored orders are counted once per month. Evaluated orders have a known target after the 45-day horizon.\end{minipage}
+\end{table}
+The counts show how many orders contribute to each monthly and pooled metric.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Monthly model selection and chosen settings}
+\begin{tabular}{lrrr}
+\toprule
+Month & Selected model & Configuration & Holdout MAE (days) \\
+\midrule
+2018-06 & LightGBM & Tuned & 5.394492630307906 \\
+2018-07 & Linear Regression & Default & 5.818005414762395 \\
+2018-08 & Ridge & Default & 5.987536240936477 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize The buffered holdout selects the default or tuned candidate. Full settings for every model and month are in the supplementary CSV.\end{minipage}
+\end{table}
+Each month uses a separate CV search and holdout selection.

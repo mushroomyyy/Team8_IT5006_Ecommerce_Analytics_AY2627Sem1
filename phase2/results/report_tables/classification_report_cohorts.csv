@@ -1,0 +1,4 @@
+month,training_orders,scored_orders,complete_followup_orders,incomplete_followup_orders,unknown_with_complete_followup,evaluated_orders,late_orders
+2018-06,63592,6164,6164,0,9,6155,137
+2018-07,68147,6129,6129,0,4,6125,318
+2018-08,70151,6606,6606,0,0,6606,523

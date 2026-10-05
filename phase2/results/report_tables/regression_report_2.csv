@@ -1,0 +1,13 @@
+Month,Model,CV gain (days),Evaluation gain (days)
+June,Ridge,0.1,-0.144
+June,Decision Tree,3.066,0.139
+June,Random Forest,0.317,0.678
+June,LightGBM,0.117,1.336
+July,Ridge,0.034,0.043
+July,Decision Tree,3.188,2.21
+July,Random Forest,0.158,0.145
+July,LightGBM,0.016,-0.077
+August,Ridge,0.039,-0.066
+August,Decision Tree,3.207,2.591
+August,Random Forest,0.128,-0.054
+August,LightGBM,-0.018,-0.088
