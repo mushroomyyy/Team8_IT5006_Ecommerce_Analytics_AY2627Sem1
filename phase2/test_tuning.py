@@ -106,13 +106,14 @@ class TimeSeriesFoldTests(unittest.TestCase):
             'order_approved_at': pd.to_datetime(['2018-01-01', '2018-02-20', '2018-03-01']),
             'order_delivered_customer_date': pd.to_datetime(['2018-03-10', '2018-03-05', None])})
         rows['order_approved_dt'] = rows['order_approved_at']
+        rows['order_estimated_delivery_date'] = rows['order_approved_at'] + pd.Timedelta(days=20)
         targets = regression_targets_as_of(rows, '2018-04-01', 45)['target_as_of_run']
         folds = available_outcome_folds(
             rows, [(np.arange(2), np.array([2]))], targets,
             lambda r, d: regression_targets_as_of(r, d, 45), 'target_as_of_run')
         np.testing.assert_array_equal(folds[0][0], [0])
         self.assertEqual(regression_targets_as_of(rows.iloc[[0]], '2018-03-01', 45)
-                         ['target_as_of_run'].iloc[0], 45)
+                         ['target_as_of_run'].iloc[0], 45 - 20)  # Capped lead time minus the promise
 
 
 class ThresholdTests(unittest.TestCase):

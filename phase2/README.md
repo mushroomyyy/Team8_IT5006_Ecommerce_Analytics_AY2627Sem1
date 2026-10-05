@@ -2,16 +2,17 @@
 
 Dual framing of one delivery-performance problem:
 - **Classification** (`model_classification_dev.ipynb`): will an order arrive after its estimated delivery date?
-- **Regression** (`model_regression_dev.ipynb`): how many days from approval to customer delivery, capped at 45 days?
+- **Regression** (`model_regression_dev.ipynb`): by how many days will an order arrive before or after its estimated delivery date? (Lead time capped at 45 days.)
 
 ## Layout
 | Path | Contents |
 |---|---|
 | `model_classification_dev.ipynb` | Classification pipeline, label availability audit, pooled monthly backtest; time-series CV, hyperparameter tuning and threshold selection (saves `results/classification_tuning.json`) |
-| `model_regression_dev.ipynb` | Lead-time target and horizon audit, 45-day chronological hold-out and time-series CV, hyperparameter tuning, champion selection by CV MAE, pooled monthly backtest that re-selects the champion at each run date (saves `results/regression_tuning.json`) |
+| `model_regression_dev.ipynb` | Days-from-promise target and horizon audit, 30-day chronological hold-out and time-series CV, hyperparameter tuning, champion selection by hold-out MAE, pooled monthly backtest that re-selects the champion at each run date (saves `results/regression_tuning.json`) |
 | `src/data.py` | Locates and loads the Olist CSVs (extracts the bundled zip on first run) |
 | `src/features.py` | `build_feature_table` (v2's `final_df`), as-of seller/product history, `add_extra_features`, feature lists |
 | `src/labels.py` | `get_required_dates`, `labels_as_of`, `regression_targets_as_of`, cohort evaluation helpers |
+| `src/preprocessing.py` | `make_preprocessor`: median imputation, optional scaling and one-hot encoding, shared by both tracks |
 | `src/splits.py` | `chronological_split`, `day_blocked_time_series_folds` |
 | `src/evaluation.py` | Classification, regression and decile coverage metrics |
 | `src/report_figures.py` | Report figures for the regression notebook; each call draws inline and saves a PNG to `results/figures/` |
