@@ -1,8 +1,7 @@
 """Hyperparameter tuning, time-series cross-validation and threshold selection.
 
-The default pipelines match `model_classification_dev.ipynb`. Every estimator uses
-n_jobs=1 so parallelism happens only across CV folds/candidates, which avoids
-oversubscribing CPU cores on laptops.
+The default pipelines match the individual model definitions in
+`model_classification_dev.ipynb`, including their estimator CPU settings.
 """
 import numpy as np
 import pandas as pd
@@ -98,7 +97,7 @@ def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE):
             [('preprocessor', scaled), 
              ('classifier', LogisticRegression(
                 class_weight='balanced', 
-                max_iter=2000, 
+                max_iter=1000, 
                 random_state=random_state
                 ))
                 ]
@@ -119,7 +118,7 @@ def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE):
                 max_depth=10, 
                 class_weight='balanced',
                 random_state=random_state, 
-                n_jobs=1
+                n_jobs=-1
                 ))
                 ]
             ),
@@ -130,8 +129,8 @@ def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE):
                 max_depth=6, 
                 learning_rate=0.1, 
                 random_state=random_state, 
-                eval_metric='logloss', 
-                n_jobs=1
+                use_label_encoder=False,
+                eval_metric='logloss'
                 ))
                 ]
             ),
@@ -140,7 +139,7 @@ def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE):
              ('classifier', LGBMClassifier(
                 random_state=random_state,
                 verbosity=-1, 
-                n_jobs=1))
+                n_jobs=-1))
                 ]
             ),
     }
