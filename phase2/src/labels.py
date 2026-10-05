@@ -2,7 +2,8 @@
 
 `get_required_dates`, `labels_as_of` and `attach_prediction_labels` come from
 model_dev_v2.ipynb. `regression_targets_as_of` and `attach_regression_actuals`
-apply the same date rules to the capped lead-time regression target.
+apply the same date rules to the regression target: days early or late against the
+estimated delivery date.
 """
 import pandas as pd
 
@@ -67,29 +68,34 @@ def labels_as_of(order_rows, run_date: str):
 
 
 def regression_targets_as_of(order_rows, run_date: str, horizon: int):
-    """Assign the capped lead time min(delivered - approved, horizon) in calendar days.
+    """Assign the days from the estimated delivery date; negative is early, positive is late.
+
+    target = min(delivered - approved, horizon) - (estimated - approved), in calendar days.
+    For an order delivered within `horizon` days this is simply delivered - estimated.
 
     Uses only dates strictly before run_date. An undelivered order is still known to
-    have taken at least `run_date - approved` days, so its capped target is known
+    have taken at least `run_date - approved` days, so its capped lead time is known
     (= horizon) once that span reaches the horizon. This keeps slow orders in training
-    instead of silently dropping them, which would bias lead times downward.
+    instead of silently dropping them, which would bias the target downward.
 
     target_status:
       delivered_within_horizon  delivered by the run date within `horizon` days
       capped_delivered          delivered by the run date after more than `horizon` days
       capped_undelivered        not delivered by the run date, already `horizon` days old
       unresolved                not delivered by the run date and younger than `horizon`
-      invalid_or_missing_dates  missing approval or delivery before approval
+      invalid_or_missing_dates  missing approval or estimate, or delivery before approval
     """
     _check_non_negative_int(horizon, 'horizon', allow_zero=False)
     run_day = _parse_run_date(run_date)
     result = order_rows.copy()
     approved = pd.to_datetime(result['order_approved_at']).dt.normalize()
     delivered = pd.to_datetime(result['order_delivered_customer_date']).dt.normalize()
-    valid = approved.notna() & approved.lt(run_day)
+    deadline = pd.to_datetime(result['order_estimated_delivery_date']).dt.normalize()
+    valid = approved.notna() & approved.lt(run_day) & deadline.notna()
     valid &= ~(delivered.notna() & delivered.lt(approved))
     delivered_by_run = delivered.notna() & delivered.lt(run_day)
     lead_days = (delivered - approved).dt.days
+    promised_days = (deadline - approved).dt.days
     # Days already observed without delivery: approval day through run_date - 1
     elapsed_days = (run_day - approved).dt.days
 
@@ -98,9 +104,10 @@ def regression_targets_as_of(order_rows, run_date: str, horizon: int):
     capped_undelivered = valid & ~delivered_by_run & elapsed_days.ge(horizon)
 
     result['lead_days_as_of_run'] = lead_days.where(valid & delivered_by_run).astype('Float64')
-    result['target_as_of_run'] = pd.Series(pd.NA, index=result.index, dtype='Float64')
-    result.loc[within, 'target_as_of_run'] = lead_days[within].astype(float)
-    result.loc[capped_delivered | capped_undelivered, 'target_as_of_run'] = float(horizon)
+    result['capped_lead_as_of_run'] = pd.Series(pd.NA, index=result.index, dtype='Float64')
+    result.loc[within, 'capped_lead_as_of_run'] = lead_days[within].astype(float)
+    result.loc[capped_delivered | capped_undelivered, 'capped_lead_as_of_run'] = float(horizon)
+    result['target_as_of_run'] = result['capped_lead_as_of_run'] - promised_days
     result['target_status'] = 'unresolved'
     result.loc[~valid, 'target_status'] = 'invalid_or_missing_dates'
     result.loc[within, 'target_status'] = 'delivered_within_horizon'
@@ -145,10 +152,10 @@ def attach_prediction_labels(predictions, orders, lookback=45, prediction_thresh
 
 
 def attach_regression_actuals(predictions, orders, horizon):
-    """Return a copy of regression predictions with their capped actual targets.
+    """Return a copy of regression predictions with their actual days from the estimate.
 
     Each daily cohort is evaluated at approval day + horizon (inclusive), when every
-    valid order's capped target is known.
+    valid order's target (with its lead time capped at `horizon`) is known.
     """
     _check_non_negative_int(horizon, 'horizon', allow_zero=False)
     labelled = predictions.copy()
