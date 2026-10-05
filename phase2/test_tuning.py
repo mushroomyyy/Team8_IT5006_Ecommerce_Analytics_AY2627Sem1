@@ -83,6 +83,42 @@ class TimeSeriesFoldTests(unittest.TestCase):
             self.assertGreaterEqual(len(tr), 90)
             self.assertFalse(set(dates.iloc[tr]) & set(dates.iloc[va]))
 
+    def test_fixed_calendar_validation_windows_are_30_days_and_anchored_at_end(self):
+        dates = pd.Series(pd.date_range('2017-04-18', periods=290).repeat(2))
+        dates = dates.loc[dates.ne(pd.Timestamp('2017-09-20'))].reset_index(drop=True)
+        folds = day_blocked_time_series_folds(
+            dates, n_splits=5, gap_days=45, validation_days=30)
+
+        self.assertEqual(len(folds), 5)
+        expected_first_valid = dates.max() - pd.Timedelta(days=5 * 30 - 1)
+        self.assertEqual(dates.iloc[folds[0][1]].min(), expected_first_valid)
+        self.assertEqual((dates.iloc[folds[0][1]].max() - expected_first_valid).days, 29)
+        self.assertEqual(dates.iloc[folds[0][1]].nunique(), 29)
+        self.assertEqual((dates.iloc[folds[0][0]].max() - dates.iloc[folds[0][0]].min()).days + 1, 95)
+
+        for train_idx, valid_idx in folds:
+            valid_dates = dates.iloc[valid_idx]
+            self.assertEqual((valid_dates.max() - valid_dates.min()).days + 1, 30)
+            self.assertGreater((valid_dates.min() - dates.iloc[train_idx].max()).days, 45)
+            self.assertFalse(set(dates.iloc[train_idx]) & set(valid_dates))
+
+        self.assertTrue(all(len(folds[i][0]) < len(folds[i + 1][0]) for i in range(4)))
+
+    def test_fixed_windows_reject_conflicting_initial_period(self):
+        dates = pd.date_range('2018-01-01', periods=300)
+        with self.assertRaisesRegex(ValueError, 'Use validation_days or min_train_days'):
+            day_blocked_time_series_folds(
+                dates, n_splits=5, gap_days=45, min_train_days=95, validation_days=30)
+
+    def test_fixed_windows_reject_no_dates_or_no_initial_training_history(self):
+        with self.assertRaisesRegex(ValueError, 'at least one row'):
+            day_blocked_time_series_folds([], n_splits=5, gap_days=45, validation_days=30)
+
+        dates = pd.date_range('2018-01-01', periods=45)
+        with self.assertRaisesRegex(ValueError, 'Insufficient history'):
+            day_blocked_time_series_folds(
+                dates, n_splits=5, gap_days=45, validation_days=30)
+
     def test_empty_folds_raise_instead_of_disappearing(self):
         dates = pd.date_range('2018-01-01', periods=135)
         with self.assertRaisesRegex(ValueError, 'Empty CV fold'):

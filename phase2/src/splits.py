@@ -34,22 +34,42 @@ def available_training_rows(train, validation_start, target_col, target_as_of, a
     return result
 
 
-def day_blocked_time_series_folds(dates, n_splits=5, gap_days=0, min_train_days=None):
+def day_blocked_time_series_folds(dates, n_splits=5, gap_days=0,
+                                 min_train_days=None, validation_days=None):
     """Expanding-window CV folds that never split one approval day across train and validation.
 
     `dates` must be positionally aligned with the X/y passed to the estimator.
     Returns a list of (train_idx, valid_idx) arrays usable as `cv=` in scikit-learn.
     `gap_days` leaves calendar days out between train and validation.
     `min_train_days` reserves an initial training period before that gap, useful
-    for short windows. Empty folds raise an error rather than silently disappearing.
+    for short windows when `validation_days` is not set. `validation_days` makes
+    contiguous, fixed-length calendar validation blocks anchored at the last
+    available date; the initial training span is whatever history remains before
+    the first block and its gap. Empty folds raise an error rather than silently
+    disappearing.
     """
-    if n_splits < 2 or gap_days < 0:
-        raise ValueError('Require at least two folds and a non-negative gap')
+    if n_splits < 2 or gap_days < 0 or (validation_days is not None and validation_days < 1):
+        raise ValueError('Require at least two folds, a non-negative gap, and positive validation_days')
     days = pd.to_datetime(pd.Series(dates)).dt.normalize().to_numpy()
     if np.isnat(days).any():
         raise ValueError('Approval dates must be known')
     unique_days = np.sort(np.unique(days))
-    if min_train_days is None:
+    if not len(unique_days):
+        raise ValueError('Approval dates must contain at least one row')
+    if validation_days is not None:
+        if min_train_days is not None:
+            raise ValueError('Use validation_days or min_train_days, not both')
+        first_valid_start = unique_days[-1] - np.timedelta64(
+            n_splits * validation_days - 1, 'D')
+        blocks = [
+            np.arange(first_valid_start + np.timedelta64(i * validation_days, 'D'),
+                      first_valid_start + np.timedelta64((i + 1) * validation_days, 'D'),
+                      dtype='datetime64[D]')
+            for i in range(n_splits)
+        ]
+        if first_valid_start - unique_days[0] <= np.timedelta64(gap_days, 'D'):
+            raise ValueError('Insufficient history for the requested validation windows and gap')
+    elif min_train_days is None:
         blocks = np.array_split(unique_days, n_splits + 1)[1:]
     else:
         if min_train_days < 1:
