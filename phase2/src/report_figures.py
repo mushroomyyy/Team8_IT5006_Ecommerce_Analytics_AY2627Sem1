@@ -49,9 +49,9 @@ def _model_label(model, variant):
     return f"{model} ({'reference baseline' if variant == 'reference' else variant})"
 
 
-def plot_horizon_audit(horizon_audit, save_path=None):
+def plot_waiting_period_audit(waiting_period_audit, save_path=None):
     """Share of training orders hitting the cap, grouped by cap length, one bar per run date."""
-    capped = horizon_audit.pivot(index='horizon', columns='run_date', values='capped_pct')
+    capped = waiting_period_audit.pivot(index='waiting_period', columns='run_date', values='capped_pct')
     width = 0.76 / len(capped.columns)
     with plt.rc_context(STYLE):
         fig, ax = plt.subplots(figsize=(7.5, 4.3))
@@ -70,7 +70,7 @@ def plot_horizon_audit(horizon_audit, save_path=None):
         _style(ax, 'y')
         ax.legend(title='Run date', ncol=len(capped.columns), loc='upper right', title_fontsize=9.5,
                   columnspacing=1.2, handlelength=1.2, bbox_to_anchor=(1.0, 1.02))
-        _titles(fig, 'Horizon audit: orders hitting the cap',
+        _titles(fig, 'Waiting-period audit: orders hitting the cap',
                 'Share of training orders recorded at the cap, by cap length and run date. '
                 'Highest value per cap is labelled.')
         _finish(fig, save_path)

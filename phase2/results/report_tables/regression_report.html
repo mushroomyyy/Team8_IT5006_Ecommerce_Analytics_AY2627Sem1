@@ -23,103 +23,103 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     <tr>
       <td>Decision Tree</td>
       <td>default</td>
-      <td>7.685756</td>
-      <td>7.542296</td>
-      <td>7.237598</td>
-      <td>7.482598</td>
+      <td>7.686</td>
+      <td>7.542</td>
+      <td>7.238</td>
+      <td>7.483</td>
     </tr>
     <tr>
       <td>Decision Tree</td>
       <td>tuned</td>
-      <td>7.546636</td>
-      <td>5.332257</td>
-      <td>4.646710</td>
-      <td>5.813725</td>
+      <td>7.547</td>
+      <td>5.332</td>
+      <td>4.647</td>
+      <td>5.814</td>
     </tr>
     <tr>
       <td>Dummy (median)</td>
       <td>reference</td>
-      <td>9.248053</td>
-      <td>5.719760</td>
-      <td>6.161827</td>
-      <td>7.022709</td>
+      <td>9.248</td>
+      <td>5.720</td>
+      <td>6.162</td>
+      <td>7.023</td>
     </tr>
     <tr>
       <td>LightGBM</td>
       <td>default</td>
-      <td>6.181367</td>
-      <td>5.220869</td>
-      <td>4.686038</td>
-      <td>5.346784</td>
+      <td>6.181</td>
+      <td>5.221</td>
+      <td>4.686</td>
+      <td>5.347</td>
     </tr>
     <tr>
       <td>LightGBM</td>
       <td>tuned</td>
-      <td>4.845505</td>
-      <td>5.297866</td>
-      <td>4.773649</td>
-      <td>4.967553</td>
+      <td>4.846</td>
+      <td>5.298</td>
+      <td>4.774</td>
+      <td>4.968</td>
     </tr>
     <tr>
       <td>Linear Regression</td>
       <td>default</td>
-      <td>6.548512</td>
-      <td>5.665836</td>
-      <td>5.124227</td>
-      <td>5.764051</td>
+      <td>6.549</td>
+      <td>5.666</td>
+      <td>5.124</td>
+      <td>5.764</td>
     </tr>
     <tr>
       <td>Monthly champion</td>
       <td>selected</td>
-      <td>4.845505</td>
-      <td>5.665836</td>
-      <td>5.057076</td>
-      <td>5.186214</td>
+      <td>4.846</td>
+      <td>5.666</td>
+      <td>5.057</td>
+      <td>5.186</td>
     </tr>
     <tr>
       <td>Olist promise</td>
       <td>reference</td>
-      <td>19.307268</td>
-      <td>12.389998</td>
-      <td>9.107985</td>
-      <td>13.495749</td>
+      <td>19.307</td>
+      <td>12.390</td>
+      <td>9.108</td>
+      <td>13.496</td>
     </tr>
     <tr>
       <td>Random Forest</td>
       <td>default</td>
-      <td>7.027265</td>
-      <td>5.213547</td>
-      <td>4.627514</td>
-      <td>5.599336</td>
+      <td>7.027</td>
+      <td>5.214</td>
+      <td>4.628</td>
+      <td>5.599</td>
     </tr>
     <tr>
       <td>Random Forest</td>
       <td>tuned</td>
-      <td>6.349643</td>
-      <td>5.068755</td>
-      <td>4.681085</td>
-      <td>5.350356</td>
+      <td>6.350</td>
+      <td>5.069</td>
+      <td>4.681</td>
+      <td>5.350</td>
     </tr>
     <tr>
       <td>Ridge</td>
       <td>default</td>
-      <td>6.544297</td>
-      <td>5.656484</td>
-      <td>5.057076</td>
-      <td>5.736188</td>
+      <td>6.544</td>
+      <td>5.656</td>
+      <td>5.057</td>
+      <td>5.736</td>
     </tr>
     <tr>
       <td>Ridge</td>
       <td>tuned</td>
-      <td>6.688575</td>
-      <td>5.613007</td>
-      <td>5.123304</td>
-      <td>5.792140</td>
+      <td>6.689</td>
+      <td>5.613</td>
+      <td>5.123</td>
+      <td>5.792</td>
     </tr>
   </tbody>
 </table>
-<p class="note">MAE in days; lower is better. Pooled values combine eligible June–August evaluation orders.</p>
-<p>Monthly champions are selected on buffered development holdouts.</p></section>
+<p class="note">MAE in days. Champions are selected on buffered holdouts; metrics use eligible evaluation orders.</p>
+<p>Default and tuned candidates are refitted on each run date’s full eligible history. </p></section>
 <section>
 <p><b>Tuning gains in cross-validation and monthly inference</b></p>
 <table class="dataframe">
@@ -135,67 +135,67 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     <tr>
       <td>June</td>
       <td>Ridge</td>
-      <td>0.100</td>
+      <td>+0.100</td>
       <td>-0.144</td>
     </tr>
     <tr>
       <td>June</td>
       <td>Decision Tree</td>
-      <td>3.066</td>
-      <td>0.139</td>
+      <td>+3.066</td>
+      <td>+0.139</td>
     </tr>
     <tr>
       <td>June</td>
       <td>Random Forest</td>
-      <td>0.317</td>
-      <td>0.678</td>
+      <td>+0.317</td>
+      <td>+0.678</td>
     </tr>
     <tr>
       <td>June</td>
       <td>LightGBM</td>
-      <td>0.117</td>
-      <td>1.336</td>
+      <td>+0.117</td>
+      <td>+1.336</td>
     </tr>
     <tr>
       <td>July</td>
       <td>Ridge</td>
-      <td>0.034</td>
-      <td>0.043</td>
+      <td>+0.034</td>
+      <td>+0.043</td>
     </tr>
     <tr>
       <td>July</td>
       <td>Decision Tree</td>
-      <td>3.188</td>
-      <td>2.210</td>
+      <td>+3.188</td>
+      <td>+2.210</td>
     </tr>
     <tr>
       <td>July</td>
       <td>Random Forest</td>
-      <td>0.158</td>
-      <td>0.145</td>
+      <td>+0.158</td>
+      <td>+0.145</td>
     </tr>
     <tr>
       <td>July</td>
       <td>LightGBM</td>
-      <td>0.016</td>
+      <td>+0.016</td>
       <td>-0.077</td>
     </tr>
     <tr>
       <td>August</td>
       <td>Ridge</td>
-      <td>0.039</td>
+      <td>+0.039</td>
       <td>-0.066</td>
     </tr>
     <tr>
       <td>August</td>
       <td>Decision Tree</td>
-      <td>3.207</td>
-      <td>2.591</td>
+      <td>+3.207</td>
+      <td>+2.591</td>
     </tr>
     <tr>
       <td>August</td>
       <td>Random Forest</td>
-      <td>0.128</td>
+      <td>+0.128</td>
       <td>-0.054</td>
     </tr>
     <tr>
@@ -207,7 +207,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
   </tbody>
 </table>
 <p class="note">Gain = default MAE minus tuned MAE, in days; positive favors tuning. Evaluation gains use eligible monthly evaluation orders.</p>
-<p>The two columns compare tuning within CV folds and on each month’s evaluation sample.</p></section>
+<p>This table shows whether CV-selected settings reduce error within development folds and whether the reduction carries to subsequent orders.</p></section>
 <section>
 <p><b>Pooled regression performance, June–August</b></p>
 <table class="dataframe">
@@ -352,7 +352,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     </tr>
   </tbody>
 </table>
-<p class="note">Scored orders are counted once per month. Evaluated orders have a known target after the 45-day horizon.</p>
+<p class="note">Scored orders are counted once per month. Evaluated orders have a known target after the 45-day waiting period.</p>
 <p>The counts show how many orders contribute to each monthly and pooled metric.</p></section>
 <section>
 <p><b>Monthly model selection and chosen settings</b></p>
@@ -370,22 +370,22 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>2018-06</td>
       <td>LightGBM</td>
       <td>Tuned</td>
-      <td>5.394493</td>
+      <td>5.394</td>
     </tr>
     <tr>
       <td>2018-07</td>
       <td>Linear Regression</td>
       <td>Default</td>
-      <td>5.818005</td>
+      <td>5.818</td>
     </tr>
     <tr>
       <td>2018-08</td>
       <td>Ridge</td>
       <td>Default</td>
-      <td>5.987536</td>
+      <td>5.988</td>
     </tr>
   </tbody>
 </table>
-<p class="note">The buffered holdout selects the default or tuned candidate. Full settings for every model and month are in the supplementary CSV.</p>
-<p>Each month uses a separate CV search and holdout selection.</p></section>
+<p class="note">Full searched parameter sets for every model and month are in the accompanying CSV export.</p>
+<p>For each month, the holdout selects among default and tuned candidates after that month’s CV search.</p></section>
 </body></html>

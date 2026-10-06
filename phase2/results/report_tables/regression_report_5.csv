@@ -1,4 +1,4 @@
 Month,Selected model,Configuration,Holdout MAE (days)
 2018-06,LightGBM,Tuned,5.394492630307906
-2018-07,Linear Regression,Default,5.818005414762395
-2018-08,Ridge,Default,5.987536240936477
+2018-07,Linear Regression,Default,5.818005414763074
+2018-08,Ridge,Default,5.98753624088065

@@ -67,25 +67,25 @@ def labels_as_of(order_rows, run_date: str):
     return result
 
 
-def regression_targets_as_of(order_rows, run_date: str, horizon: int):
+def regression_targets_as_of(order_rows, run_date: str, waiting_period: int):
     """Assign the days from the estimated delivery date; negative is early, positive is late.
 
-    target = min(delivered - approved, horizon) - (estimated - approved), in calendar days.
-    For an order delivered within `horizon` days this is simply delivered - estimated.
+    target = min(delivered - approved, waiting_period) - (estimated - approved), in calendar days.
+    For an order delivered within `waiting_period` days this is simply delivered - estimated.
 
     Uses only dates strictly before run_date. An undelivered order is still known to
     have taken at least `run_date - approved` days, so its capped lead time is known
-    (= horizon) once that span reaches the horizon. This keeps slow orders in training
+    (= waiting_period) once that span reaches the waiting period. This keeps slow orders in training
     instead of silently dropping them, which would bias the target downward.
 
     target_status:
-      delivered_within_horizon  delivered by the run date within `horizon` days
-      capped_delivered          delivered by the run date after more than `horizon` days
-      capped_undelivered        not delivered by the run date, already `horizon` days old
-      unresolved                not delivered by the run date and younger than `horizon`
-      invalid_or_missing_dates  missing approval or estimate, or delivery before approval
+      delivered_within_waiting_period  delivered by the run date within `waiting_period` days
+      capped_delivered                 delivered by the run date after more than `waiting_period` days
+      capped_undelivered               not delivered by the run date, already `waiting_period` days old
+      unresolved                       not delivered by the run date and younger than `waiting_period`
+      invalid_or_missing_dates         missing approval or estimate, or delivery before approval
     """
-    _check_non_negative_int(horizon, 'horizon', allow_zero=False)
+    _check_non_negative_int(waiting_period, 'waiting_period', allow_zero=False)
     run_day = _parse_run_date(run_date)
     result = order_rows.copy()
     approved = pd.to_datetime(result['order_approved_at']).dt.normalize()
@@ -99,18 +99,18 @@ def regression_targets_as_of(order_rows, run_date: str, horizon: int):
     # Days already observed without delivery: approval day through run_date - 1
     elapsed_days = (run_day - approved).dt.days
 
-    within = valid & delivered_by_run & lead_days.le(horizon)
-    capped_delivered = valid & delivered_by_run & lead_days.gt(horizon)
-    capped_undelivered = valid & ~delivered_by_run & elapsed_days.ge(horizon)
+    within = valid & delivered_by_run & lead_days.le(waiting_period)
+    capped_delivered = valid & delivered_by_run & lead_days.gt(waiting_period)
+    capped_undelivered = valid & ~delivered_by_run & elapsed_days.ge(waiting_period)
 
     result['lead_days_as_of_run'] = lead_days.where(valid & delivered_by_run).astype('Float64')
     result['capped_lead_as_of_run'] = pd.Series(pd.NA, index=result.index, dtype='Float64')
     result.loc[within, 'capped_lead_as_of_run'] = lead_days[within].astype(float)
-    result.loc[capped_delivered | capped_undelivered, 'capped_lead_as_of_run'] = float(horizon)
+    result.loc[capped_delivered | capped_undelivered, 'capped_lead_as_of_run'] = float(waiting_period)
     result['target_as_of_run'] = result['capped_lead_as_of_run'] - promised_days
     result['target_status'] = 'unresolved'
     result.loc[~valid, 'target_status'] = 'invalid_or_missing_dates'
-    result.loc[within, 'target_status'] = 'delivered_within_horizon'
+    result.loc[within, 'target_status'] = 'delivered_within_waiting_period'
     result.loc[capped_delivered, 'target_status'] = 'capped_delivered'
     result.loc[capped_undelivered, 'target_status'] = 'capped_undelivered'
     return result
@@ -151,22 +151,22 @@ def attach_prediction_labels(predictions, orders, lookback=45, prediction_thresh
     return labelled
 
 
-def attach_regression_actuals(predictions, orders, horizon):
+def attach_regression_actuals(predictions, orders, waiting_period):
     """Return a copy of regression predictions with their actual days from the estimate.
 
-    Each daily cohort is evaluated at approval day + horizon (inclusive), when every
-    valid order's target (with its lead time capped at `horizon`) is known.
+    Each daily cohort is evaluated at approval day + waiting_period (inclusive), when every
+    valid order's target (with its lead time capped at `waiting_period`) is known.
     """
-    _check_non_negative_int(horizon, 'horizon', allow_zero=False)
+    _check_non_negative_int(waiting_period, 'waiting_period', allow_zero=False)
     labelled = predictions.copy()
     outcomes = _outcomes_for(orders, labelled['order_id'])
     outcomes['evaluation_cutoff'] = (outcomes['order_approved_at'].dt.normalize()
-                                     + pd.Timedelta(days=horizon))
+                                     + pd.Timedelta(days=waiting_period))
     outcomes['actual_target'] = pd.Series(pd.NA, index=outcomes.index, dtype='Float64')
     outcomes['target_status'] = 'invalid_or_missing_dates'
     for cutoff, cohort in outcomes.groupby('evaluation_cutoff'):
         audit = regression_targets_as_of(
-            cohort, run_date=(cutoff + pd.Timedelta(days=1)).strftime('%Y-%m-%d'), horizon=horizon)
+            cohort, run_date=(cutoff + pd.Timedelta(days=1)).strftime('%Y-%m-%d'), waiting_period=waiting_period)
         outcomes.loc[audit.index, 'actual_target'] = audit['target_as_of_run']
         outcomes.loc[audit.index, 'target_status'] = audit['target_status']
 
