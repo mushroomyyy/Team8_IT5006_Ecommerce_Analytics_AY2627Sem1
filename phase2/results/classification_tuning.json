@@ -1,27 +1,104 @@
 {
-  "run_date": "2018-06-02",
-  "cv": "5-fold day-blocked expanding window",
-  "scoring": "average_precision",
+  "run_date": "2018-08-02",
+  "inference_month": "2018-08",
+  "history_window": {
+    "start": "2017-06-18",
+    "end": "2018-06-17",
+    "calendar_days": 365,
+    "inference_buffer_days": 45
+  },
+  "development_split": {
+    "cv_training_start": "2017-06-18",
+    "cv_training_end": "2018-04-03",
+    "cv_training_orders": 53591,
+    "holdout_start": "2018-05-19",
+    "holdout_end": "2018-06-17",
+    "holdout_orders": 5271,
+    "gap_days": 45,
+    "historical_orders": 70164,
+    "known_labels_at_run_date": 70151,
+    "unknown_labels_at_run_date": 13
+  },
+  "cv": {
+    "scheme": "day-blocked expanding window",
+    "validation_days": 30,
+    "gap_days": 45,
+    "training_outcomes_checked_at_validation_start": true,
+    "folds": [
+      {
+        "fold": 1,
+        "train_orders": 12540,
+        "validation_orders": 7860,
+        "validation_start": "2017-11-05",
+        "validation_end": "2017-12-04"
+      },
+      {
+        "fold": 2,
+        "train_orders": 16948,
+        "validation_orders": 5299,
+        "validation_start": "2017-12-05",
+        "validation_end": "2018-01-03"
+      },
+      {
+        "fold": 3,
+        "train_orders": 21644,
+        "validation_orders": 7196,
+        "validation_start": "2018-01-04",
+        "validation_end": "2018-02-02"
+      },
+      {
+        "fold": 4,
+        "train_orders": 30206,
+        "validation_orders": 7275,
+        "validation_start": "2018-02-03",
+        "validation_end": "2018-03-04"
+      },
+      {
+        "fold": 5,
+        "train_orders": 35968,
+        "validation_orders": 6950,
+        "validation_start": "2018-03-05",
+        "validation_end": "2018-04-03"
+      }
+    ],
+    "scoring": "average_precision",
+    "cv_average_precision_mean_pct_is_rounded": true
+  },
+  "search": {
+    "method": "RandomizedSearchCV",
+    "random_state": 42,
+    "iterations": {
+      "Logistic Regression": 12,
+      "Decision Tree": 15,
+      "Random Forest": 8,
+      "XGBoost": 12,
+      "LightGBM": 12
+    }
+  },
   "models": {
     "Logistic Regression": {
       "family": "Linear",
       "best_params": {
-        "classifier__C": 100.0
+        "classifier__C": 3162.2776601683795
       },
-      "f1_threshold": 0.4039057863533293,
-      "cv_pr_auc_default": 0.24434235419142683,
-      "cv_pr_auc_tuned": 0.2572640626098416
+      "f1_threshold_oof": 0.4581386572723282,
+      "cv_avg_precision_mean_pct": {
+        "default": 24.11,
+        "tuned": 28.38
+      }
     },
     "Decision Tree": {
       "family": "Tree-based",
       "best_params": {
-        "classifier__min_samples_leaf": 50,
-        "classifier__max_depth": 8,
-        "classifier__criterion": "gini"
+        "classifier__min_samples_leaf": 75,
+        "classifier__max_depth": 12,
+        "classifier__criterion": "entropy"
       },
-      "f1_threshold": 0.4673005892801762,
-      "cv_pr_auc_default": 0.22972129527968838,
-      "cv_pr_auc_tuned": 0.2585279242396573
+      "f1_threshold_oof": 0.4085102211398555,
+      "cv_avg_precision_mean_pct": {
+        "default": 22.05,
+        "tuned": 24.91
+      }
     },
     "Random Forest": {
       "family": "Tree-based",
@@ -29,41 +106,65 @@
         "classifier__n_estimators": 100,
         "classifier__min_samples_leaf": 50,
         "classifier__max_features": 0.5,
-        "classifier__max_depth": 10
+        "classifier__max_depth": 6
       },
-      "f1_threshold": 0.42797861703491075,
-      "cv_pr_auc_default": 0.29837488827289615,
-      "cv_pr_auc_tuned": 0.2950525361167727
+      "f1_threshold_oof": 0.49028279701934985,
+      "cv_avg_precision_mean_pct": {
+        "default": 28.23,
+        "tuned": 28.61
+      }
     },
     "XGBoost": {
       "family": "Tree-based",
       "best_params": {
-        "classifier__subsample": 0.7,
-        "classifier__n_estimators": 400,
-        "classifier__min_child_weight": 10,
-        "classifier__max_depth": 3,
-        "classifier__learning_rate": 0.03,
-        "classifier__colsample_bytree": 1.0
+        "classifier__subsample": 1.0,
+        "classifier__n_estimators": 200,
+        "classifier__min_child_weight": 20,
+        "classifier__max_depth": 8,
+        "classifier__learning_rate": 0.01,
+        "classifier__colsample_bytree": 0.6
       },
-      "f1_threshold": 0.39454472064971924,
-      "cv_pr_auc_default": 0.2931222836912792,
-      "cv_pr_auc_tuned": 0.3076276112314167
+      "f1_threshold_oof": 0.47673478722572327,
+      "cv_avg_precision_mean_pct": {
+        "default": 28.87,
+        "tuned": 30.14
+      }
     },
     "LightGBM": {
       "family": "Tree-based",
       "best_params": {
         "classifier__subsample_freq": 1,
-        "classifier__subsample": 0.7,
-        "classifier__reg_lambda": 0.0,
-        "classifier__num_leaves": 15,
-        "classifier__n_estimators": 200,
-        "classifier__min_child_samples": 50,
-        "classifier__learning_rate": 0.03,
-        "classifier__colsample_bytree": 1.0
+        "classifier__subsample": 1.0,
+        "classifier__reg_lambda": 1.0,
+        "classifier__num_leaves": 31,
+        "classifier__n_estimators": 100,
+        "classifier__min_child_samples": 75,
+        "classifier__learning_rate": 0.05,
+        "classifier__colsample_bytree": 0.8
       },
-      "f1_threshold": 0.38312725688694854,
-      "cv_pr_auc_default": 0.2906943845639577,
-      "cv_pr_auc_tuned": 0.30561451994201105
+      "f1_threshold_oof": 0.5125959174813097,
+      "cv_avg_precision_mean_pct": {
+        "default": 28.68,
+        "tuned": 30.12
+      }
     }
+  },
+  "model_selection": {
+    "metric": "average_precision",
+    "tie_breakers": [
+      "F1",
+      "ROC-AUC"
+    ],
+    "threshold": 0.5,
+    "selected_model": "XGBoost",
+    "selected_variant": "tuned",
+    "holdout_average_precision": 0.17908496339229774,
+    "holdout_roc_auc": 0.7541003627818775
+  },
+  "final_refit_orders": 70151,
+  "inference_evaluation": {
+    "scored_orders": 6606,
+    "evaluated_orders": 6606,
+    "late_orders": 523
   }
 }

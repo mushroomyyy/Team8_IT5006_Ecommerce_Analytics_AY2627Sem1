@@ -1,0 +1,2 @@
+Inference month,Selected model,Configuration,CV MAE (days),Holdout MAE (days),Full-history refit orders,Selected parameters
+August 2018,Ridge,Default,6.49337965237776,5.987536240936477,69427,Default settings

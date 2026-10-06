@@ -1,0 +1,180 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>August classification performance</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>Configuration</th>
+      <th>Selected</th>
+      <th>AP (%)</th>
+      <th>ROC-AUC</th>
+      <th>Precision (%)</th>
+      <th>Recall (%)</th>
+      <th>F1 (%)</th>
+      <th>Top-decile capture (%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Decision Tree</td>
+      <td>default</td>
+      <td></td>
+      <td>7.70</td>
+      <td>0.472</td>
+      <td>6.65</td>
+      <td>46.27</td>
+      <td>11.63</td>
+      <td>10.52</td>
+    </tr>
+    <tr>
+      <td>Decision Tree</td>
+      <td>tuned</td>
+      <td></td>
+      <td>7.81</td>
+      <td>0.477</td>
+      <td>7.12</td>
+      <td>45.51</td>
+      <td>12.32</td>
+      <td>7.27</td>
+    </tr>
+    <tr>
+      <td>LightGBM</td>
+      <td>default</td>
+      <td></td>
+      <td>10.89</td>
+      <td>0.500</td>
+      <td>6.99</td>
+      <td>43.98</td>
+      <td>12.06</td>
+      <td>11.47</td>
+    </tr>
+    <tr>
+      <td>LightGBM</td>
+      <td>tuned</td>
+      <td></td>
+      <td>11.26</td>
+      <td>0.473</td>
+      <td>6.14</td>
+      <td>35.18</td>
+      <td>10.45</td>
+      <td>11.66</td>
+    </tr>
+    <tr>
+      <td>Logistic Regression</td>
+      <td>default</td>
+      <td></td>
+      <td>13.14</td>
+      <td>0.615</td>
+      <td>10.23</td>
+      <td>80.69</td>
+      <td>18.16</td>
+      <td>17.21</td>
+    </tr>
+    <tr>
+      <td>Logistic Regression</td>
+      <td>tuned</td>
+      <td></td>
+      <td>13.19</td>
+      <td>0.616</td>
+      <td>10.19</td>
+      <td>80.50</td>
+      <td>18.08</td>
+      <td>17.21</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>default</td>
+      <td></td>
+      <td>9.65</td>
+      <td>0.434</td>
+      <td>6.15</td>
+      <td>14.34</td>
+      <td>8.61</td>
+      <td>11.09</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>tuned</td>
+      <td></td>
+      <td>7.97</td>
+      <td>0.423</td>
+      <td>5.43</td>
+      <td>29.83</td>
+      <td>9.18</td>
+      <td>12.62</td>
+    </tr>
+    <tr>
+      <td>XGBoost</td>
+      <td>default</td>
+      <td></td>
+      <td>11.20</td>
+      <td>0.489</td>
+      <td>7.21</td>
+      <td>43.02</td>
+      <td>12.36</td>
+      <td>12.62</td>
+    </tr>
+    <tr>
+      <td>XGBoost</td>
+      <td>tuned</td>
+      <td>Yes</td>
+      <td>10.93</td>
+      <td>0.444</td>
+      <td>5.70</td>
+      <td>29.64</td>
+      <td>9.56</td>
+      <td>12.43</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">AP, precision, recall, F1 and top-decile capture are percentages. ROC-AUC is on a 0–1 scale. Threshold metrics use 0.5. “Selected” marks the model chosen on the buffered development holdout. August inference orders scored: 6,606; known outcomes: 6,606; late outcomes: 523.</p>
+<p>August holdout selection: **XGBoost (tuned)** (holdout AP 17.91%; ROC-AUC 0.754; threshold 0.50).</p></section>
+<section>
+<p><b>August tuned-minus-default change (percentage points)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>ΔAP (pp)</th>
+      <th>ΔROC-AUC (pp)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Logistic Regression</td>
+      <td>+0.05</td>
+      <td>+0.10</td>
+    </tr>
+    <tr>
+      <td>Decision Tree</td>
+      <td>+0.11</td>
+      <td>+0.50</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>-1.68</td>
+      <td>-1.06</td>
+    </tr>
+    <tr>
+      <td>XGBoost</td>
+      <td>-0.27</td>
+      <td>-4.48</td>
+    </tr>
+    <tr>
+      <td>LightGBM</td>
+      <td>+0.37</td>
+      <td>-2.77</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Change = tuned minus default on the same August evaluation orders; positive values indicate improvement.</p>
+<p>This table summarizes the August inference gain associated with tuning within each model family.</p></section>
+</body></html>

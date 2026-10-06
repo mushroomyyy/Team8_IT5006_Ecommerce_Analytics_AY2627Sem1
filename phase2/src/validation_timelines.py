@@ -1,4 +1,4 @@
-"""Plot the June validation workflow from the rows and CV splits used by models."""
+"""Plot the monthly validation workflow from the rows and CV splits used by models."""
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -38,17 +38,17 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
     train = timeline['development_train']
     holdout = timeline['development_holdout']
     final_refit = timeline['final_refit']
-    june_scored = timeline['june_scored']
-    june_evaluated = timeline['june_evaluated']
+    evaluation_scored = timeline['evaluation_scored']
+    evaluation_count = timeline['evaluation_count']
     folds = timeline['cv_folds']
     date_col = timeline.get('date_col', 'order_approved_dt')
 
     hold_start, hold_end, hold_count = _period(holdout, date_col)
     full_start, full_end, full_count = _period(final_refit, date_col)
-    _, _, score_count = _period(june_scored, date_col)
+    _, _, score_count = _period(evaluation_scored, date_col)
 
     labels = [f'CV fold {i}' for i in range(1, n_splits + 1)] + [
-        'Development\nholdout', 'Final refit', 'June evaluation']
+        'Development\nholdout', 'Final refit', pd.Timestamp(inference_start).strftime('%B') + ' evaluation']
     ys = list(range(len(labels) - 1, -1, -1))
     ax.set_yticks(ys, labels)
     ax.set_title(name, loc='left', fontsize=13, fontweight='bold', pad=11)
@@ -90,7 +90,7 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
             f'{hold_start:%d %b}–{hold_end:%d %b} | {test_days}d | {hold_count:,} orders',
             ha='center', va='bottom', fontsize=7.5, color='#202020', clip_on=False)
 
-    # Final model is refit on the full eligible history at the June run date.
+    # Final model is refit on the full eligible history at the selected run date.
     y = ys[n_splits + 1]
     history_days = (pd.Timestamp(timeline['window_end']) -
                     pd.Timestamp(timeline['window_start'])).days + 1
@@ -101,16 +101,16 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
     if buffer_start <= buffer_end:
         _bar(ax, buffer_start, buffer_end, y, COLORS['buffer'], '45d cutoff')
 
-    # Purple bar is the scored June cohort; report how many had mature labels.
+    # Purple bar is the scored evaluation cohort; report how many had mature labels.
     y = ys[n_splits + 2]
     _bar(ax, inference_start, inference_end, y, COLORS['evaluation'])
-    june_start = pd.Timestamp(inference_start)
-    june_end = pd.Timestamp(inference_end)
-    ax.text(mdates.date2num(june_start) - 3, y,
-            f'{score_count:,} scored / {june_evaluated:,} evaluated; labels at approval + 45 days',
+    evaluation_start = pd.Timestamp(inference_start)
+    evaluation_end = pd.Timestamp(inference_end)
+    ax.text(mdates.date2num(evaluation_start) - 3, y,
+            f'{score_count:,} scored / {evaluation_count:,} evaluated; labels at approval + 45 days',
             ha='right', va='center', fontsize=8, color='#202020', clip_on=False)
-    ax.text(mdates.date2num(june_end), y + 0.32,
-            f'1–30 Jun | 30 days', ha='right', va='bottom', fontsize=8,
+    ax.text(mdates.date2num(evaluation_end), y + 0.32,
+            f'{evaluation_start.day}–{evaluation_end.day} {evaluation_start:%b} | {(evaluation_end - evaluation_start).days + 1} days', ha='right', va='bottom', fontsize=8,
             color='#202020', clip_on=False)
 
     ax.grid(axis='x', color='#e8e8e8', linewidth=0.7)
@@ -128,20 +128,21 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
 def plot_validation_timelines(classification, regression, output_path,
                               n_splits=5, validation_days=30, gap_days=45,
                               holdout_gap_days=45, test_days=30,
-                              inference_start='2018-06-01', inference_end='2018-06-30'):
-    """Save the two-panel June timeline using actual eligible rows and fold indices.
+                              inference_start='2018-08-01', inference_end='2018-08-31'):
+    """Save the two-panel monthly timeline using actual eligible rows and fold indices.
 
     Each timeline mapping must provide `development_train`, `development_holdout`,
-    `cv_folds`, `final_refit`, `june_scored`, `june_evaluated`, `window_start`, and
+    `cv_folds`, `final_refit`, `evaluation_scored`, `evaluation_count`, `window_start`, and
     `window_end`. Fold indices must be the exact post-availability indices used in
     the corresponding model notebook.
     """
     fig, axes = plt.subplots(2, 1, figsize=(15, 10), sharex=True,
                              gridspec_kw={'height_ratios': [1, 1], 'hspace': 0.30})
-    _draw_panel(axes[0], 'Classification — June 2018 run', classification,
+    run_label = pd.Timestamp(inference_start).strftime('%B %Y')
+    _draw_panel(axes[0], f'Classification — {run_label} run', classification,
                 n_splits, validation_days, gap_days, holdout_gap_days,
                 test_days, inference_start, inference_end)
-    _draw_panel(axes[1], 'Regression — June 2018 run', regression,
+    _draw_panel(axes[1], f'Regression — {run_label} run', regression,
                 n_splits, validation_days, gap_days, holdout_gap_days,
                 test_days, inference_start, inference_end)
 
@@ -150,13 +151,13 @@ def plot_validation_timelines(classification, regression, output_path,
         patches.Patch(color=COLORS['buffer'], label='Excluded buffer'),
         patches.Patch(color=COLORS['validation'], label='CV validation'),
         patches.Patch(color=COLORS['holdout'], label='Development holdout'),
-        patches.Patch(color=COLORS['evaluation'], label='Final June evaluation'),
+        patches.Patch(color=COLORS['evaluation'], label=f'{run_label} evaluation'),
     ]
     fig.legend(handles=legend, loc='upper center', ncol=5, frameon=False,
                bbox_to_anchor=(0.5, 1.01), fontsize=9)
     fig.subplots_adjust(left=0.13, right=0.88, top=0.95, bottom=0.08)
     fig.text(0.13, 0.015,
-             'Training counts reflect outcome availability; June outcomes are assessed at approval + 45 days.',
+             'Training counts reflect outcome availability; evaluation outcomes are assessed at approval + 45 days.',
              ha='left', va='bottom', fontsize=8)
     fig.savefig(output_path, dpi=220, bbox_inches='tight')
     return fig
