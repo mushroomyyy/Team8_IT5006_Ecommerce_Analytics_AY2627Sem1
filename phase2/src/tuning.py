@@ -19,7 +19,7 @@ from . import RANDOM_STATE
 from .preprocessing import make_preprocessor
 
 CV_SCORING = {'roc_auc': 'roc_auc', 
-              'pr_auc': 'average_precision', 
+              'avg_precision': 'average_precision', 
               'f1_at_0.5': 'f1'
               }
 

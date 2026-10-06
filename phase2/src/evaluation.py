@@ -13,7 +13,7 @@ def classification_metrics(y_true, y_pred, y_prob=None):
     two_classes = pd.Series(y_true).nunique() == 2
     return {
         'roc_auc': roc_auc_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
-        'pr_auc': average_precision_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
+        'avg_precision': average_precision_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
         'accuracy': accuracy_score(y_true, y_pred),
         'precision': precision_score(y_true, y_pred, zero_division=0),
         'recall': recall_score(y_true, y_pred, zero_division=0),
