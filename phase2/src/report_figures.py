@@ -130,53 +130,53 @@ def plot_split_and_folds(train_dates, test_dates, folds, save_path=None):
         _titles(fig, 'Historical training, CV and development holdout',
                 'Historical data only. Grey gaps separate training from CV validation; numbers are order counts.')
         fig.text(0.04, 0.025,
-                 'The green historical holdout is separate from the later out-of-sample monthly evaluation.',
+                 'The green development holdout is separate from the later prediction cohort.',
                  fontsize=8.5, color=INK2)
         _finish(fig, save_path)
 
 
-def plot_cv_mae(cv_results, champion_key, save_path=None):
-    """CV MAE with ±1 std for every model and variant; the champion is highlighted."""
+def plot_cv_mae(cv_results, selected_key, save_path=None):
+    """CV MAE with ±1 std for every model and variant; the supplied selected candidate is highlighted."""
     table = cv_results.sort_values('cv_mae_mean', ascending=False)
     with plt.rc_context(STYLE):
-        fig, ax = plt.subplots(figsize=(8, 0.42 * len(table) + 0.9))
-        fig.subplots_adjust(left=0.29, right=0.95, top=0.82, bottom=0.11)
+        fig, ax = plt.subplots(figsize=(8, max(4.2, 0.42 * len(table) + 1.8)))
+        fig.subplots_adjust(left=0.29, right=0.95, top=0.74, bottom=0.11)
         for i, (key, row) in enumerate(table.iterrows()):
-            is_champion = key == champion_key
-            ax.barh(i, row['cv_mae_mean'], height=0.52, color=BLUE if is_champion else GRAY)
+            is_selected = key == selected_key
+            ax.barh(i, row['cv_mae_mean'], height=0.52, color=BLUE if is_selected else GRAY)
             ax.errorbar(row['cv_mae_mean'], i, xerr=row['cv_mae_std'], color=INK2, linewidth=1, capsize=2.5)
             ax.text(row['cv_mae_mean'] + row['cv_mae_std'] + 0.2, i, f"{row['cv_mae_mean']:.2f}",
-                    va='center', fontsize=9.5, fontweight='bold' if is_champion else 'normal')
+                    va='center', fontsize=9.5, fontweight='bold' if is_selected else 'normal')
         ax.set_yticks(range(len(table)), [_model_label(*key) for key in table.index])
         ax.set_xlabel('Cross-validated MAE (days); lower is better')
         ax.set_xlim(0, (table['cv_mae_mean'] + table['cv_mae_std']).max() * 1.12)
         _style(ax, 'x')
-        ax.legend(handles=[Patch(color=BLUE, label='Champion'), Patch(color=GRAY, label='Other models'),
+        ax.legend(handles=[Patch(color=BLUE, label='Selected candidate'), Patch(color=GRAY, label='Other models'),
                            Line2D([0], [0], color=INK2, linewidth=1, label='± 1 std across the folds')],
                   ncol=3, loc='lower left', bbox_to_anchor=(-0.42, 1.0), columnspacing=1.4, handlelength=1.2)
         _titles(fig, 'Cross-validated MAE, default vs tuned',
                 'Time-series CV on the training part (expanding-window folds). '
-                f'Champion: {champion_key[0]} ({champion_key[1]}).', top=0.975)
+                f'Selected candidate: {selected_key[0]} ({selected_key[1]}).', top=0.975)
         _finish(fig, save_path)
 
 
-def plot_mae_across_evaluations(cv_results, holdout_results, backtest_pooled, champion_key, save_path=None):
+def plot_mae_across_evaluations(cv_results, holdout_results, backtest_pooled, selected_key, save_path=None):
     """One row per model: its MAE under CV, on the hold-out and pooled over the backtest."""
     table = pd.DataFrame({'cv': cv_results['cv_mae_mean'], 'holdout': holdout_results['mae'],
                           'backtest': backtest_pooled['mae']}).dropna().sort_values('backtest', ascending=False)
     series = [('cv', 'Cross-validation', BLUE, 'o', 0.17), ('holdout', 'Hold-out', ORANGE, 's', 0.0),
-              ('backtest', 'Monthly backtest, pooled', AQUA, 'D', -0.17)]
+              ('backtest', 'Prediction cohort, pooled', AQUA, 'D', -0.17)]
     with plt.rc_context(STYLE):
-        fig, ax = plt.subplots(figsize=(8, 0.42 * len(table) + 0.9))
-        fig.subplots_adjust(left=0.29, right=0.97, top=0.82, bottom=0.11)
+        fig, ax = plt.subplots(figsize=(8, max(4.2, 0.42 * len(table) + 1.8)))
+        fig.subplots_adjust(left=0.29, right=0.97, top=0.74, bottom=0.11)
         for i, (key, row) in enumerate(table.iterrows()):
             ax.plot([row.min(), row.max()], [i, i], color=AXIS, linewidth=1.2, zorder=1)
             for column, _, color, marker, offset in series:  # Small offsets keep equal values visible
                 ax.scatter(row[column], i + offset, s=58, color=color, marker=marker,
                            edgecolor=SURFACE, linewidth=1.4, zorder=3)
         ax.set_yticks(range(len(table)), [_model_label(*key) for key in table.index])
-        if champion_key in table.index:
-            ax.get_yticklabels()[table.index.get_loc(champion_key)].set_fontweight('bold')
+        if selected_key in table.index:
+            ax.get_yticklabels()[table.index.get_loc(selected_key)].set_fontweight('bold')
         ax.set_xlabel('MAE (days); lower is better')
         ax.set_ylim(-0.6, len(table) - 0.4)
         _style(ax, 'x')
@@ -185,7 +185,7 @@ def plot_mae_across_evaluations(cv_results, holdout_results, backtest_pooled, ch
                            for _, label, color, marker, _ in series],
                   ncol=3, loc='lower left', bbox_to_anchor=(-0.42, 1.0), columnspacing=1.2, handletextpad=0.3)
         _titles(fig, 'MAE under cross-validation, hold-out and backtest',
-                'Each model under the three evaluations, sorted by backtest MAE. Champion in bold.', top=0.975)
+                'Sorted by backtest MAE; the selected candidate is bold.', top=0.975)
         _finish(fig, save_path)
 
 
@@ -218,8 +218,8 @@ def plot_backtest_by_month(backtest_monthly, series, save_path=None):
         ax.set_ylabel('MAE (days)')
         _style(ax, 'y')
         ax.legend(ncol=4, loc='lower left', bbox_to_anchor=(-0.09, 1.0), columnspacing=1.3, handlelength=1.4)
-        _titles(fig, 'Monthly backtest MAE on a moving window',
-                'MAE on orders approved each month, scored by a model fitted on the 2nd of that month. '
+        _titles(fig, 'MAE by evaluation month',
+                'Monthly approval cohorts; fitting policy is defined by the caller. '
                 'End values are the last month.')
         _finish(fig, save_path)
 

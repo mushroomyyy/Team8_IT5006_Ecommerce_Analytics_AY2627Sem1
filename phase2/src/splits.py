@@ -1,9 +1,10 @@
 """Time-aware train/test splits and CV folds.
 
 A random stratified split inside the train-test window puts later orders into
-training and earlier ones into test, so test scores are optimistic. Here the test
-set is always the newest approval days, and each CV fold validates on days after
-the days it trains on.
+training and earlier ones into test. This can give optimistic estimates when
+delivery conditions change or labels become available with a delay. Here the
+test set contains the newest approval days, and each CV fold validates on days
+after the days it trains on.
 """
 import numpy as np
 import pandas as pd
