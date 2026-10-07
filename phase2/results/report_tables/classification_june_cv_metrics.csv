@@ -1,0 +1,11 @@
+model,variant,family,cv_roc_auc_mean,cv_avg_precision_mean,cv_f1_at_0.5_mean
+Decision Tree,default,Tree-based,59.6,19.92,20.06
+Decision Tree,tuned,Tree-based,59.54,23.38,19.47
+LightGBM,default,Tree-based,62.47,25.4,22.83
+LightGBM,tuned,Tree-based,64.66,27.11,25.35
+Logistic Regression,default,Linear,58.66,14.56,16.46
+Logistic Regression,tuned,Linear,63.06,21.47,18.88
+Random Forest,default,Tree-based,62.84,25.68,22.88
+Random Forest,tuned,Tree-based,62.61,25.76,21.63
+XGBoost,default,Tree-based,61.66,25.37,22.78
+XGBoost,tuned,Tree-based,65.28,26.87,24.57

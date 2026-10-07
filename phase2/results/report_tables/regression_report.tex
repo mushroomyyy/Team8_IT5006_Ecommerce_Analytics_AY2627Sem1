@@ -2,72 +2,75 @@
 \begin{table}[htbp]
 \centering
 \small
-\caption{August regression performance}
+\caption{Regression development and June model selection}
 \begin{tabular}{lrrrrrrr}
 \toprule
-Model & Variant & Selected & CV MAE (days) & Holdout MAE (days) & August MAE (days) & August RMSE (days) & August R² \\
+Model & Variant & CV MAE & Holdout MAE & June MAE & June RMSE & June R² & June selected \\
 \midrule
-Ridge & default & True & 6.49337965237776 & 5.987536240936477 & 5.057075759782487 & 7.301033971142811 & 0.4399633433903656 \\
-Random Forest & default & False & 6.562380394114915 & 6.98665430812801 & 4.627514172222713 & 7.513425520480012 & 0.4069057860718388 \\
-Decision Tree & tuned & False & 6.550654753684311 & 6.815946996595522 & 4.646710178657435 & 7.574279500562035 & 0.3972595055264978 \\
-Random Forest & tuned & False & 6.434717879047577 & 6.680674439614111 & 4.681085193314464 & 7.535802288066976 & 0.4033677742198659 \\
-LightGBM & default & False & 6.399672913553026 & 6.3543099340982145 & 4.686037530684668 & 7.49175447179808 & 0.41032218717081426 \\
-LightGBM & tuned & False & 6.417362277948193 & 6.184369961792309 & 4.773648991175795 & 7.5133361929710505 & 0.4069198886442612 \\
-Ridge & tuned & False & 6.454236538879461 & 5.993257166459338 & 5.123304133348023 & 7.344130770306883 & 0.4333322217723432 \\
-Linear Regression & default & False & 6.453467808567602 & 5.993752705433201 & 5.124226503263583 & 7.344711555911516 & 0.4332425922404438 \\
-Dummy (median) & reference & False & 7.309784020665026 & 10.768747620860298 & 6.161826981246219 & 9.143425963746136 & 0.1216540134769617 \\
-Decision Tree & default & False & 9.75735719043054 & 8.616102017510467 & 7.237598306110103 & 11.820976310937208 & -0.4680958462062841 \\
-Olist promise & reference & False & 12.114278850724869 & 18.856870955462504 & 9.10798548094374 & 12.085323802929635 & -0.5344908312579053 \\
+Decision Tree & default & 8.816127792611507 & 8.26916897911494 & 7.685756002595717 & 11.420073234444597 & -0.3828632952075326 & False \\
+Decision Tree & tuned & 5.750080145319354 & 5.883066362129134 & 7.546635711506315 & 9.12743615941742 & 0.11663725447382789 & False \\
+Dummy (median) & reference & 6.441199000587517 & 6.732583613261283 & 9.24805321219987 & 11.846157209110983 & -0.4879778117649418 & False \\
+LightGBM & default & 5.6533193991667 & 5.569163351023158 & 6.1813674141730495 & 7.850477367445993 & 0.34651803944649284 & False \\
+LightGBM & tuned & 5.536699477841979 & 5.394492630307906 & 4.845505076733031 & 6.910667042723514 & 0.4936143271294765 & True \\
+Linear Regression & default & 6.148760699734545 & 5.585032899200735 & 6.548511763499381 & 8.119585422585237 & 0.300948483898543 & False \\
+Olist promise & reference & 12.809667151223397 & 11.86709507813641 & 19.30726800778715 & 20.895447529299485 & -3.6296144594532853 & False \\
+Random Forest & default & 5.933251266013976 & 5.729395512289296 & 7.027264995064415 & 8.589899539316031 & 0.21762017850488247 & False \\
+Random Forest & tuned & 5.616178862319039 & 5.669082761741163 & 6.349643185841473 & 8.018367603906297 & 0.31826844420081457 & False \\
+Ridge & default & 6.158599403204411 & 5.602044608154504 & 6.544297157761956 & 8.115307649845212 & 0.3016848751371983 & False \\
+Ridge & tuned & 6.05888546225245 & 5.627547396225644 & 6.688574733302619 & 8.241728603221667 & 0.27975858538497644 & False \\
 \bottomrule
 \end{tabular}
-\par\smallskip\begin{minipage}{\linewidth}\footnotesize The historical holdout selects the champion; August metrics use orders with an observed target after the 45-day outcome horizon.\end{minipage}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize June orders select the frozen model by lowest MAE; references are excluded from selection. June performance is a selection result, not an independent final-test estimate.\end{minipage}
 \end{table}
-The table includes reference baselines, default models and tuned models. The selected model is refitted on all eligible historical orders before August scoring.
+All default and tuned candidates are refitted on identical pre-June history before scoring June orders.
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Tuning gains by evaluation stage}
+\caption{Regression tuning gains}
 \begin{tabular}{lrrr}
 \toprule
-Model & CV gain (days) & Holdout gain (days) & August gain (days) \\
+Model & CV MAE gain & Holdout MAE gain & June MAE gain \\
 \midrule
-Ridge & 0.03914311349829891 & -0.005720925522860298 & -0.06622837356553646 \\
-Decision Tree & 3.2067024367462285 & 1.8001550209149455 & 2.5908881274526676 \\
-Random Forest & 0.12766251506733806 & 0.3059798685138988 & -0.05357102109175127 \\
-LightGBM & -0.017689364395167217 & 0.1699399723059054 & -0.08761146049112689 \\
+Ridge & 0.09971394095196118 & -0.02550278807114026 & -0.1442775755406629 \\
+Decision Tree & 3.0660476472921525 & 2.3861026169858066 & 0.1391202910894016 \\
+Random Forest & 0.3170724036949366 & 0.060312750548132676 & 0.6776218092229414 \\
+LightGBM & 0.11661992132472143 & 0.1746707207152518 & 1.3358623374400187 \\
 \bottomrule
 \end{tabular}
-\par\smallskip\begin{minipage}{\linewidth}\footnotesize Gain = default MAE minus tuned MAE, in days; positive values favor tuning.\end{minipage}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Gain = default MAE minus tuned MAE, in days. Positive values favor tuning.\end{minipage}
 \end{table}
-CV and holdout gains describe development comparisons; August gain measures the difference on the later evaluation cohort.
+The same candidate pairs are compared during CV, on the development holdout, and on pooled June orders.
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{August model selected for inference}
+\caption{Regression selection decisions}
+\begin{tabular}{lrrr}
+\toprule
+Selection sample & Model & Variant & MAE (days) \\
+\midrule
+Development holdout & LightGBM & tuned & 5.394492630307906 \\
+June orders & LightGBM & tuned & 4.845505076733031 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize The two decisions use different samples; the June-selected fitted model is retained unchanged.\end{minipage}
+\end{table}
+The historical holdout winner is recorded separately from the frozen model selected using June outcomes.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Frozen regression model: June–August}
 \begin{tabular}{lrrrrr}
 \toprule
-Inference month & Selected model & Configuration & CV MAE (days) & Holdout MAE (days) & Full-history refit orders \\
+Month & Scored & Evaluated & MAE (days) & RMSE (days) & R² \\
 \midrule
-August 2018 & Ridge & Default & 6.49337965237776 & 5.987536240936477 & 69427 \\
+2018-06 & 6164 & 6164 & 4.845505076733031 & 6.910667042723514 & 0.4936143271294765 \\
+2018-07 & 6176 & 6159 & 4.61173751733897 & 7.615697238960067 & 0.3135556924135353 \\
+2018-08 & 6620 & 6612 & 4.59103514459808 & 7.4707295707526296 & 0.41362729304896384 \\
 \bottomrule
 \end{tabular}
-\par\smallskip\begin{minipage}{\linewidth}\footnotesize The selected settings are also saved in regression\_august\_selected\_model.csv.\end{minipage}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize No retraining or retuning for July/August. June is the selection cohort. Complete June outcomes are fully mature by 15 August, so early later-month predictions form a retrospective stability check. The latest recorded delivery is an unverified observation-end proxy.\end{minipage}
 \end{table}
-The holdout selects among default and tuned candidates. The selected configuration is refitted on all eligible history before inference.
-
-\begin{table}[htbp]
-\centering
-\small
-\caption{August evaluation cohort}
-\begin{tabular}{lrrr}
-\toprule
-Inference month & Orders scored & Orders evaluated & Outcomes assessed \\
-\midrule
-August 2018 & 6620 & 6612 & Approval + 45 days \\
-\bottomrule
-\end{tabular}
-\par\smallskip\begin{minipage}{\linewidth}\footnotesize Evaluated orders have a known target at approval plus 45 days.\end{minipage}
-\end{table}
-Scored orders without a mature, valid target are excluded from evaluation metrics.
+The same fitted LightGBM (tuned) pipeline scores all three cohorts; every reported outcome uses the 45-day horizon.

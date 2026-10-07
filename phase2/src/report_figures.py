@@ -224,7 +224,7 @@ def plot_backtest_by_month(backtest_monthly, series, save_path=None):
         _finish(fig, save_path)
 
 
-def plot_feature_importance(importance, model_label, save_path=None):
+def plot_feature_importance(importance, model_label, save_path=None, cohort_label="hold-out"):
     """Permutation importance as bars; `importance` has feature and mae_increase_days columns."""
     table = importance.sort_values('mae_increase_days')
     with plt.rc_context(STYLE):
@@ -235,16 +235,16 @@ def plot_feature_importance(importance, model_label, save_path=None):
         for i, value in enumerate(table['mae_increase_days']):
             ax.text(value + limit * 0.015, i, f'{value:.2f}', va='center', fontsize=9.5)
         ax.set_yticks(range(len(table)), table['feature'])
-        ax.set_xlabel('Increase in hold-out MAE when the feature is shuffled (days)')
+        ax.set_xlabel(f'Increase in {cohort_label} MAE when the feature is shuffled (days)')
         ax.set_xlim(0, limit)
         _style(ax, 'x')
         _titles(fig, f'Top {len(table)} features by permutation importance',
-                f'{model_label} on the hold-out. Longer bars mean the model relies on the feature more.',
+                f'{model_label} on the {cohort_label} cohort. Longer bars mean the model relies on the feature more.',
                 top=0.975)
         _finish(fig, save_path)
 
 
-def plot_residuals_by_state(residuals, model_label, top_n=12, save_path=None):
+def plot_residuals_by_state(residuals, model_label, top_n=12, save_path=None, cohort_label="Hold-out"):
     """Bias and MAE by customer state for the `top_n` states with the most hold-out orders."""
     table = residuals.groupby('customer_state').agg(
         orders=('error', 'size'), bias=('error', 'mean'), mae=('error', lambda e: e.abs().mean()))
@@ -275,7 +275,7 @@ def plot_residuals_by_state(residuals, model_label, top_n=12, save_path=None):
         ax_mae.set_title('Typical error size', loc='left', fontsize=10.5, fontweight='bold', color=INK2)
         _style(ax_mae, 'x')
         ax_mae.spines['left'].set_visible(False)
-        _titles(fig, 'Hold-out residuals by customer state',
-                f'{model_label}, the {len(table)} customer states with the most hold-out orders '
+        _titles(fig, f'{cohort_label} residuals by customer state',
+                f'{model_label}, the {len(table)} customer states with the most {cohort_label.lower()} orders '
                 '(order count in brackets).', top=0.975)
         _finish(fig, save_path)

@@ -1,0 +1,11 @@
+Model,Configuration,Selected,AP (%),ROC-AUC,Precision (%),Recall (%),F1 (%),Top-decile capture (%)
+Decision Tree,default,,4.98,0.620,5.01,37.96,8.86,29.20
+Decision Tree,tuned,,7.41,0.631,4.06,44.53,7.44,29.93
+LightGBM,default,Yes,15.09,0.691,6.91,35.04,11.54,34.31
+LightGBM,tuned,,14.51,0.700,7.19,32.12,11.75,32.12
+Logistic Regression,default,,7.60,0.698,6.05,44.53,10.66,33.58
+Logistic Regression,tuned,,11.93,0.717,6.48,40.88,11.19,33.58
+Random Forest,default,,12.85,0.665,7.34,34.31,12.10,33.58
+Random Forest,tuned,,14.08,0.681,7.89,27.01,12.21,32.12
+XGBoost,default,,13.64,0.692,7.62,35.04,12.52,35.04
+XGBoost,tuned,,7.85,0.650,4.80,46.72,8.70,34.31

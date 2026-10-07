@@ -7,221 +7,243 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
 .note{font-size:10pt;}section{margin-bottom:24px;}
 </style></head><body>
 <section>
-<p><b>August regression performance</b></p>
+<p><b>Regression development and June model selection</b></p>
 <table class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th>Model</th>
       <th>Variant</th>
-      <th>Selected</th>
-      <th>CV MAE (days)</th>
-      <th>Holdout MAE (days)</th>
-      <th>August MAE (days)</th>
-      <th>August RMSE (days)</th>
-      <th>August R²</th>
+      <th>CV MAE</th>
+      <th>Holdout MAE</th>
+      <th>June MAE</th>
+      <th>June RMSE</th>
+      <th>June R²</th>
+      <th>June selected</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Ridge</td>
+      <td>Decision Tree</td>
       <td>default</td>
-      <td>True</td>
-      <td>6.493</td>
-      <td>5.988</td>
-      <td>5.057</td>
-      <td>7.301</td>
-      <td>0.440</td>
-    </tr>
-    <tr>
-      <td>Random Forest</td>
-      <td>default</td>
+      <td>8.816</td>
+      <td>8.269</td>
+      <td>7.686</td>
+      <td>11.420</td>
+      <td>-0.383</td>
       <td>False</td>
-      <td>6.562</td>
-      <td>6.987</td>
-      <td>4.628</td>
-      <td>7.513</td>
-      <td>0.407</td>
     </tr>
     <tr>
       <td>Decision Tree</td>
       <td>tuned</td>
+      <td>5.750</td>
+      <td>5.883</td>
+      <td>7.547</td>
+      <td>9.127</td>
+      <td>0.117</td>
       <td>False</td>
-      <td>6.551</td>
-      <td>6.816</td>
-      <td>4.647</td>
-      <td>7.574</td>
-      <td>0.397</td>
-    </tr>
-    <tr>
-      <td>Random Forest</td>
-      <td>tuned</td>
-      <td>False</td>
-      <td>6.435</td>
-      <td>6.681</td>
-      <td>4.681</td>
-      <td>7.536</td>
-      <td>0.403</td>
-    </tr>
-    <tr>
-      <td>LightGBM</td>
-      <td>default</td>
-      <td>False</td>
-      <td>6.400</td>
-      <td>6.354</td>
-      <td>4.686</td>
-      <td>7.492</td>
-      <td>0.410</td>
-    </tr>
-    <tr>
-      <td>LightGBM</td>
-      <td>tuned</td>
-      <td>False</td>
-      <td>6.417</td>
-      <td>6.184</td>
-      <td>4.774</td>
-      <td>7.513</td>
-      <td>0.407</td>
-    </tr>
-    <tr>
-      <td>Ridge</td>
-      <td>tuned</td>
-      <td>False</td>
-      <td>6.454</td>
-      <td>5.993</td>
-      <td>5.123</td>
-      <td>7.344</td>
-      <td>0.433</td>
-    </tr>
-    <tr>
-      <td>Linear Regression</td>
-      <td>default</td>
-      <td>False</td>
-      <td>6.453</td>
-      <td>5.994</td>
-      <td>5.124</td>
-      <td>7.345</td>
-      <td>0.433</td>
     </tr>
     <tr>
       <td>Dummy (median)</td>
       <td>reference</td>
+      <td>6.441</td>
+      <td>6.733</td>
+      <td>9.248</td>
+      <td>11.846</td>
+      <td>-0.488</td>
       <td>False</td>
-      <td>7.310</td>
-      <td>10.769</td>
-      <td>6.162</td>
-      <td>9.143</td>
-      <td>0.122</td>
     </tr>
     <tr>
-      <td>Decision Tree</td>
+      <td>LightGBM</td>
       <td>default</td>
+      <td>5.653</td>
+      <td>5.569</td>
+      <td>6.181</td>
+      <td>7.850</td>
+      <td>0.347</td>
       <td>False</td>
-      <td>9.757</td>
-      <td>8.616</td>
-      <td>7.238</td>
-      <td>11.821</td>
-      <td>-0.468</td>
+    </tr>
+    <tr>
+      <td>LightGBM</td>
+      <td>tuned</td>
+      <td>5.537</td>
+      <td>5.394</td>
+      <td>4.846</td>
+      <td>6.911</td>
+      <td>0.494</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>Linear Regression</td>
+      <td>default</td>
+      <td>6.149</td>
+      <td>5.585</td>
+      <td>6.549</td>
+      <td>8.120</td>
+      <td>0.301</td>
+      <td>False</td>
     </tr>
     <tr>
       <td>Olist promise</td>
       <td>reference</td>
+      <td>12.810</td>
+      <td>11.867</td>
+      <td>19.307</td>
+      <td>20.895</td>
+      <td>-3.630</td>
       <td>False</td>
-      <td>12.114</td>
-      <td>18.857</td>
-      <td>9.108</td>
-      <td>12.085</td>
-      <td>-0.534</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>default</td>
+      <td>5.933</td>
+      <td>5.729</td>
+      <td>7.027</td>
+      <td>8.590</td>
+      <td>0.218</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>tuned</td>
+      <td>5.616</td>
+      <td>5.669</td>
+      <td>6.350</td>
+      <td>8.018</td>
+      <td>0.318</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>Ridge</td>
+      <td>default</td>
+      <td>6.159</td>
+      <td>5.602</td>
+      <td>6.544</td>
+      <td>8.115</td>
+      <td>0.302</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>Ridge</td>
+      <td>tuned</td>
+      <td>6.059</td>
+      <td>5.628</td>
+      <td>6.689</td>
+      <td>8.242</td>
+      <td>0.280</td>
+      <td>False</td>
     </tr>
   </tbody>
 </table>
-<p class="note">The historical holdout selects the champion; August metrics use orders with an observed target after the 45-day outcome horizon.</p>
-<p>The table includes reference baselines, default models and tuned models. The selected model is refitted on all eligible historical orders before August scoring.</p></section>
+<p class="note">June orders select the frozen model by lowest MAE; references are excluded from selection. June performance is a selection result, not an independent final-test estimate.</p>
+<p>All default and tuned candidates are refitted on identical pre-June history before scoring June orders.</p></section>
 <section>
-<p><b>Tuning gains by evaluation stage</b></p>
+<p><b>Regression tuning gains</b></p>
 <table class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th>Model</th>
-      <th>CV gain (days)</th>
-      <th>Holdout gain (days)</th>
-      <th>August gain (days)</th>
+      <th>CV MAE gain</th>
+      <th>Holdout MAE gain</th>
+      <th>June MAE gain</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>Ridge</td>
-      <td>0.039</td>
-      <td>-0.006</td>
-      <td>-0.066</td>
+      <td>0.100</td>
+      <td>-0.026</td>
+      <td>-0.144</td>
     </tr>
     <tr>
       <td>Decision Tree</td>
-      <td>3.207</td>
-      <td>1.800</td>
-      <td>2.591</td>
+      <td>3.066</td>
+      <td>2.386</td>
+      <td>0.139</td>
     </tr>
     <tr>
       <td>Random Forest</td>
-      <td>0.128</td>
-      <td>0.306</td>
-      <td>-0.054</td>
+      <td>0.317</td>
+      <td>0.060</td>
+      <td>0.678</td>
     </tr>
     <tr>
       <td>LightGBM</td>
-      <td>-0.018</td>
-      <td>0.170</td>
-      <td>-0.088</td>
+      <td>0.117</td>
+      <td>0.175</td>
+      <td>1.336</td>
     </tr>
   </tbody>
 </table>
-<p class="note">Gain = default MAE minus tuned MAE, in days; positive values favor tuning.</p>
-<p>CV and holdout gains describe development comparisons; August gain measures the difference on the later evaluation cohort.</p></section>
+<p class="note">Gain = default MAE minus tuned MAE, in days. Positive values favor tuning.</p>
+<p>The same candidate pairs are compared during CV, on the development holdout, and on pooled June orders.</p></section>
 <section>
-<p><b>August model selected for inference</b></p>
+<p><b>Regression selection decisions</b></p>
 <table class="dataframe">
   <thead>
     <tr style="text-align: right;">
-      <th>Inference month</th>
-      <th>Selected model</th>
-      <th>Configuration</th>
-      <th>CV MAE (days)</th>
-      <th>Holdout MAE (days)</th>
-      <th>Full-history refit orders</th>
+      <th>Selection sample</th>
+      <th>Model</th>
+      <th>Variant</th>
+      <th>MAE (days)</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>August 2018</td>
-      <td>Ridge</td>
-      <td>Default</td>
-      <td>6.493</td>
-      <td>5.988</td>
-      <td>69427</td>
+      <td>Development holdout</td>
+      <td>LightGBM</td>
+      <td>tuned</td>
+      <td>5.394</td>
+    </tr>
+    <tr>
+      <td>June orders</td>
+      <td>LightGBM</td>
+      <td>tuned</td>
+      <td>4.846</td>
     </tr>
   </tbody>
 </table>
-<p class="note">The selected settings are also saved in regression_august_selected_model.csv.</p>
-<p>The holdout selects among default and tuned candidates. The selected configuration is refitted on all eligible history before inference.</p></section>
+<p class="note">The two decisions use different samples; the June-selected fitted model is retained unchanged.</p>
+<p>The historical holdout winner is recorded separately from the frozen model selected using June outcomes.</p></section>
 <section>
-<p><b>August evaluation cohort</b></p>
+<p><b>Frozen regression model: June–August</b></p>
 <table class="dataframe">
   <thead>
     <tr style="text-align: right;">
-      <th>Inference month</th>
-      <th>Orders scored</th>
-      <th>Orders evaluated</th>
-      <th>Outcomes assessed</th>
+      <th>Month</th>
+      <th>Scored</th>
+      <th>Evaluated</th>
+      <th>MAE (days)</th>
+      <th>RMSE (days)</th>
+      <th>R²</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>August 2018</td>
+      <td>2018-06</td>
+      <td>6164</td>
+      <td>6164</td>
+      <td>4.846</td>
+      <td>6.911</td>
+      <td>0.494</td>
+    </tr>
+    <tr>
+      <td>2018-07</td>
+      <td>6176</td>
+      <td>6159</td>
+      <td>4.612</td>
+      <td>7.616</td>
+      <td>0.314</td>
+    </tr>
+    <tr>
+      <td>2018-08</td>
       <td>6620</td>
       <td>6612</td>
-      <td>Approval + 45 days</td>
+      <td>4.591</td>
+      <td>7.471</td>
+      <td>0.414</td>
     </tr>
   </tbody>
 </table>
-<p class="note">Evaluated orders have a known target at approval plus 45 days.</p>
-<p>Scored orders without a mature, valid target are excluded from evaluation metrics.</p></section>
+<p class="note">No retraining or retuning for July/August. June is the selection cohort. Complete June outcomes are fully mature by 15 August, so early later-month predictions form a retrospective stability check. The latest recorded delivery is an unverified observation-end proxy.</p>
+<p>The same fitted LightGBM (tuned) pipeline scores all three cohorts; every reported outcome uses the 45-day horizon.</p></section>
 </body></html>

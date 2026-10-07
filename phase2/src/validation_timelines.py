@@ -11,6 +11,7 @@ COLORS = {
     'validation': '#F36B32',
     'holdout': '#13A87A',
     'evaluation': '#8060B8',
+    'frozen': '#668A9B',
 }
 
 
@@ -48,7 +49,7 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
     _, _, score_count = _period(evaluation_scored, date_col)
 
     labels = [f'CV fold {i}' for i in range(1, n_splits + 1)] + [
-        'Development\nholdout', 'Final refit', pd.Timestamp(inference_start).strftime('%B') + ' evaluation']
+        'Development\nholdout', 'Candidate refits', 'June selection']
     ys = list(range(len(labels) - 1, -1, -1))
     ax.set_yticks(ys, labels)
     ax.set_title(name, loc='left', fontsize=13, fontweight='bold', pad=11)
@@ -90,7 +91,7 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
             f'{hold_start:%d %b}–{hold_end:%d %b} | {test_days}d | {hold_count:,} orders',
             ha='center', va='bottom', fontsize=7.5, color='#202020', clip_on=False)
 
-    # Final model is refit on the full eligible history at the selected run date.
+    # All candidates are refit on the full eligible history at the June run date.
     y = ys[n_splits + 1]
     history_days = (pd.Timestamp(timeline['window_end']) -
                     pd.Timestamp(timeline['window_start'])).days + 1
@@ -101,13 +102,13 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
     if buffer_start <= buffer_end:
         _bar(ax, buffer_start, buffer_end, y, COLORS['buffer'], '45d cutoff')
 
-    # Purple bar is the scored evaluation cohort; report how many had mature labels.
+    # June chooses the deployment candidate; July and August reuse its fitted weights.
     y = ys[n_splits + 2]
     _bar(ax, inference_start, inference_end, y, COLORS['evaluation'])
     evaluation_start = pd.Timestamp(inference_start)
     evaluation_end = pd.Timestamp(inference_end)
     ax.text(mdates.date2num(evaluation_start) - 3, y,
-            f'{score_count:,} scored / {evaluation_count:,} evaluated; labels at approval + 45 days',
+            f'{score_count:,} scored / {evaluation_count:,} evaluated; choose model using June outcomes',
             ha='right', va='center', fontsize=8, color='#202020', clip_on=False)
     ax.text(mdates.date2num(evaluation_end), y + 0.32,
             f'{evaluation_start.day}–{evaluation_end.day} {evaluation_start:%b} | {(evaluation_end - evaluation_start).days + 1} days', ha='right', va='bottom', fontsize=8,
@@ -128,7 +129,7 @@ def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
 def plot_validation_timelines(classification, regression, output_path,
                               n_splits=5, validation_days=30, gap_days=45,
                               holdout_gap_days=45, test_days=30,
-                              inference_start='2018-08-01', inference_end='2018-08-31'):
+                              inference_start='2018-06-01', inference_end='2018-06-30'):
     """Save the two-panel monthly timeline using actual eligible rows and fold indices.
 
     Each timeline mapping must provide `development_train`, `development_holdout`,
@@ -136,7 +137,7 @@ def plot_validation_timelines(classification, regression, output_path,
     `window_end`. Fold indices must be the exact post-availability indices used in
     the corresponding model notebook.
     """
-    fig, axes = plt.subplots(2, 1, figsize=(15, 10), sharex=True,
+    fig, axes = plt.subplots(2, 1, figsize=(16, 10), sharex=True,
                              gridspec_kw={'height_ratios': [1, 1], 'hspace': 0.30})
     run_label = pd.Timestamp(inference_start).strftime('%B %Y')
     _draw_panel(axes[0], f'Classification — {run_label} run', classification,
@@ -151,13 +152,14 @@ def plot_validation_timelines(classification, regression, output_path,
         patches.Patch(color=COLORS['buffer'], label='Excluded buffer'),
         patches.Patch(color=COLORS['validation'], label='CV validation'),
         patches.Patch(color=COLORS['holdout'], label='Development holdout'),
-        patches.Patch(color=COLORS['evaluation'], label=f'{run_label} evaluation'),
+        patches.Patch(color=COLORS['evaluation'], label='June candidate selection'),
     ]
-    fig.legend(handles=legend, loc='upper center', ncol=5, frameon=False,
-               bbox_to_anchor=(0.5, 1.01), fontsize=9)
-    fig.subplots_adjust(left=0.13, right=0.88, top=0.95, bottom=0.08)
+    fig.legend(handles=legend, loc='upper center', ncol=3, frameon=False,
+               bbox_to_anchor=(0.5, 1.005), fontsize=9)
+    fig.subplots_adjust(left=0.13, right=0.88, top=0.93, bottom=0.085)
     fig.text(0.13, 0.015,
-             'Training counts reflect outcome availability; evaluation outcomes are assessed at approval + 45 days.',
+             'June selects the deployment candidate; its metrics are not an untouched test.\n'
+             'Complete June outcomes are available from 15 August; later frozen-model results are retrospective checks.',
              ha='left', va='bottom', fontsize=8)
     fig.savefig(output_path, dpi=220, bbox_inches='tight')
     return fig

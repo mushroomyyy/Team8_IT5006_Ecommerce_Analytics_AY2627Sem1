@@ -1,0 +1,60 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{June classification performance}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Model & Configuration & Selected & AP (\%) & ROC-AUC & Precision (\%) & Recall (\%) & F1 (\%) & Top-decile capture (\%) \\
+\midrule
+Decision Tree & default &  & 4.98 & 0.620 & 5.01 & 37.96 & 8.86 & 29.20 \\
+Decision Tree & tuned &  & 7.41 & 0.631 & 4.06 & 44.53 & 7.44 & 29.93 \\
+LightGBM & default & Yes & 15.09 & 0.691 & 6.91 & 35.04 & 11.54 & 34.31 \\
+LightGBM & tuned &  & 14.51 & 0.700 & 7.19 & 32.12 & 11.75 & 32.12 \\
+Logistic Regression & default &  & 7.60 & 0.698 & 6.05 & 44.53 & 10.66 & 33.58 \\
+Logistic Regression & tuned &  & 11.93 & 0.717 & 6.48 & 40.88 & 11.19 & 33.58 \\
+Random Forest & default &  & 12.85 & 0.665 & 7.34 & 34.31 & 12.10 & 33.58 \\
+Random Forest & tuned &  & 14.08 & 0.681 & 7.89 & 27.01 & 12.21 & 32.12 \\
+XGBoost & default &  & 13.64 & 0.692 & 7.62 & 35.04 & 12.52 & 35.04 \\
+XGBoost & tuned &  & 7.85 & 0.650 & 4.80 & 46.72 & 8.70 & 34.31 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize AP, precision, recall, F1 and top-decile capture are percentages. ROC-AUC is on a 0–1 scale. Threshold metrics use 0.5. “Selected” marks the model chosen retrospectively using June AP. June is a selection cohort; July and August assess the unchanged fitted model. June inference orders scored: 6,164; known outcomes: 6,155; late outcomes: 137.\end{minipage}
+\end{table}
+June holdout selection: **Logistic Regression (tuned)** (holdout AP 24.20\%; ROC-AUC 0.718; threshold 0.50).
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{June tuned-minus-default change (percentage points)}
+\begin{tabular}{lrr}
+\toprule
+Model & ΔAP (pp) & ΔROC-AUC (pp) \\
+\midrule
+Logistic Regression & +4.33 & +1.89 \\
+Decision Tree & +2.43 & +1.05 \\
+Random Forest & +1.23 & +1.56 \\
+XGBoost & -5.79 & -4.24 \\
+LightGBM & -0.58 & +0.92 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Change = tuned minus default on the same June evaluation orders; positive values indicate improvement.\end{minipage}
+\end{table}
+This table summarizes the June inference gain associated with tuning within each model family.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{June-selected model: frozen July and August predictions}
+\begin{tabular}{lrrrrrr}
+\toprule
+Month & Orders & Late (\%) & AP (\%) & ROC-AUC & Top-10\% capture (\%) & Lift \\
+\midrule
+2018-06 & 6155 & 2.23 & 15.09 & 0.691 & 34.31 & 3.427 \\
+2018-07 & 6125 & 5.19 & 12.77 & 0.595 & 20.13 & 2.012 \\
+2018-08 & 6606 & 7.92 & 11.34 & 0.464 & 12.05 & 1.204 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize LightGBM (default); fitted once using June historical data. June selects the model; later months never refit or retune it. Complete June horizon outcomes are available August 15, so July and early August are retrospective stress tests. Unknown outcomes are excluded; the latest recorded delivery is an unverified observation-end proxy.\end{minipage}
+\end{table}
+Monthly differences show performance stability for the same fitted model, not changes caused by monthly retraining.

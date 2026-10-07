@@ -7,9 +7,9 @@ Dual framing of one delivery-performance problem:
 ## Layout
 | Path | Contents |
 |---|---|
-| `model_classification_dev.ipynb` | Classification development, August model selection and evaluation, and optional June–August comparison |
-| `model_regression_dev.ipynb` | Days-from-promise development, August model selection and evaluation, and optional sensitivity and June–August comparisons |
-| `model_validation_timelines.ipynb` | Rebuilds the shared August validation timeline from actual eligible orders and saves `results/figures/09_validation_timelines.png` |
+| `model_classification_dev.ipynb` | Classification development, June candidate selection and frozen July–August evaluation |
+| `model_regression_dev.ipynb` | Days-from-promise development, June candidate selection and frozen July–August evaluation |
+| `model_validation_timelines.ipynb` | Rebuilds the shared June development and candidate-selection timeline from actual eligible orders and saves `results/figures/09_validation_timelines.png` |
 | `src/data.py` | Locates and loads the Olist CSVs (extracts the bundled zip on first run) |
 | `src/features.py` | `build_feature_table` (v2's `final_df`), as-of seller/product history, `add_extra_features`, feature lists |
 | `src/labels.py` | `get_required_dates`, `labels_as_of`, `regression_targets_as_of`, cohort evaluation helpers |
@@ -17,34 +17,29 @@ Dual framing of one delivery-performance problem:
 | `src/splits.py` | `chronological_split`, `day_blocked_time_series_folds` |
 | `src/evaluation.py` | Classification, regression and decile coverage metrics |
 | `src/report_tables.py` | Shared export of formatted tables to Word-friendly HTML, booktabs LaTeX and CSV |
-| `results/report_tables/` | August report tables and summary CSVs; optional monthly comparisons use a separate subdirectory, and order-level predictions stay local |
+| `results/report_tables/` | June selection and frozen July–August report tables and summary CSVs; order-level predictions stay local |
 | `src/report_figures.py` | Report figures for the regression notebook; each call draws inline and saves a PNG to `results/figures/` |
 | `src/tuning.py` | Default classifier pipelines, search spaces, CV summary, random search, out-of-fold threshold selection |
 
 Both tracks use a 365-day historical window, a 30-day development holdout preceded by a 45-day gap, and five expanding CV folds with 30-calendar-day validation blocks and 45-day gaps. Training outcomes must be known at each validation boundary. The final refit uses the full eligible historical window. Default and tuned candidates use identical rows within each comparison.
 
-## August evaluation and report tables
+## June development and frozen-model evaluation
 
-The main workflow in each modelling notebook uses a run date of **2 August 2018**. Its historical window spans **18 June 2017–17 June 2018**; the most recent 30 days are a development holdout, preceded by a 45-day gap. Five expanding CV folds have 30-calendar-day validation blocks and 45-day gaps. Figure `results/figures/09_validation_timelines.png` shows the corresponding dates and observed order counts for both tasks.
+Both main notebooks use **2 June 2018** as the historical run date. The 365-day historical window spans **18 April 2017–17 April 2018**, with **19 March–17 April 2018** reserved as the 30-day development holdout. A 45-day gap precedes that holdout. Five expanding CV folds each validate on 30 calendar days after a 45-day gap; training outcomes must be known at each validation boundary. `results/figures/09_validation_timelines.png` shows the dates and eligible order counts for both tasks.
 
-1. Construct the eligible historical data and buffered development holdout.
-2. Search hyperparameters using the chronological CV folds. Classification maximises average precision (AP); regression minimises mean absolute error (MAE).
-3. Compare default and tuned candidates on the development holdout. Classification selects by AP, then F1 and ROC-AUC to break ties; regression selects by MAE.
-4. Refit candidates on the full eligible history and score the August cohort. Classification uses a threshold of 0.5.
-5. Compare default and tuned candidates on the same August evaluation orders, then export the report tables.
+1. Evaluate starting configurations and tune hyperparameters using the same buffered historical training data. Classification maximises mean CV average precision (AP); regression minimises mean CV mean absolute error (MAE).
+2. Compare starting and tuned candidates on the development holdout. Record the best-on-holdout candidate without treating it as the final deployment choice.
+3. Refit all candidates on the full eligible June historical window and score June orders. Pool the daily June predictions to calculate candidate performance. Select the highest-AP classification candidate and lowest-MAE regression candidate using these June outcomes.
+4. Discuss feature importance for the June-selected candidate. Score July and August with the same fitted pipeline, preprocessing and parameters, **without retraining, retuning or model reselection**.
+5. Export compact candidate comparisons and frozen-model results with sample counts and explanatory notes.
 
-Default configurations provide the within-family reference for tuning gains. The model chosen for August comes from the development holdout, not from August evaluation outcomes. Unknown outcomes are counted but excluded from performance metrics.
+Classification uses a threshold of 0.5. Default configurations provide the within-family reference for tuning gains. **June is a model-selection cohort, not an untouched final test**, because its outcomes determine the deployment candidate. July and August examine how that fixed model behaves on later orders.
 
-The optional June–August comparison is controlled by `RUN_MONTHLY_COMPARISON = False` in both notebooks. When enabled, it reruns CV tuning and model selection separately for each month and saves its outputs under `results/report_tables/monthly_comparison/`; pooled metrics are computed from individual predictions. The older optional regression April–July sensitivity analysis reuses June settings and should not be described as a fresh historical tuning exercise.
+**Timing interpretation:** assessment uses outcomes at approval + 45 days. The final June approvals reach that horizon on **14 August 2018** (available from 15 August under the strict-before-run convention). The July results therefore represent a retrospective frozen-model stress check, not a fully prospective claim that a model selected using all June outcomes was deployable on 1 July. August results likewise include orders before full June outcomes mature. These later cohorts are untouched by selection in this workflow, but their calendar timing must be reported accurately.
 
-Published exports:
+Open the exported classification and regression HTML files in `results/report_tables/` in a browser to copy tables into Word, retaining source formatting. Matching LaTeX exports use `booktabs`; compact CSVs contain the same reported metrics. Unknown outcomes are excluded from metrics and counted separately. The notebooks regenerate these outputs when run from the first cell.
 
-- [Classification tables](results/report_tables/classification_august_performance.html) and [LaTeX](results/report_tables/classification_august_performance.tex).
-- [Regression tables](results/report_tables/regression_report.html) and [LaTeX](results/report_tables/regression_report.tex).
-
-Open an HTML export in a browser and copy the required table into Word, retaining source formatting. The LaTeX files require `\usepackage{booktabs}`. Sample counts and exclusions are reported; orders with unknown outcomes are excluded from metrics.
-
-Run each notebook from the first cell to regenerate August results and exports. The optional monthly comparisons take longer because they repeat the random searches. Final HTML/LaTeX exports and compact August summary CSVs are included in Git. Order-level prediction CSVs, extracted source CSVs, working report prose and Word documents stay local; the bundled source ZIP remains tracked.
+Final HTML/LaTeX exports and compact summary CSVs are included in Git. Order-level prediction CSVs, extracted source CSVs, working report prose and Word documents stay local; the bundled source ZIP remains tracked.
 
 ## Data source
 
@@ -62,4 +57,4 @@ Notebooks add `phase2/` to `sys.path`, so `from src... import ...` works from ei
 ## Leakage rules
 - Features must be known at approval time. `LEAKAGE_COLS` in `src/features.py` lists the outcome columns, and the notebooks assert none of them are used.
 - Targets are assigned only from dates before the run date (`labels_as_of`, `regression_targets_as_of`).
-- The test set is always the newest approval days. CV folds validate on days after their training days.
+- The development holdout contains the newest historical approval days. CV folds validate on dates after their training dates. June outcomes select the final candidate; July and August do not update it.

@@ -1,0 +1,226 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>June classification performance</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>Configuration</th>
+      <th>Selected</th>
+      <th>AP (%)</th>
+      <th>ROC-AUC</th>
+      <th>Precision (%)</th>
+      <th>Recall (%)</th>
+      <th>F1 (%)</th>
+      <th>Top-decile capture (%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Decision Tree</td>
+      <td>default</td>
+      <td></td>
+      <td>4.98</td>
+      <td>0.620</td>
+      <td>5.01</td>
+      <td>37.96</td>
+      <td>8.86</td>
+      <td>29.20</td>
+    </tr>
+    <tr>
+      <td>Decision Tree</td>
+      <td>tuned</td>
+      <td></td>
+      <td>7.41</td>
+      <td>0.631</td>
+      <td>4.06</td>
+      <td>44.53</td>
+      <td>7.44</td>
+      <td>29.93</td>
+    </tr>
+    <tr>
+      <td>LightGBM</td>
+      <td>default</td>
+      <td>Yes</td>
+      <td>15.09</td>
+      <td>0.691</td>
+      <td>6.91</td>
+      <td>35.04</td>
+      <td>11.54</td>
+      <td>34.31</td>
+    </tr>
+    <tr>
+      <td>LightGBM</td>
+      <td>tuned</td>
+      <td></td>
+      <td>14.51</td>
+      <td>0.700</td>
+      <td>7.19</td>
+      <td>32.12</td>
+      <td>11.75</td>
+      <td>32.12</td>
+    </tr>
+    <tr>
+      <td>Logistic Regression</td>
+      <td>default</td>
+      <td></td>
+      <td>7.60</td>
+      <td>0.698</td>
+      <td>6.05</td>
+      <td>44.53</td>
+      <td>10.66</td>
+      <td>33.58</td>
+    </tr>
+    <tr>
+      <td>Logistic Regression</td>
+      <td>tuned</td>
+      <td></td>
+      <td>11.93</td>
+      <td>0.717</td>
+      <td>6.48</td>
+      <td>40.88</td>
+      <td>11.19</td>
+      <td>33.58</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>default</td>
+      <td></td>
+      <td>12.85</td>
+      <td>0.665</td>
+      <td>7.34</td>
+      <td>34.31</td>
+      <td>12.10</td>
+      <td>33.58</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>tuned</td>
+      <td></td>
+      <td>14.08</td>
+      <td>0.681</td>
+      <td>7.89</td>
+      <td>27.01</td>
+      <td>12.21</td>
+      <td>32.12</td>
+    </tr>
+    <tr>
+      <td>XGBoost</td>
+      <td>default</td>
+      <td></td>
+      <td>13.64</td>
+      <td>0.692</td>
+      <td>7.62</td>
+      <td>35.04</td>
+      <td>12.52</td>
+      <td>35.04</td>
+    </tr>
+    <tr>
+      <td>XGBoost</td>
+      <td>tuned</td>
+      <td></td>
+      <td>7.85</td>
+      <td>0.650</td>
+      <td>4.80</td>
+      <td>46.72</td>
+      <td>8.70</td>
+      <td>34.31</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">AP, precision, recall, F1 and top-decile capture are percentages. ROC-AUC is on a 0–1 scale. Threshold metrics use 0.5. “Selected” marks the model chosen retrospectively using June AP. June is a selection cohort; July and August assess the unchanged fitted model. June inference orders scored: 6,164; known outcomes: 6,155; late outcomes: 137.</p>
+<p>June holdout selection: **Logistic Regression (tuned)** (holdout AP 24.20%; ROC-AUC 0.718; threshold 0.50).</p></section>
+<section>
+<p><b>June tuned-minus-default change (percentage points)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>ΔAP (pp)</th>
+      <th>ΔROC-AUC (pp)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Logistic Regression</td>
+      <td>+4.33</td>
+      <td>+1.89</td>
+    </tr>
+    <tr>
+      <td>Decision Tree</td>
+      <td>+2.43</td>
+      <td>+1.05</td>
+    </tr>
+    <tr>
+      <td>Random Forest</td>
+      <td>+1.23</td>
+      <td>+1.56</td>
+    </tr>
+    <tr>
+      <td>XGBoost</td>
+      <td>-5.79</td>
+      <td>-4.24</td>
+    </tr>
+    <tr>
+      <td>LightGBM</td>
+      <td>-0.58</td>
+      <td>+0.92</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Change = tuned minus default on the same June evaluation orders; positive values indicate improvement.</p>
+<p>This table summarizes the June inference gain associated with tuning within each model family.</p></section>
+<section>
+<p><b>June-selected model: frozen July and August predictions</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Month</th>
+      <th>Orders</th>
+      <th>Late (%)</th>
+      <th>AP (%)</th>
+      <th>ROC-AUC</th>
+      <th>Top-10% capture (%)</th>
+      <th>Lift</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2018-06</td>
+      <td>6155</td>
+      <td>2.23</td>
+      <td>15.09</td>
+      <td>0.691</td>
+      <td>34.31</td>
+      <td>3.427</td>
+    </tr>
+    <tr>
+      <td>2018-07</td>
+      <td>6125</td>
+      <td>5.19</td>
+      <td>12.77</td>
+      <td>0.595</td>
+      <td>20.13</td>
+      <td>2.012</td>
+    </tr>
+    <tr>
+      <td>2018-08</td>
+      <td>6606</td>
+      <td>7.92</td>
+      <td>11.34</td>
+      <td>0.464</td>
+      <td>12.05</td>
+      <td>1.204</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">LightGBM (default); fitted once using June historical data. June selects the model; later months never refit or retune it. Complete June horizon outcomes are available August 15, so July and early August are retrospective stress tests. Unknown outcomes are excluded; the latest recorded delivery is an unverified observation-end proxy.</p>
+<p>Monthly differences show performance stability for the same fitted model, not changes caused by monthly retraining.</p></section>
+</body></html>
