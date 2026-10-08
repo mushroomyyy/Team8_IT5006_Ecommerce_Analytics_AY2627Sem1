@@ -1,4 +1,4 @@
-"""Daily classification inference over a date range, from the earlier notebooks' run_inference."""
+"""Daily inference over a date range: score each approval day with a fitted model, no refitting."""
 from calendar import monthrange
 
 import pandas as pd

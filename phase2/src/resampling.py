@@ -1,6 +1,6 @@
 """Class-imbalance experiment: resampling applied only inside each training fold.
 
-Late orders are about 8% of Train. This module wraps a model pipeline with a
+Late orders are about 9% of Train. This module wraps a model pipeline with a
 random under-sampler, a random over-sampler or SMOTENC (SMOTE for mixed numeric and
 categorical data). It uses `imblearn.pipeline.Pipeline`, which calls the sampler
 during `fit` only, so validation folds, Validation, June and later months are

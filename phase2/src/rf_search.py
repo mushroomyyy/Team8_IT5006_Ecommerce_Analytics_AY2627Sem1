@@ -233,6 +233,7 @@ def tuned_rf_pipeline(task, best_params, num_cols, cat_cols, n_jobs=-1):
 
 
 def main(argv=None):
+    """Command line entry point for the cached Random Forest search."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--task', choices=['classification', 'regression'], required=True)
     parser.add_argument('--n-iter', type=int, default=60, help='Stage A candidates (60; 40 if slow)')

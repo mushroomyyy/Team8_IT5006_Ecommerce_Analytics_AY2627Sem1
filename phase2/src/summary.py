@@ -85,6 +85,7 @@ class TaskExports:
         raise KeyError(f'No table titled like {title_contains!r} in {stem}.html: {titles}')
 
     def csv(self, name):
+        """Read a CSV from the task folder."""
         return pd.read_csv(self.directory / name)
 
 
@@ -213,8 +214,36 @@ def md_table(headers, rows):
     return '\n'.join(lines)
 
 
+HEADER_LABELS = {
+    'step': 'Step', 'added_unit': 'Added unit', 'n_units': 'Units', 'n_encoded_columns': 'Encoded columns',
+    'cv_mean': 'CV mean', 'cv_sd': 'CV SD', 'cv_se': 'CV SE', 'cv_rmse': 'CV RMSE (days)',
+    'change_vs_kept': 'Change vs kept design', 'rmse_change': 'RMSE change vs kept design (days)',
+    'unit': 'Unit', 'cv_stepwise': 'CV-stepwise', 'cv_step_entered': 'CV step entered', 'bic': 'BIC', 'aic': 'AIC',
+    'lasso': 'Lasso', 'n_methods': 'Methods choosing it',
+    'model': 'Model', 'split': 'Split', 'criterion': 'Criterion', 'value': 'Value', 'threshold': 'Threshold',
+    'passed': 'Result', 'metric': 'Metric', 'hypothesis': 'Hypothesis', 'feature': 'Feature', 'term': 'Term',
+    'expected_sign': 'Expected sign', 'observed_sign': 'Observed sign', 'coef': 'Coefficient',
+    'p_value': 'p-value', 'verdict': 'Verdict', 'rank': 'Rank', 'importance_mean': 'Importance (mean)',
+    'linear_min_p': 'Smallest linear p-value', 'linear_significant': 'Significant in linear model',
+    'change_june_to_last': 'Change, June to August', 'late_rate': 'Late rate',
+    'avg_precision': 'AP', 'roc_auc': 'ROC-AUC', 'brier': 'Brier score', 'precision_top10': 'Top-10% precision',
+    'top10_lift': 'Top-10% lift', 'rmse': 'RMSE (days)', 'mae': 'MAE (days)', 'r2': 'R-squared',
+    'median_ae': 'Median absolute error (days)', 'bias': 'Bias (days)',
+    'mean_score': 'CV score (mean)', 'sd_score': 'CV score (SD)', 'groups': 'Groups',
+}
+
+
+def readable(name):
+    """Readable header or metric name for a raw column name (unknown names pass through)."""
+    return HEADER_LABELS.get(name, name)
+
+
 def frame_markdown(frame):
-    return md_table(list(frame.columns), frame.itertuples(index=False, name=None))
+    """Pipe table of a DataFrame with readable headers; metric names in a `metric` column are relabelled too."""
+    frame = frame.copy()
+    if 'metric' in frame.columns:
+        frame['metric'] = frame['metric'].map(readable)
+    return md_table([readable(c) for c in frame.columns], frame.itertuples(index=False, name=None))
 
 
 def top_effects(table, spec, n=8):
@@ -292,11 +321,12 @@ def _stepwise(task):
     path['Marker'] = ''
     path.loc[path['step'] == str(stepwise['best_step']), 'Marker'] = 'best CV step'
     path.loc[path['step'] == str(stepwise['one_se_step']), 'Marker'] += ' 1-SE choice'
+    path['Marker'] = path['Marker'].str.strip()
     selected = task.metadata['selected_variables']
     chosen = spec.linear_models[1]
     text = (f"The best CV step is {stepwise['best_step']} and the 1-SE rule chooses step {stepwise['one_se_step']}, "
             f"which gives {chosen} with {len(selected[chosen])} variable(s): {', '.join(selected[chosen])}.")
-    return [text, '', frame_markdown(path.rename(columns={'cv_mean': 'CV mean', 'cv_se': 'CV SE'}))]
+    return [text, '', frame_markdown(path)]
 
 
 def _overlap(task):
@@ -389,7 +419,7 @@ def _regression_extras(task, root, number):
 
 
 def task_section(task, chapter, root):
-    """All of one task's plan-9 content as markdown lines."""
+    """All of one task's report content as markdown lines."""
     spec, number = task.spec, Numbered(chapter)
     prefix = f'{spec.name}_'
     blocks = [
@@ -437,6 +467,7 @@ def what_changed(tasks):
 
 
 def figure_index(root):
+    """Closing section listing every PNG in the figures folder."""
     names = sorted(p.name for p in (Path(root) / 'figures').glob('*.png'))
     rows = [[f'`figures/{n}`'] for n in names]
     return ['## 5. Figure index', '', md_table(['File'], rows), '']
@@ -489,6 +520,7 @@ def build_summary(root=DEFAULT_ROOT):
 
 
 def main(argv=None):
+    """Command line entry point: build the figures, summary and merged metadata."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--root', default=str(DEFAULT_ROOT), help='Folder holding the task exports')
     args = parser.parse_args(argv)

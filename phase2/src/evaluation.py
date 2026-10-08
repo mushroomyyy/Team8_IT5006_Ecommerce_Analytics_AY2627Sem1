@@ -3,7 +3,7 @@ import hashlib
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, clone
 from sklearn.metrics import (
     average_precision_score, brier_score_loss, f1_score,
     mean_absolute_error, mean_squared_error, median_absolute_error, precision_score,
@@ -11,7 +11,11 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import cross_validate
 
-from .inference import run_inference
+from . import LOOKBACK
+from .datasets import EXCLUDED_STATUSES
+from .inference import month_bounds, run_inference
+from .labels import attach_prediction_labels, attach_regression_actuals
+from .regression_models import ClippedDaysScorer, score_cohort
 
 
 def regression_metrics(y_true, y_pred):
@@ -212,8 +216,6 @@ def cv_classification_metrics(model, X, y, folds, metrics=None):
     Resampling pipelines resample only the training part of each fold, because the
     validation fold only goes through `predict_proba`.
     """
-    from sklearn.base import clone
-
     metrics = metrics or CLASSIFICATION_CV_METRICS
     rows = []
     for number, (train_idx, valid_idx) in enumerate(folds, 1):
@@ -359,10 +361,6 @@ def score_months(fitted, final_df, orders, feature_cols, months):
     Returns {month: DataFrame(order_id, predicted_probability, actual_label, ...)}; the
     daily scores are pooled per month before any metric is computed.
     """
-    from . import LOOKBACK
-    from .inference import month_bounds
-    from .labels import attach_prediction_labels
-
     scored = {}
     for month in months:
         start, end = month_bounds(month)
@@ -389,10 +387,6 @@ def cv_regression_metrics(model, X, y, folds, metrics=None):
     Returns a DataFrame with one row per fold (metrics from `regression_metrics`).
     `X` must contain `promised_lead_days`, which sets the clipping bounds.
     """
-    from sklearn.base import clone
-
-    from .regression_models import score_cohort
-
     metrics = metrics or REGRESSION_CV_METRICS
     rows = []
     for number, (train_idx, valid_idx) in enumerate(folds, 1):
@@ -422,14 +416,8 @@ def score_regression_months(fitted, final_df, orders, feature_cols, months):
     Mirrors `score_months`: `run_inference` scores each approval day through the
     `ClippedDaysScorer` adapter, then the days from the promise (`actual_target`) and the
     classification label (`actual_label`) are attached at approval day + waiting period.
-    Orders that were cancelled or unavailable are excluded, as in the training cohort.
+    Orders that were canceled or unavailable are excluded, as in the training cohort.
     """
-    from . import LOOKBACK
-    from .datasets import EXCLUDED_STATUSES
-    from .inference import month_bounds
-    from .labels import attach_prediction_labels, attach_regression_actuals
-    from .regression_models import ClippedDaysScorer
-
     cohort = final_df[~final_df['order_status'].isin(EXCLUDED_STATUSES)]
     scorer = ClippedDaysScorer(fitted)
     scored = {}

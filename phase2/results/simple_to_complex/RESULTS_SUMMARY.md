@@ -52,7 +52,7 @@ Frozen models score the Test and Monitoring months:
 
 Groups kept: log, cyclic, squared. Log columns: payment_value_sum, order_frieght_value_sum, order_product_weight_g_sum, order_product_volume_cm3_sum, approval_lag_hours, seller_dist_km_mean, freight_to_price_ratio, orders_approved_prev_7d. Squared columns: promised_lead_days, approval_lag_hours, payment_value_sum. Mixed route folded into All interstate: True.
 
-| Design | cv_mean | cv_sd | change_vs_kept | Kept | Decision step |
+| Design | CV mean | CV SD | Change vs kept design | Kept | Decision step |
 |---|---|---|---|---|---|
 | raw | 0.1294 | 0.022 | 0.0 | True | log, cyclic |
 | raw + log | 0.138 | 0.0244 |  | False | log, cyclic |
@@ -67,7 +67,7 @@ Groups kept: log, cyclic, squared. Log columns: payment_value_sum, order_frieght
 
 The best CV step is 15 and the 1-SE rule chooses step 6, which gives C2 with 6 variable(s): customer_state, order_approved_day_of_month, order_seller_count, order_approved_day_of_week, promised_lead_days, route_type.
 
-| step | added_unit | n_units | n_encoded_columns | CV mean | CV SE | Marker |
+| Step | Added unit | Units | Encoded columns | CV mean | CV SE | Marker |
 |---|---|---|---|---|---|---|
 | 0 | (intercept only) | 0 | 0 | 0.0957 | 0.0153 |  |
 | 1 | customer_state | 1 | 26 | 0.1303 | 0.0174 |  |
@@ -75,7 +75,7 @@ The best CV step is 15 and the 1-SE rule chooses step 6, which gives C2 with 6 v
 | 3 | order_seller_count | 3 | 28 | 0.1362 | 0.0192 |  |
 | 4 | order_approved_day_of_week | 4 | 30 | 0.1368 | 0.0185 |  |
 | 5 | promised_lead_days | 5 | 32 | 0.1372 | 0.0171 |  |
-| 6 | route_type | 6 | 33 | 0.1548 | 0.0165 |  1-SE choice |
+| 6 | route_type | 6 | 33 | 0.1548 | 0.0165 | 1-SE choice |
 | 7 | order_product_weight_g_sum | 7 | 34 | 0.1563 | 0.0168 |  |
 | 8 | approval_lag_hours | 8 | 36 | 0.1576 | 0.0167 |  |
 | 9 | order_frieght_value_sum | 9 | 37 | 0.1578 | 0.0167 |  |
@@ -104,7 +104,7 @@ The best CV step is 15 and the 1-SE rule chooses step 6, which gives C2 with 6 v
 | AIC | 19 |
 | Lasso | 24 |
 
-| unit | cv_stepwise | cv_step_entered | bic | aic | lasso | n_methods |
+| Unit | CV-stepwise | CV step entered | BIC | AIC | Lasso | Methods choosing it |
 |---|---|---|---|---|---|---|
 | customer_state | yes | 1 | yes | yes | yes | 4 |
 | order_seller_count | yes | 3 | yes | yes | yes | 4 |
@@ -239,7 +239,7 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 ### 2.7 Success criteria
 
-| split | criterion | model | value | threshold | passed |
+| Split | Criterion | Model | Value | Threshold | Result |
 |---|---|---|---|---|---|
 | June | Top-10% lift >= 2 | C1 | 3.281 | 2.0 | pass |
 | June | Top-10% lift >= 2 | C2 | 3.281 | 2.0 | pass |
@@ -258,7 +258,7 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 ### 2.8 Overfitting gaps (Train minus CV mean)
 
-| model | avg_precision | roc_auc | brier | precision_top10 | top10_lift |
+| Model | AP | ROC-AUC | Brier score | Top-10% precision | Top-10% lift |
 |---|---|---|---|---|---|
 | C0 | -0.0073 | 0.0 | -0.0067 | -0.0066 | -0.0303 |
 | C1 | 0.0734 | 0.0807 | -0.011 | 0.0937 | 1.089 |
@@ -269,13 +269,13 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 ### 2.9 Random Forest tuning gain (tuned minus default)
 
-| metric | CV: C3 | CV: C3d | CV: gain | Validation: C3 | Validation: C3d | Validation: gain | June: C3 | June: C3d | June: gain | Train - CV gap: C3 | Train - CV gap: C3d |
+| Metric | CV: C3 | CV: C3d | CV: gain | Validation: C3 | Validation: C3d | Validation: gain | June: C3 | June: C3d | June: gain | Train - CV gap: C3 | Train - CV gap: C3d |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| avg_precision | 0.2691 | 0.2526 | 0.0165 | 0.2194 | 0.2038 | 0.0156 | 0.1122 | 0.1097 | 0.0025 | 0.1289 | 0.7474 |
-| roc_auc | 0.6536 | 0.6246 | 0.029 | 0.7009 | 0.6686 | 0.0324 | 0.6369 | 0.6529 | -0.0159 | 0.124 | 0.3754 |
-| brier | 0.0812 | 0.0794 | 0.0018 | 0.0905 | 0.0889 | 0.0017 | 0.0268 | 0.0266 | 0.0002 | -0.0106 | -0.0698 |
-| precision_top10 | 0.2239 | 0.2125 | 0.0114 | 0.246 | 0.2358 | 0.0102 | 0.0729 | 0.0697 | 0.0032 | 0.1206 | 0.6707 |
-| top10_lift | 2.4802 | 2.293 | 0.1872 | 2.3703 | 2.2721 | 0.0982 | 3.2815 | 3.1356 | 0.1458 | 1.4196 | 7.7052 |
+| AP | 0.2691 | 0.2526 | 0.0165 | 0.2194 | 0.2038 | 0.0156 | 0.1122 | 0.1097 | 0.0025 | 0.1289 | 0.7474 |
+| ROC-AUC | 0.6536 | 0.6246 | 0.029 | 0.7009 | 0.6686 | 0.0324 | 0.6369 | 0.6529 | -0.0159 | 0.124 | 0.3754 |
+| Brier score | 0.0812 | 0.0794 | 0.0018 | 0.0905 | 0.0889 | 0.0017 | 0.0268 | 0.0266 | 0.0002 | -0.0106 | -0.0698 |
+| Top-10% precision | 0.2239 | 0.2125 | 0.0114 | 0.246 | 0.2358 | 0.0102 | 0.0729 | 0.0697 | 0.0032 | 0.1206 | 0.6707 |
+| Top-10% lift | 2.4802 | 2.293 | 0.1872 | 2.3703 | 2.2721 | 0.0982 | 3.2815 | 3.1356 | 0.1458 | 1.4196 | 7.7052 |
 
 ### 2.10 Top odds ratios with 95% CIs
 
@@ -310,7 +310,7 @@ seller_state_count: NOT IDENTIFIED (quasi-separation).
 
 ### 2.11 Hypothesis check
 
-| hypothesis | feature | model | expected_sign | term | coef | p_value | observed_sign | verdict |
+| Hypothesis | Feature | Model | Expected sign | Term | Coefficient | p-value | Observed sign | Verdict |
 |---|---|---|---|---|---|---|---|---|
 | time | is_weekend_approval | C1 | + | is_weekend_approval | -0.071 | 0.0088 | - | disagree |
 | time | is_black_friday_period | C1 | + | is_black_friday_period | 0.233 | 0.0 | + | agree |
@@ -345,7 +345,7 @@ seller_state_count: NOT IDENTIFIED (quasi-separation).
 
 **Top 10 by permutation importance on Validation, with linear-model significance**
 
-| rank | feature | importance_mean | linear_min_p | linear_significant |
+| Rank | Feature | Importance (mean) | Smallest linear p-value | Significant in linear model |
 |---|---|---|---|---|
 | 1 | customer_state | 0.0382 | 0.0 | True |
 | 2 | promised_lead_days | 0.0339 | 0.0 | True |
@@ -370,44 +370,44 @@ seller_state_count: NOT IDENTIFIED (quasi-separation).
 
 ### 2.13 Drift from June to August
 
-| model | metric | June | July | August | change_june_to_last |
+| Model | Metric | June | July | August | Change, June to August |
 |---|---|---|---|---|---|
-| C0 | avg_precision | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
-| C0 | roc_auc | 0.5 | 0.5 | 0.5 | 0.0 |
-| C0 | brier | 0.0294 | 0.0525 | 0.0738 | 0.0444 |
-| C0 | precision_top10 | 0.0146 | 0.0424 | 0.0787 | 0.0641 |
-| C0 | top10_lift | 0.6563 | 0.8175 | 0.9937 | 0.3374 |
-| C0 | late_rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
-| C1 | avg_precision | 0.0816 | 0.0938 | 0.1355 | 0.0539 |
-| C1 | roc_auc | 0.6934 | 0.5822 | 0.6109 | -0.0824 |
-| C1 | brier | 0.0235 | 0.053 | 0.0774 | 0.0539 |
-| C1 | precision_top10 | 0.0729 | 0.106 | 0.1301 | 0.0572 |
-| C1 | top10_lift | 3.2815 | 2.0437 | 1.6434 | -1.6381 |
-| C1 | late_rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
-| C2 | avg_precision | 0.0678 | 0.0958 | 0.1286 | 0.0608 |
-| C2 | roc_auc | 0.6919 | 0.5776 | 0.6002 | -0.0917 |
-| C2 | brier | 0.026 | 0.0588 | 0.0813 | 0.0554 |
-| C2 | precision_top10 | 0.0729 | 0.0995 | 0.1452 | 0.0723 |
-| C2 | top10_lift | 3.2815 | 1.9179 | 1.8345 | -1.447 |
-| C2 | late_rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
-| C2B | avg_precision | 0.0812 | 0.0993 | 0.138 | 0.0569 |
-| C2B | roc_auc | 0.6962 | 0.5871 | 0.6209 | -0.0753 |
-| C2B | brier | 0.0234 | 0.0524 | 0.0763 | 0.0529 |
-| C2B | precision_top10 | 0.0697 | 0.0995 | 0.1362 | 0.0665 |
-| C2B | top10_lift | 3.1356 | 1.9179 | 1.7198 | -1.4158 |
-| C2B | late_rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
-| C3 | avg_precision | 0.1122 | 0.1118 | 0.1137 | 0.0016 |
-| C3 | roc_auc | 0.6369 | 0.5439 | 0.4263 | -0.2106 |
-| C3 | brier | 0.0268 | 0.052 | 0.0782 | 0.0514 |
-| C3 | precision_top10 | 0.0729 | 0.0897 | 0.1059 | 0.033 |
-| C3 | top10_lift | 3.2815 | 1.7293 | 1.3376 | -1.9439 |
-| C3 | late_rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
-| C3d | avg_precision | 0.1097 | 0.1222 | 0.1159 | 0.0062 |
-| C3d | roc_auc | 0.6529 | 0.5905 | 0.5295 | -0.1233 |
-| C3d | brier | 0.0266 | 0.0579 | 0.0936 | 0.067 |
-| C3d | precision_top10 | 0.0697 | 0.1044 | 0.0953 | 0.0256 |
-| C3d | top10_lift | 3.1356 | 2.0123 | 1.2039 | -1.9318 |
-| C3d | late_rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
+| C0 | AP | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
+| C0 | ROC-AUC | 0.5 | 0.5 | 0.5 | 0.0 |
+| C0 | Brier score | 0.0294 | 0.0525 | 0.0738 | 0.0444 |
+| C0 | Top-10% precision | 0.0146 | 0.0424 | 0.0787 | 0.0641 |
+| C0 | Top-10% lift | 0.6563 | 0.8175 | 0.9937 | 0.3374 |
+| C0 | Late rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
+| C1 | AP | 0.0816 | 0.0938 | 0.1355 | 0.0539 |
+| C1 | ROC-AUC | 0.6934 | 0.5822 | 0.6109 | -0.0824 |
+| C1 | Brier score | 0.0235 | 0.053 | 0.0774 | 0.0539 |
+| C1 | Top-10% precision | 0.0729 | 0.106 | 0.1301 | 0.0572 |
+| C1 | Top-10% lift | 3.2815 | 2.0437 | 1.6434 | -1.6381 |
+| C1 | Late rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
+| C2 | AP | 0.0678 | 0.0958 | 0.1286 | 0.0608 |
+| C2 | ROC-AUC | 0.6919 | 0.5776 | 0.6002 | -0.0917 |
+| C2 | Brier score | 0.026 | 0.0588 | 0.0813 | 0.0554 |
+| C2 | Top-10% precision | 0.0729 | 0.0995 | 0.1452 | 0.0723 |
+| C2 | Top-10% lift | 3.2815 | 1.9179 | 1.8345 | -1.447 |
+| C2 | Late rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
+| C2B | AP | 0.0812 | 0.0993 | 0.138 | 0.0569 |
+| C2B | ROC-AUC | 0.6962 | 0.5871 | 0.6209 | -0.0753 |
+| C2B | Brier score | 0.0234 | 0.0524 | 0.0763 | 0.0529 |
+| C2B | Top-10% precision | 0.0697 | 0.0995 | 0.1362 | 0.0665 |
+| C2B | Top-10% lift | 3.1356 | 1.9179 | 1.7198 | -1.4158 |
+| C2B | Late rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
+| C3 | AP | 0.1122 | 0.1118 | 0.1137 | 0.0016 |
+| C3 | ROC-AUC | 0.6369 | 0.5439 | 0.4263 | -0.2106 |
+| C3 | Brier score | 0.0268 | 0.052 | 0.0782 | 0.0514 |
+| C3 | Top-10% precision | 0.0729 | 0.0897 | 0.1059 | 0.033 |
+| C3 | Top-10% lift | 3.2815 | 1.7293 | 1.3376 | -1.9439 |
+| C3 | Late rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
+| C3d | AP | 0.1097 | 0.1222 | 0.1159 | 0.0062 |
+| C3d | ROC-AUC | 0.6529 | 0.5905 | 0.5295 | -0.1233 |
+| C3d | Brier score | 0.0266 | 0.0579 | 0.0936 | 0.067 |
+| C3d | Top-10% precision | 0.0697 | 0.1044 | 0.0953 | 0.0256 |
+| C3d | Top-10% lift | 3.1356 | 2.0123 | 1.2039 | -1.9318 |
+| C3d | Late rate | 0.0223 | 0.0519 | 0.0792 | 0.0569 |
 
 ### 2.14 Class-weight sensitivity
 
@@ -463,7 +463,7 @@ Frozen models score the Test and Monitoring months:
 
 Groups kept: log, cyclic, squared. Log columns: payment_value_sum, order_frieght_value_sum, order_product_weight_g_sum, order_product_volume_cm3_sum, approval_lag_hours, seller_dist_km_mean, freight_to_price_ratio, orders_approved_prev_7d. Squared columns: promised_lead_days, seller_dist_km_mean, order_seller_count. Mixed route folded into All interstate: True.
 
-| Design | cv_sd | Kept | cv_rmse | rmse_change | Decision step |
+| Design | CV SD | Kept | CV RMSE (days) | RMSE change vs kept design (days) | Decision step |
 |---|---|---|---|---|---|
 | raw | 2.477 | True | 9.5289 | -0.0 | log, cyclic |
 | raw + log | 1.8005 | False | 9.0974 |  | log, cyclic |
@@ -478,10 +478,10 @@ Groups kept: log, cyclic, squared. Log columns: payment_value_sum, order_frieght
 
 The best CV step is 14 and the 1-SE rule chooses step 1, which gives R2 with 1 variable(s): promised_lead_days.
 
-| step | added_unit | n_units | n_encoded_columns | CV mean | CV SE | Marker |
+| Step | Added unit | Units | Encoded columns | CV mean | CV SE | Marker |
 |---|---|---|---|---|---|---|
 | 0 | (intercept only) | 0 | 0 | 9.3402 | 0.3566 |  |
-| 1 | promised_lead_days | 1 | 2 | 8.5784 | 0.5149 |  1-SE choice |
+| 1 | promised_lead_days | 1 | 2 | 8.5784 | 0.5149 | 1-SE choice |
 | 2 | customer_state | 2 | 28 | 8.407 | 0.5447 |  |
 | 3 | seller_dist_km_mean | 3 | 30 | 8.3817 | 0.5448 |  |
 | 4 | order_product_weight_g_sum | 4 | 31 | 8.3683 | 0.5432 |  |
@@ -515,7 +515,7 @@ The best CV step is 14 and the 1-SE rule chooses step 1, which gives R2 with 1 v
 | AIC | 21 |
 | Lasso | 12 |
 
-| unit | cv_stepwise | cv_step_entered | bic | aic | lasso | n_methods |
+| Unit | CV-stepwise | CV step entered | BIC | AIC | Lasso | Methods choosing it |
 |---|---|---|---|---|---|---|
 | promised_lead_days | yes | 1 | yes | yes | yes | 4 |
 | customer_state |  | 2 | yes | yes | yes | 3 |
@@ -640,7 +640,7 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 ### 3.7 Success criteria
 
-| split | criterion | model | value | threshold | passed |
+| Split | Criterion | Model | Value | Threshold | Result |
 |---|---|---|---|---|---|
 | June | RMSE >= 10% below R0a | R1 | 0.368 | 0.1 | pass |
 | June | RMSE below R0b | R1 | 0.646 | 0.0 | pass |
@@ -669,7 +669,7 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 ### 3.8 Overfitting gaps (Train minus CV mean)
 
-| model | rmse | mae | r2 | bias |
+| Model | RMSE (days) | MAE (days) | R-squared | Bias (days) |
 |---|---|---|---|---|
 | R0a | -0.1499 | -0.2246 | 0.0349 | 0.2702 |
 | R0b | 0.1708 | 0.2021 | -0.0157 | 0.2782 |
@@ -681,11 +681,11 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 ### 3.9 Random Forest tuning gain (tuned minus default)
 
-| metric | CV: R3 | CV: R3d | CV: gain | Validation: R3 | Validation: R3d | Validation: gain | June: R3 | June: R3d | June: gain | Train - CV gap: R3 | Train - CV gap: R3d |
+| Metric | CV: R3 | CV: R3d | CV: gain | Validation: R3 | Validation: R3d | Validation: gain | June: R3 | June: R3d | June: gain | Train - CV gap: R3 | Train - CV gap: R3d |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| rmse | 8.3095 | 8.7104 | -0.4008 | 8.3975 | 8.5563 | -0.1588 | 7.9533 | 8.3931 | -0.4399 | -1.5297 | -5.7608 |
-| mae | 5.6956 | 6.2901 | -0.5944 | 5.6754 | 6.0589 | -0.3835 | 6.4473 | 6.8037 | -0.3565 | -1.1609 | -4.2898 |
-| r2 | 0.1774 | 0.0942 | 0.0832 | 0.2114 | 0.1813 | 0.0301 | 0.2861 | 0.2049 | 0.0812 | 0.2749 | 0.8022 |
+| RMSE (days) | 8.3095 | 8.7104 | -0.4008 | 8.3975 | 8.5563 | -0.1588 | 7.9533 | 8.3931 | -0.4399 | -1.5297 | -5.7608 |
+| MAE (days) | 5.6956 | 6.2901 | -0.5944 | 5.6754 | 6.0589 | -0.3835 | 6.4473 | 6.8037 | -0.3565 | -1.1609 | -4.2898 |
+| R-squared | 0.1774 | 0.0942 | 0.0832 | 0.2114 | 0.1813 | 0.0301 | 0.2861 | 0.2049 | 0.0812 | 0.2749 | 0.8022 |
 
 ### 3.10 Top coefficients with 95% CIs (HC3)
 
@@ -711,7 +711,7 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 ### 3.11 Hypothesis check
 
-| hypothesis | feature | model | expected_sign | term | coef | p_value | observed_sign | verdict |
+| Hypothesis | Feature | Model | Expected sign | Term | Coefficient | p-value | Observed sign | Verdict |
 |---|---|---|---|---|---|---|---|---|
 | time | is_weekend_approval | R1 | + | is_weekend_approval | -0.175 | 0.0044 | - | disagree |
 | time | is_black_friday_period | R1 | + | is_black_friday_period | 0.986 | 0.0 | + | agree |
@@ -746,7 +746,7 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 **Top 10 by permutation importance on Validation, with linear-model significance**
 
-| rank | feature | importance_mean | linear_min_p | linear_significant |
+| Rank | Feature | Importance (mean) | Smallest linear p-value | Significant in linear model |
 |---|---|---|---|---|
 | 1 | promised_lead_days | 1.9618 | 0.0 | True |
 | 2 | seller_dist_km_mean | 0.3517 | 0.0 | True |
@@ -771,42 +771,42 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 ### 3.13 Drift from June to August
 
-| model | metric | June | July | August | change_june_to_last |
+| Model | Metric | June | July | August | Change, June to August |
 |---|---|---|---|---|---|
-| R0a | rmse | 11.6879 | 8.1623 | 8.4157 | -3.2721 |
-| R0a | mae | 9.1631 | 5.4673 | 5.9063 | -3.2569 |
-| R0a | bias | 7.1527 | -0.3244 | -2.5086 | -9.6613 |
-| R0a | late_rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
-| R0b | rmse | 20.8877 | 13.9944 | 11.7393 | -9.1484 |
-| R0b | mae | 19.2994 | 12.2614 | 8.9229 | -10.3765 |
-| R0b | bias | 18.8207 | 11.1361 | 7.6435 | -11.1772 |
-| R0b | late_rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
-| R1 | rmse | 7.3854 | 7.2933 | 6.4666 | -0.9189 |
-| R1 | mae | 5.8237 | 5.2076 | 4.416 | -1.4076 |
-| R1 | bias | 4.1248 | 2.3435 | 1.9875 | -2.1373 |
-| R1 | late_rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
-| R2 | rmse | 9.282 | 7.3615 | 6.6127 | -2.6692 |
-| R2 | mae | 7.9349 | 5.1861 | 4.158 | -3.7768 |
-| R2 | bias | 6.5196 | 2.3346 | 0.4324 | -6.0872 |
-| R2 | late_rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
-| R2B | rmse | 7.3908 | 7.2749 | 6.4596 | -0.9311 |
-| R2B | mae | 5.8298 | 5.1893 | 4.4064 | -1.4234 |
-| R2B | bias | 4.1277 | 2.3147 | 1.9754 | -2.1523 |
-| R2B | late_rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
-| R3 | rmse | 7.9533 | 7.4526 | 7.4971 | -0.4562 |
-| R3 | mae | 6.4473 | 5.3081 | 5.1874 | -1.2598 |
-| R3 | bias | 4.9433 | 2.5562 | 1.7194 | -3.2238 |
-| R3 | late_rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
-| R3d | rmse | 8.3931 | 8.2832 | 8.2884 | -0.1047 |
-| R3d | mae | 6.8037 | 6.1984 | 6.0134 | -0.7904 |
-| R3d | bias | 5.2804 | 3.779 | 3.6074 | -1.673 |
-| R3d | late_rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
+| R0a | RMSE (days) | 11.6879 | 8.1623 | 8.4157 | -3.2721 |
+| R0a | MAE (days) | 9.1631 | 5.4673 | 5.9063 | -3.2569 |
+| R0a | Bias (days) | 7.1527 | -0.3244 | -2.5086 | -9.6613 |
+| R0a | Late rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
+| R0b | RMSE (days) | 20.8877 | 13.9944 | 11.7393 | -9.1484 |
+| R0b | MAE (days) | 19.2994 | 12.2614 | 8.9229 | -10.3765 |
+| R0b | Bias (days) | 18.8207 | 11.1361 | 7.6435 | -11.1772 |
+| R0b | Late rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
+| R1 | RMSE (days) | 7.3854 | 7.2933 | 6.4666 | -0.9189 |
+| R1 | MAE (days) | 5.8237 | 5.2076 | 4.416 | -1.4076 |
+| R1 | Bias (days) | 4.1248 | 2.3435 | 1.9875 | -2.1373 |
+| R1 | Late rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
+| R2 | RMSE (days) | 9.282 | 7.3615 | 6.6127 | -2.6692 |
+| R2 | MAE (days) | 7.9349 | 5.1861 | 4.158 | -3.7768 |
+| R2 | Bias (days) | 6.5196 | 2.3346 | 0.4324 | -6.0872 |
+| R2 | Late rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
+| R2B | RMSE (days) | 7.3908 | 7.2749 | 6.4596 | -0.9311 |
+| R2B | MAE (days) | 5.8298 | 5.1893 | 4.4064 | -1.4234 |
+| R2B | Bias (days) | 4.1277 | 2.3147 | 1.9754 | -2.1523 |
+| R2B | Late rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
+| R3 | RMSE (days) | 7.9533 | 7.4526 | 7.4971 | -0.4562 |
+| R3 | MAE (days) | 6.4473 | 5.3081 | 5.1874 | -1.2598 |
+| R3 | Bias (days) | 4.9433 | 2.5562 | 1.7194 | -3.2238 |
+| R3 | Late rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
+| R3d | RMSE (days) | 8.3931 | 8.2832 | 8.2884 | -0.1047 |
+| R3d | MAE (days) | 6.8037 | 6.1984 | 6.0134 | -0.7904 |
+| R3d | Bias (days) | 5.2804 | 3.779 | 3.6074 | -1.673 |
+| R3d | Late rate | 0.0189 | 0.0444 | 0.0729 | 0.054 |
 
 ### 3.14 Error by outcome and derived late flag
 
 **RMSE and MAE for late versus on-time orders (days)**
 
-| model | Validation RMSE late | Validation MAE late | Validation RMSE on-time | Validation MAE on-time | June RMSE late | June MAE late | June RMSE on-time | June MAE on-time |
+| Model | Validation RMSE late | Validation MAE late | Validation RMSE on-time | Validation MAE on-time | June RMSE late | June MAE late | June RMSE on-time | June MAE on-time |
 |---|---|---|---|---|---|---|---|---|
 | R0a | 24.854 | 23.418 | 6.251 | 4.866 | 26.169 | 24.405 | 11.232 | 8.876 |
 | R0b | 13.433 | 10.546 | 13.564 | 12.017 | 15.775 | 12.672 | 20.988 | 19.453 |
@@ -818,7 +818,7 @@ Sensitivity of the Stage A search (spread = best minus worst score over the valu
 
 **Derived late flag (prediction > 0 days) versus the classification label**
 
-| model | Validation Precision | Validation Recall | Validation F1 | June Precision | June Recall | June F1 |
+| Model | Validation Precision | Validation Recall | Validation F1 | June Precision | June Recall | June F1 |
 |---|---|---|---|---|---|---|
 | R0a | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
 | R0b | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |

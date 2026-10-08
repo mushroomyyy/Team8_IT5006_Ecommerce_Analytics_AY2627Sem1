@@ -1,8 +1,8 @@
-"""Reproduce the fixed, shared feature selection from June development rows.
+"""Reproduce the fixed, shared feature selection from the Train rows.
 
 Run with ``python -m src.feature_selection`` from ``phase2``. This diagnostic
 reads labels only to define the two eligible training populations. It never
-uses outcomes, holdout rows, or model scores to choose a predictor.
+uses outcomes, Validation rows, or model scores to choose a predictor.
 """
 from pathlib import Path
 
@@ -97,6 +97,7 @@ def numeric_vif(frame):
 
 
 def training_rows(features):
+    """Train rows of both tasks, rebuilt independently of `build_task_data` (sizes are asserted)."""
     window = features[features.order_approved_dt.between('2017-04-18', '2018-04-17')]
     classification = labels_as_of(window, '2018-06-02')
     classification = classification[classification.label_as_of_run.notna()].copy()
@@ -125,6 +126,7 @@ def exact_overlap_table(rows_by_task):
 
 
 def imputed_numeric(rows):
+    """Median-imputed candidate numeric columns of one task's Train rows (the VIF input)."""
     columns = NUM_COLS + EXTRA_NUM_COLS
     raw = rows[columns].astype(float)
     matrix = SimpleImputer(strategy='median').fit_transform(raw)

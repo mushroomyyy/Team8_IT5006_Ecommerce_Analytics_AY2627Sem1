@@ -123,10 +123,10 @@ def forward_stepwise_cv(train_rows, y, units, build_pipeline, folds, scoring, tr
                 build_pipeline(selected + [unit]), scoring)
             for unit in remaining)
         means = np.array([np.nan_to_num(r['cv_mean'], nan=-np.inf) for r in results])
-        winner = int(np.argmax(means))  # First of equals: deterministic in `units` order
+        best = int(np.argmax(means))  # First of equals: deterministic in `units` order
         for i, r in enumerate(results):
-            candidates.append({'step': step, **r, 'chosen': i == winner})
-        chosen = results[winner]
+            candidates.append({'step': step, **r, 'chosen': i == best})
+        chosen = results[best]
         selected.append(chosen['unit'])
         remaining.remove(chosen['unit'])
         path.append({'step': step, 'added_unit': chosen['unit'], **{k: chosen[k] for k in

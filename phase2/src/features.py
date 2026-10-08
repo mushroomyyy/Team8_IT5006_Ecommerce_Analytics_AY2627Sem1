@@ -1,13 +1,13 @@
-"""Order-level feature table (model_dev_v2.ipynb cells 14-26) plus extra leakage-safe features.
+"""Order-level feature table plus extra leakage-safe features.
 
-`build_feature_table` reproduces v2's `final_df` exactly. `add_extra_features` appends
+`build_feature_table` builds one row per approved order. `add_extra_features` appends
 new columns that are all known when the order is approved, and never reads
 `order_delivered_carrier_date` or `order_delivered_customer_date`.
 """
 import numpy as np
 import pandas as pd
 
-# Base feature set used by model_dev_v2.ipynb
+# Base candidate numeric features
 NUM_COLS = [
     'order_approved_day_of_week',
     'order_approved_day_of_month',

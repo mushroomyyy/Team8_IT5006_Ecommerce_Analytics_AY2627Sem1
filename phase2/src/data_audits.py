@@ -6,13 +6,13 @@ the notebook stays short and the numbers can be tested. Nothing here fits a mode
 import numpy as np
 import pandas as pd
 
-from .datasets import RUN_DATE
+from .datasets import EXCLUDED_STATUSES, RUN_DATE
 from .features import LEAKAGE_COLS
 from .labels import get_required_dates, labels_as_of, regression_targets_as_of
 from .linear_transforms import linear_design, skewness_table
 from .feature_selection import numeric_vif
 
-# Skewed amounts, ratios, distances and lags that plan section 4.2 allows log1p for.
+# Skewed amounts, ratios, distances and lags that are candidates for log1p.
 LOG1P_CANDIDATES = [
     'payment_value_sum', 'order_frieght_value_sum', 'order_product_weight_g_sum',
     'order_product_volume_cm3_sum', 'approval_lag_hours', 'seller_dist_km_mean',
@@ -21,7 +21,6 @@ LOG1P_CANDIDATES = [
 SKEW_LIMIT = 1.0
 OUTCOME_ORDER_COLS = ['order_approved_at', 'order_delivered_customer_date',
                       'order_estimated_delivery_date']
-EXCLUDED_STATUSES = ['canceled', 'unavailable']
 
 
 def raw_table_summary(olist):
@@ -177,7 +176,7 @@ def delivered_lead_summary(final_df):
 def skewness_report(train_rows, num_cols, limit=SKEW_LIMIT, candidates=LOG1P_CANDIDATES):
     """Train skewness before and after log1p for every numeric feature.
 
-    `log1p_applied` is true for plan candidates with |skew| > `limit` (non-negative only).
+    `log1p_applied` is true for the candidates with |skew| > `limit` (non-negative only).
     """
     table = skewness_table(train_rows, num_cols, limit)
     table['candidate'] = table['feature'].isin(candidates)
