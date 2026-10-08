@@ -98,7 +98,6 @@ Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; 
   - the regression target is (actual lead days) − (promised lead days);
   - "late" means delivered after the promise.
   Interpret its effect as the *slack in the promise*, not a cause of delay.
-- **June has only 137 late orders**, a 2.2% late rate vs 8.8% in Train, so June classification metrics are noisy.
 - **RF vs logistic:**
   - The RF is much better in CV (AP 0.27 vs 0.14–0.15) but not on Validation or June.
   - It fails the "≥ 1.10 × logistic top-10% precision" criterion.
@@ -108,3 +107,4 @@ Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; 
 - **R2** keeps only `promised_lead_days` (1-SE rule) and is clearly worse than R1 on June (RMSE 9.28 vs 7.39). BIC (R2B, 17 variables) matches R1. Treat this as a finding about the 1-SE rule with noisy time folds.
 - **Regression RF** does not beat OLS out of time: RMSE 8.40 vs 8.21 on Validation and 7.95 vs 7.39 on June.
 - The old pipeline headline (LightGBM June AP 15.09%, MAE 4.85 days) belongs only in a short "what changed" note.
+- **User preference:** don't call out June's small late-order count or late rate as a caveat. Report June metrics as they are.

@@ -138,8 +138,7 @@ Also:
 ## Notebook 02 key results (for the report and the summary)
 - **No resampling adopted.** It never improves CV AP and badly worsens Brier: C1 Brier 0.087 → 0.255–0.275.
 - **Balanced logistic:** CV AP 0.137 vs 0.140 unweighted, and Brier 0.280 vs 0.087.
-- **June AP:** C1 8.2%, C2 6.8%, C2B 8.1%, C3 11.2%, C3d 11.0%; the no-skill rate is 2.2%.
-  - June has only 137 late orders, a 2.2% late rate. The old pipeline's June evaluation had the same late count, and its LightGBM June AP was 15.09%.
+- **June AP:** C1 8.2%, C2 6.8%, C2B 8.1%, C3 11.2%, C3d 11.0%.
 - **RF vs logistic:**
   - CV AP: RF 0.27 vs logistic 0.14–0.15.
   - On Validation and June the RF is not clearly better; it fails the "1.10 × logistic top-10% precision" criterion.
@@ -173,7 +172,6 @@ Also:
   - "Late" means delivered after the promise.
   - Olist pads its estimates, and the estimates already encode distance and region (correlation with distance 0.69).
   - Interpret its effect as *how much slack the promise gives*, not as a cause of delay. The R0b "Olist promise" baseline is the matching benchmark.
-- **June (Test)** has only 137 late orders (a 2.2% late rate vs 8.8% in Train), so June classification metrics are noisy. The old pipeline's June evaluation had the same late count.
 
 ## Repo clean-up still to do (user request: archive anything unused so phase2 isn't confusing)
 Already done: the old notebooks, old `results/` folders and boosting dependencies are archived or removed.
