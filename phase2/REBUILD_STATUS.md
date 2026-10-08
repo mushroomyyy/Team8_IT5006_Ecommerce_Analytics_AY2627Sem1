@@ -159,7 +159,13 @@ Also:
 2. Apply the two pending changes in one pass: the ROC curves in 02, and moving the LightGBM comparison out of 02/03. Re-execute 02 and 03, then commit.
 3. Step 9: build `04_summary`, then `RESULTS_SUMMARY.md`.
 4. Step 10: rewrite the README, then archive `PLAN_SIMPLE_TO_COMPLEX.md`, `REBUILD_STATUS.md` and `REBUILD_AGENT_BRIEF.md` into `Archive/2026-10-09_before_simple_to_complex/`.
-5. Step 11: acceptance checks. Step 12: merge into `main` and push.
+5. **Review (user request, before merging).** Do a full review of `phase2/` on the branch:
+   - Run `/code-review` against `main`, or have a Sonnet review agent read every notebook and every `src/` file.
+   - Check for correctness bugs and leakage.
+   - Check for leftover old-pipeline code: no XGBoost, CatBoost, LightGBM, Decision Tree, ensemble or `paired_monthly_ap` outside `Archive/`. Verify with `grep -rniI "xgboost\|catboost\|lightgbm\|ensemble\|paired_monthly" phase2 --exclude-dir=Archive`.
+   - Check readability (the repo may be graded), and that every figure and table the report needs exists.
+   - Fix what it finds, re-run the affected notebooks, and commit.
+6. Step 11: acceptance checks. Step 12: merge into `main` and push.
 
 ## Notes for the report writer (from discussions with the user)
 - **`promised_lead_days`** = estimated delivery date shown at checkout − approval date. It is the strongest predictor partly by construction.
