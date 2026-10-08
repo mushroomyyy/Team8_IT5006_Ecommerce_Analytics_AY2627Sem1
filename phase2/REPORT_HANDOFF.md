@@ -1,8 +1,8 @@
 # Report handoff: simple → complex rebuild
 
 **For:** the agent updating the Word report (e.g. Claude desktop). Read local files only.
-**Repo root:** `/Users/andrew_tjs/github/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/phase2/`, on branch `simple-to-complex` until it is merged into `main`.
-**Status (2026-10-09):** sections 1–8 below can be drafted now. Regression results are now committed too. **Start from `results/simple_to_complex/RESULTS_SUMMARY.md`**, which covers every number for both tasks. The table below maps report sections to the detailed files.
+**Repo root:** `/Users/andrew_tjs/github/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/phase2/`, on branch `main`.
+**Status (2026-10-09):** final. Every section can be written now.
 
 ## Ground rules
 - Every number must come from the files listed below. Don't invent or round differently from the tables.
@@ -14,18 +14,12 @@
 - Primary metrics: **AP** for classification (write "AP, the area under the precision-recall curve" once) and **RMSE** for regression.
 - Delete the old pipeline's text: XGBoost, LightGBM, CatBoost, the ensemble, "June-selected" models, the paired model comparison, and the limitation "June outcomes informed model selection".
 
-## Still changing: keep monitoring these
-Draft freely, but re-check the items below before finalising. Run `git log --oneline -5` in the repo (or look at the progress table in `REBUILD_STATUS.md`) to see what has landed.
-
-| Item | What may change | Watch for |
-|---|---|---|
-| **Regression results** (`results/simple_to_complex/regression/*`, `figures/03_*`) | Committed. Only the pre-merge review could still change them | The review commit |
-| **ROC curves** (`figures/02_roc_curves.png`) | Done | – |
-| **LightGBM comparison** | Done: only in `RESULTS_SUMMARY.md` §4 | – |
-| **`RESULTS_SUMMARY.md`** (`results/simple_to_complex/`) | **Created.** It is now the single source for numbers, together with the ladder figures `figures/04_ladder.png`, `04_overfitting_gaps.png` and `04_drift_summary.png` | Only the review could still change it |
-| **Pre-merge review** | It may fix bugs, which means notebooks are re-run and tables can shift | The review commit in `git log` |
-| **File locations** | When merged into `main`, paths stay the same; the plan, status and handoff files move to `Archive/` | After the merge, read this file from `Archive/2026-10-09_before_simple_to_complex/` |
-| **Classification numbers** (`classification/*`) | Expected to be stable, since every run is deterministic. They are re-run only for the ROC figure and the LightGBM clean-up | Spot-check after the review commit |
+## Status: final
+All code work is finished, reviewed and merged into `main`. Nothing is expected to change.
+- `results/simple_to_complex/RESULTS_SUMMARY.md` is the single source for numbers.
+- The pre-merge review found no correctness or leakage issues.
+- The plan and engineering-status files are archived in `Archive/2026-10-09_before_simple_to_complex/`. This handoff stays here for the report work.
+- **Citations** (van den Goorbergh et al. 2022; Chawla et al. 2002; Strobl et al. 2007; Breiman 2001; Harrell; Tibshirani 1996; Hastie et al. 2009) appear in notebooks 02 and 03 without a "verify" marker. Check the volume and page details before putting them in the report.
 
 ## Section → sources
 Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; prefer the `.html` or `.csv` for reading.
@@ -56,7 +50,7 @@ Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; 
   - curvature check: `figures/0{2,3}_curvature_partial_residuals.png`.
 - Classification only:
   - class weights: `classification_class_weight_sensitivity.*`;
-  - **class-imbalance experiment** (random under/oversampling and SMOTENC): `classification_resampling.*`, `figures/02_resampling_cv_metrics.png` and `02_resampling_calibration.png`. Conclusion: no option improves CV AP, and all of them badly worsen calibration, so none is used. The citations are marked "verify before citing".
+  - **class-imbalance experiment** (random under/oversampling and SMOTENC): `classification_resampling.*`, `figures/02_resampling_cv_metrics.png` and `02_resampling_calibration.png`. Conclusion: no option improves CV AP, and all of them badly worsen calibration, so none is used. Check citation details before using them.
 
 **8. Stage 2: Random Forest**
 - `{task}_rf_search_summary.*` (two-stage search on the same CV folds).
@@ -67,7 +61,7 @@ Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; 
 - Main tables: `{task}_model_comparison.*` and `{task}_overfitting_gaps.*`.
 - Classification:
   - June deciles, capture and lift: `classification_june_deciles.*` and `figures/02_june_decile_lift.png`;
-  - PR curves: `figures/02_pr_curves.png` (a ROC-curve figure, `02_roc_curves.png`, is still to come);
+  - PR curves: `figures/02_pr_curves.png`; ROC curves: `figures/02_roc_curves.png`;
   - calibration: `figures/02_calibration.png`.
 - Regression:
   - error by late vs on-time orders: `regression_error_by_outcome.*`;
