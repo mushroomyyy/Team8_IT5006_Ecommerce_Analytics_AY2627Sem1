@@ -36,3 +36,6 @@ Python/Jupyter: ../.venv/bin/python, ../.venv/bin/jupyter. Run from phase2/.
   `../.venv/bin/jupyter nbconvert --to notebook --execute --inplace <nb> --ExecutePreprocessor.timeout=-1`. Target under 25 minutes.
 - Then run `../.venv/bin/python -m unittest` (it must stay green; add tests for any new `src` functions).
 - Final report back: files created/changed, the section list of the notebook, every figure and table path, key numbers (headline metrics per model per split), any deviation from the plan, and anything surprising.
+
+## Added later (user requirements)
+- **Default vs tuned RF:** add an untuned RF row in each task: C3d/R3d, scikit-learn defaults with random_state=42, the same raw 24 features and preprocessor. Evaluate it everywhere C3/R3 is. Export a "tuning gain" table (tuned minus default on CV / Validation / June, plus Train − CV overfitting gaps) as `{task}_rf_tuning_gain`.

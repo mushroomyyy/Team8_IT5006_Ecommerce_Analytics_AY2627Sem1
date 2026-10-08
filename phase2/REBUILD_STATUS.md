@@ -1,45 +1,136 @@
 # Simple → complex rebuild: status and handoff
 
 **For:** whoever continues this work if the current session stops.
-**Last updated:** 2026-10-09 (stage 2 in progress).
+**Last updated:** 2026-10-09, after notebook 01 and both RF searches finished. Notebook 02 was still being written by an agent at the time.
 
 ## Goal
-Implement `phase2/PLAN_SIMPLE_TO_COMPLEX.md` (the repo copy is authoritative) on branch `simple-to-complex`. When every acceptance check in plan §9 passes, merge into `main` and push. The old notebooks must stay in `Archive/` so they are easy to restore. Phase 2 should end up holding only what the new report uses.
+Implement `phase2/PLAN_SIMPLE_TO_COMPLEX.md` (the repo copy is authoritative) on branch `simple-to-complex`. When every acceptance check in plan §9 passes, **merge into `main` and push** (the user approved this). Phase 2 should end up holding only what the new Word report uses. Everything else is moved to `Archive/` so it is easy to restore. After this work, the only remaining job should be writing the report.
 
 ## Decisions made with the user
-- Use the repo plan, not the Downloads copy. That means a BIC-stepwise supporting row (C2B/R2B), Lasso only in the overlap table, and a wide two-stage RF search.
-- D6: plain logistic is unweighted. RF tunes `class_weight`. Thresholded metrics are reported at the top-10% cut-off and at 0.5. Add one CV sensitivity row for balanced logistic.
-- Class-imbalance experiment in the classification notebook: random undersampling, random oversampling and SMOTENC, applied inside CV training folds only. It is reported, not adopted. If it clearly helps, ask the user before adopting it.
-- Quasi-separation: in Train, `route_type == '3. Mixed'` (118 orders) and `seller_state_count >= 2` (227 orders) have zero late orders. Linear models use `merge_mixed_route=True` (in `src/linear_transforms.py`). `seller_state_count` is kept and flagged as not identified in the logistic tables. RF uses the raw features.
-- Readable code (the repo may be graded). Every report diagram and evaluation table is generated (deciles → lift, model comparison, drift).
-- After merging, archive every notebook and file that isn't used by the new report.
-- Use Sonnet subagents for the implementation; the main session validates.
+- **Plan version.** Use the repo plan:
+  - BIC-stepwise supporting row (C2B/R2B);
+  - Lasso only in the overlap table;
+  - wide two-stage RF search (§4.6).
+- **D6 (class weights).**
+  - Plain logistic is unweighted (`src.tuning.plain_logistic`).
+  - RF tunes `class_weight`.
+  - Thresholded metrics are reported at the top-10% cut-off and at 0.5.
+  - Add one CV sensitivity row for balanced logistic.
+- **Class-imbalance experiment (classification only).**
+  - Compare random undersampling, random oversampling and SMOTENC on C1 and C3. Resampling must happen inside CV training folds only, via `imblearn.pipeline.Pipeline`.
+  - Report the results; do not adopt any of them. If one clearly improves CV AP, ask the user before adopting it.
+  - Cite van den Goorbergh et al. (2022) JAMIA 29(9) and Chawla et al. (2002) JAIR 16, verifying both before citing.
+- **Untuned RF baseline.** Add C3d/R3d: scikit-learn defaults with `random_state=42`, the same raw 24 features.
+  - Evaluate it everywhere C3/R3 is evaluated.
+  - Export a `{task}_rf_tuning_gain` table: tuned minus default on CV, Validation and June, plus the Train − CV overfitting gap for both.
+- **Quasi-separation.**
+  - In Train, the 118 `route_type == '3. Mixed'` orders and the 227 orders with `seller_state_count >= 2` have zero late orders.
+  - Linear models pass `merge_mixed_route=True` (`src/linear_transforms.py`).
+  - `seller_state_count` is kept and flagged "not identified" in the logistic tables.
+  - RF uses the raw features.
+- **Readability.** Code must be readable because the repo may be graded:
+  - each notebook has a title, a purpose and a contents list;
+  - every section has a markdown intro;
+  - code cells are short and heavy logic lives in `src/`;
+  - no dead code.
+- **Figures and tables.** Every report diagram and evaluation table must be generated:
+  - CV/timeline diagrams;
+  - deciles → capture and lift;
+  - the model comparison table;
+  - the success-criteria table;
+  - overfitting gaps;
+  - drift across June → July → August.
+- **Subagents.** Use cheap (Sonnet) subagents for the implementation; the main session validates their work.
 
-## Shared brief for the implementation agents
-The full brief is in `REBUILD_AGENT_BRIEF.md`. Its key rules are summarised in the decisions above. Each notebook agent owns specific `src/` files:
-- 01 owns `report_figures.py`, `validation_timelines.py`, `feature_selection.py` and the notes.
+## Key facts and numbers so far
+- **Row counts.** Train is 45,972 (classification) and 45,371 (regression). Validation is 6,870 and 6,847. History before 2 June is 63,592 and 62,841.
+- **Late rates.** Train 8.83%, Validation 10.38%.
+- **Linear transforms (notebook 01).** All 8 log1p candidates have |skew| > 1, so all are logged; month and weekday are made cyclic.
+  - The linear design has 54 encoded columns.
+  - The largest VIF after the log transform is 6.4 (`log_order_frieght_value_sum`, which is nearly collinear with `log_payment_value_sum` and `log_freight_to_price_ratio`). This is acceptable (below 10). The CV comparison in 02/03 decides whether the log group is kept; mention it in the report.
+- **RF cache** (`results/simple_to_complex/{task}/rf_best_params.json`, `rf_search_stageA.csv`, `rf_search_stageB.csv`, sensitivity figures):
+  - classification best CV AP is 0.2691 ± 0.0331;
+  - regression best CV RMSE is 8.335 ± 0.819.
+  - Notebooks load the cache with `RUN_RF_SEARCH = False`. Rerunning takes about 10 minutes per task: `../.venv/bin/python -m src.rf_search --task <task>`.
+- **Previous pipeline headline** (for the "what changed" note): LightGBM, June AP 15.09%, MAE 4.85 days.
+
+## Rules for the implementation agents
+The full brief is `REBUILD_AGENT_BRIEF.md`; give it to every agent.
+
+**File ownership** (avoids agents overwriting each other):
+- 01 owned `report_figures.py`, `validation_timelines.py`, `feature_selection.py`, `data_audits.py` and the notes.
 - 02 owns `evaluation.py`, `model_figures.py` and `resampling.py`.
+- 03 should own `regression_models.py` and reuse `model_figures.py`, adding to it only after 02 is committed.
 
-Notebooks are executed with:
-`../.venv/bin/jupyter nbconvert --to notebook --execute --inplace <nb> --ExecutePreprocessor.timeout=-1`
+**Running things:**
+- Execute a notebook: `../.venv/bin/jupyter nbconvert --to notebook --execute --inplace <nb> --ExecutePreprocessor.timeout=-1`, from `phase2/`.
+- Tests: `../.venv/bin/python -m unittest`, from `phase2/`.
+
+**Committing results:** the repo `.gitignore` ignores `*.csv`. The `results/simple_to_complex/**` folders have `.gitignore` files containing `!*.csv`.
 
 ## Progress
-| Step | Status | Commit |
+| # | Step | Status |
 |---|---|---|
-| Commit the multicollinearity screen and notes | done | 504e4a0 |
-| Archive notebooks and `src/` to `Archive/2026-10-09_before_simple_to_complex/` | done | 05af09e |
-| Stage 1 `src/` library (datasets, linear_transforms, variable_selection, rf_search, regression_models, interpretation, inference, slimmed tuning, evaluation) plus unittest suite (57 tests) | done | a84a80f |
-| Install statsmodels, nbconvert, pytest and imbalanced-learn in `.venv`; update `requirements.txt` | done | a84a80f |
-| RF search cache → `results/simple_to_complex/{task}/rf_best_params.json` | classification done (CV AP 0.2691 ± 0.0331); regression running | – |
-| `01_data_features_multicollinearity.ipynb` (executed; log1p all 8 candidates; linear design 54 cols, max VIF 6.4 for log freight, kept pending CV in 02/03) | done | see git log |
-| `02_classification.ipynb` (including the resampling experiment) | agent working | – |
-| `03_regression.ipynb` | not started; begins after 02, to reuse `src/model_figures.py` | – |
-| `04_summary`, `RESULTS_SUMMARY.md` and merged `run_metadata.json` | not started | – |
-| Archive the remaining old notebooks and results; README rewrite. Remove from `phase2/` (copies are already in `Archive/2026-10-09_before_simple_to_complex/`): `classification_evaluation.ipynb`, `model_*_dev.ipynb`, `model_*_feature_selection.ipynb`, `model_validation_timelines.ipynb`, old `results/` runs | not started | – |
-| Acceptance checks (plan §9): unittest, nbconvert execution of 01–04, assertions | not started | – |
-| Merge into main and push | not started | – |
+| 1 | Commit the multicollinearity screen and notes | done (504e4a0) |
+| 2 | Archive notebooks and `src/` → `Archive/2026-10-09_before_simple_to_complex/` (with `snapshot_manifest.json`) | done (05af09e) |
+| 3 | Stage 1 `src/` library plus unittest suite | done (a84a80f) |
+| 4 | Packages in `.venv` (statsmodels, nbconvert, pytest, imbalanced-learn) and `requirements.txt` | done |
+| 5 | RF search caches for both tasks | done (committed alongside this file) |
+| 6 | `01_data_features_multicollinearity.ipynb`, executed | done (7021ebf) |
+| 7 | `02_classification.ipynb` (including the resampling experiment and C3d) | **in progress**: see "Resuming step 7" below |
+| 8 | `03_regression.ipynb` | to do |
+| 9 | `04_summary` → `RESULTS_SUMMARY.md` plus merged `run_metadata.json` | to do |
+| 10 | Clean-up: archive the old notebooks and results, rewrite README | to do |
+| 11 | Acceptance checks (plan §9) | to do |
+| 12 | Merge into `main` and push | to do |
 
-## How to resume
-1. `git switch simple-to-complex` and read this file and the plan.
-2. Check `git status`. Uncommitted notebooks or `src/` files may be partial agent work, so run them before committing.
-3. Continue from the first step in the table that isn't done.
+## Resuming step 7 (classification)
+1. If `02_classification.ipynb` exists but is uncommitted, it is partial agent work. Check whether it has outputs and no error cells, using this one-liner from `phase2/`:
+   `../.venv/bin/python -c "import json;nb=json.load(open('02_classification.ipynb'));c=[x for x in nb['cells'] if x['cell_type']=='code'];print(sum(x.get('execution_count') is None for x in c),'unexecuted;',sum(o.get('output_type')=='error' for x in c for o in x.get('outputs',[])),'errors')"`
+2. If it is incomplete, give a fresh agent `REBUILD_AGENT_BRIEF.md` plus this task: *"Finish `02_classification.ipynb` per plan §3–§7 item 2, including the class-imbalance experiment and the C3d default-RF row with the tuning-gain table; you own `src/evaluation.py`, `src/model_figures.py` and `src/resampling.py`."*
+3. Validate: the notebook executes cleanly; figures `results/simple_to_complex/figures/02_*.png` exist; tables are in `results/simple_to_complex/classification/`; unittest passes.
+4. Commit only 02's files.
+
+## Step 8 (regression): agent task
+Give an agent `REBUILD_AGENT_BRIEF.md` plus:
+- Create `03_regression.ipynb` with the same structure as 02. Models: R0a Dummy (median), R0b Olist promise, R1, R2 (CV-stepwise), R2B (BIC-stepwise), R3 (tuned RF), and R3d (default RF).
+- Add the dual-framing diagnostic: a derived late flag (prediction > 0) compared with the classification label.
+- Include RMSE/MAE split by late vs on-time, and OLS diagnostics with HC3.
+- Reuse `src/model_figures.py` and the `src/evaluation.py` helpers. The agent owns `src/regression_models.py`.
+- Primary metric is RMSE. Use `merge_mixed_route=True` for the linear models. Load the RF cache.
+- Outputs go to `results/simple_to_complex/regression/` and figures to `figures/03_*.png`.
+
+## Step 9 (summary)
+Run `04_summary.ipynb` or `python -m src.summary`. It should:
+- read both tasks' exported tables and `run_metadata.json` files;
+- produce the cross-task "simple → complex ladder" figures (`figures/04_*.png`);
+- write `results/simple_to_complex/RESULTS_SUMMARY.md` with everything listed in plan §9, plus the resampling result, the tuning gain, and the "what changed" note.
+
+`RESULTS_SUMMARY.md`, `MULTICOLLINEARITY_NOTES.md` and the exported tables and figures are the inputs the report writer uses.
+
+## Step 10 (clean-up)
+Copies of the following already exist in `Archive/2026-10-09_before_simple_to_complex/`. Remove them from `phase2/` with `git rm`:
+- `classification_evaluation.ipynb`
+- `model_classification_dev.ipynb` and `model_regression_dev.ipynb`
+- `model_classification_feature_selection.ipynb` and `model_regression_feature_selection.ipynb`
+- `model_validation_timelines.ipynb`
+
+Move old result folders that the new notebooks don't produce into `Archive/2026-10-09_before_simple_to_complex/results/` with `git mv`: everything under `results/` except `feature_selection/` and `simple_to_complex/`, including `feature_selection_run/`.
+
+Also:
+- Move `PLAN_SIMPLE_TO_COMPLEX.md`, `REBUILD_STATUS.md` and `REBUILD_AGENT_BRIEF.md` into the archive folder at the very end.
+- Rewrite `README.md`: the layout; the protocol (no model selection, June is Test, July and August are Monitoring); the model list; how to run 01–04 and the tests; and where outputs live.
+- Remove the xgboost, lightgbm and catboost entries from `requirements.txt` if `grep -r "xgboost\|lightgbm\|catboost" src *.ipynb` finds nothing.
+
+## Step 11 (acceptance)
+1. `../.venv/bin/python -m unittest` is green.
+2. Execute 01, 02, 03 and 04 with nbconvert from a clean kernel; each should take under about 25 minutes.
+3. Spot-check the plan §9 assertions in the notebook outputs:
+   - no leakage columns;
+   - Train-only selection;
+   - identical Validation and June order IDs across models;
+   - fingerprints unchanged across months;
+   - statsmodels and scikit-learn coefficients agree.
+
+## Step 12 (merge and push)
+`git switch main && git merge --no-ff simple-to-complex && git push origin main`. Pushing the branch too is fine.
