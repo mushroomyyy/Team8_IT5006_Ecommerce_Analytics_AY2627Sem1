@@ -79,8 +79,8 @@ The full brief is `REBUILD_AGENT_BRIEF.md`; give it to every agent.
 | 6 | `01_data_features_multicollinearity.ipynb`, executed | done (7021ebf) |
 | 7 | `02_classification.ipynb` (including the resampling experiment, C3d and PR curves) | done (e7f4a89) |
 | 8 | `03_regression.ipynb` | done (see git log: "Add notebook 03"). 02 has not been re-run since 03 changed shared helpers additively; re-run it during the ROC/LightGBM pass |
-| 9 | `04_summary` → `RESULTS_SUMMARY.md` plus merged `run_metadata.json`, together with the README rewrite | **in progress** (Sonnet agent started 05:25 on 9 Oct) |
-| 10 | Clean-up: archiving and dead-code removal done; finishing pass (ROC curves, LightGBM removal, re-run of 01–03) done. README rewrite still to do |
+| 9 | `04_summary` → `RESULTS_SUMMARY.md` plus merged `run_metadata.json`; README rewritten | done |
+| 10 | Clean-up: archiving, dead-code removal, ROC/LightGBM pass, README | done |
 | 11 | Acceptance checks (plan §9) | to do |
 | 12 | Merge into `main` and push | to do |
 

@@ -2,7 +2,7 @@
 
 **For:** the agent updating the Word report (e.g. Claude desktop). Read local files only.
 **Repo root:** `/Users/andrew_tjs/github/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/phase2/`, on branch `simple-to-complex` until it is merged into `main`.
-**Status (2026-10-09):** sections 1–8 below can be drafted now. Regression results are now committed too. `RESULTS_SUMMARY.md` (the one-stop summary) does not exist yet; when it appears in `results/simple_to_complex/`, re-check every number against it.
+**Status (2026-10-09):** sections 1–8 below can be drafted now. Regression results are now committed too. **Start from `results/simple_to_complex/RESULTS_SUMMARY.md`**, which covers every number for both tasks. The table below maps report sections to the detailed files.
 
 ## Ground rules
 - Every number must come from the files listed below. Don't invent or round differently from the tables.
@@ -21,8 +21,8 @@ Draft freely, but re-check the items below before finalising. Run `git log --one
 |---|---|---|
 | **Regression results** (`results/simple_to_complex/regression/*`, `figures/03_*`) | Committed. Only the pre-merge review could still change them | The review commit |
 | **ROC curves** (`figures/02_roc_curves.png`) | Done | – |
-| **LightGBM comparison** | It moves out of notebooks 02/03 and their `run_metadata.json` into `RESULTS_SUMMARY.md` | Take it from `RESULTS_SUMMARY.md` only |
-| **`RESULTS_SUMMARY.md`** (`results/simple_to_complex/`) | Not created yet. It will be the single cross-task summary, with the "simple → complex ladder" figures `figures/04_*.png` | The file appears; then re-check every number against it |
+| **LightGBM comparison** | Done: only in `RESULTS_SUMMARY.md` §4 | – |
+| **`RESULTS_SUMMARY.md`** (`results/simple_to_complex/`) | **Created.** It is now the single source for numbers, together with the ladder figures `figures/04_ladder.png`, `04_overfitting_gaps.png` and `04_drift_summary.png` | Only the review could still change it |
 | **Pre-merge review** | It may fix bugs, which means notebooks are re-run and tables can shift | The review commit in `git log` |
 | **File locations** | When merged into `main`, paths stay the same; the plan, status and handoff files move to `Archive/` | After the merge, read this file from `Archive/2026-10-09_before_simple_to_complex/` |
 | **Classification numbers** (`classification/*`) | Expected to be stable, since every run is deterministic. They are re-run only for the ROC figure and the LightGBM clean-up | Spot-check after the review commit |

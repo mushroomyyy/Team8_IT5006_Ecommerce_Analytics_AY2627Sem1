@@ -1,66 +1,103 @@
-# Phase 2 — Modelling
+# Phase 2: Modelling late deliveries, simple to complex
 
-Dual framing of one delivery-performance problem:
-- **Classification** (`model_classification_dev.ipynb`): will an order arrive after its estimated delivery date?
-- **Regression** (`model_regression_dev.ipynb`): by how many days will an order arrive before or after its estimated delivery date? (Lead time capped at 45 days.)
+Two views of one delivery-performance problem on the Olist e-commerce data, both predicted at order approval:
+- **Classification:** will the order arrive after its estimated delivery date?
+- **Regression:** by how many days will it arrive before or after that date (days from the promise)?
+
+Each task starts from a baseline, builds a plain linear model (with transformations and variable selection judged on later time periods), and only then asks whether a Random Forest earns its extra complexity. Primary metrics: **AP** (area under the precision-recall curve) for classification and **RMSE** in days for regression.
+
+## Protocol
+Every model is scored in the same way on the same orders. Every decision (transforms, selected variables, Random Forest hyperparameters) uses Train only.
+
+| Name | Meaning |
+|---|---|
+| Train | Approvals from 18 Apr 2017 to 1 Feb 2018 whose outcomes are known (in-sample scores) |
+| CV | 5 expanding, chronological folds inside Train (used for all choices) |
+| Validation | 30-day out-of-time holdout, 19 Mar to 17 Apr 2018 (diagnostic only) |
+| Test (June) | June 2018 orders, scored by models refitted on all known history before 2 June |
+| Monitoring | July and August 2018, scored by the frozen June models (no refit, retune or reselection) |
+
+**No model is selected or called a winner.** The results show how performance changes from simple to complex models.
+
+## Models
+| Classification | Regression |
+|---|---|
+| C0 no-skill (prior) | R0a median baseline; R0b Olist promise |
+| C1 logistic, all 24 features | R1 OLS, all 24 features |
+| C2 logistic, CV-stepwise subset (1-SE rule) | R2 OLS, CV-stepwise subset (1-SE rule) |
+| C2B logistic, BIC-stepwise subset (supporting) | R2B OLS, BIC-stepwise subset (supporting) |
+| C3 Random Forest, tuned (AP) | R3 Random Forest, tuned (RMSE) |
+| C3d Random Forest, scikit-learn defaults | R3d Random Forest, scikit-learn defaults |
+
+Lasso appears only in the variable-selection overlap tables. Linear models use log, cyclic calendar and squared terms where CV supports them, and fold the 118 `Mixed` route orders into `All interstate` (no late orders in Train).
 
 ## Layout
 | Path | Contents |
 |---|---|
-| `model_classification_dev.ipynb` | Classification development, June candidate selection and frozen July–August evaluation |
-| `model_regression_dev.ipynb` | Days-from-promise development, June candidate selection and frozen July–August evaluation |
-| `model_validation_timelines.ipynb` | Rebuilds the shared June development and candidate-selection timeline from actual eligible orders and saves `results/figures/09_validation_timelines.png` |
-| `src/data.py` | Locates and loads the Olist CSVs (extracts the bundled zip on first run) |
-| `src/features.py` | `build_feature_table` (v2's `final_df`), as-of seller/product history, `add_extra_features`, feature lists |
-| `src/labels.py` | `get_required_dates`, `labels_as_of`, `regression_targets_as_of`, cohort evaluation helpers |
-| `src/preprocessing.py` | `make_preprocessor`: median imputation, optional scaling and one-hot encoding, shared by both tracks |
-| `src/splits.py` | `chronological_split`, `day_blocked_time_series_folds` |
-| `src/evaluation.py` | Classification, regression and decile coverage metrics |
-| `src/report_tables.py` | Shared export of formatted tables to Word-friendly HTML, booktabs LaTeX and CSV |
-| `results/report_tables/` | June selection and frozen July–August report tables and summary CSVs; order-level predictions stay local |
-| `src/report_figures.py` | Report figures for the regression notebook; each call draws inline and saves a PNG to `results/figures/` |
-| `src/tuning.py` | Default classifier pipelines, search spaces, CV summary, random search, out-of-fold threshold selection |
+| `01_data_features_multicollinearity.ipynb` | Data, features, label audits, multicollinearity, linear transforms, split and CV diagrams |
+| `02_classification.ipynb` | C0 to C3d, class-imbalance experiment, deciles, ROC/PR, drift, interpretation |
+| `03_regression.ipynb` | R0a to R3d, dual-framing late flag, OLS diagnostics, drift, interpretation |
+| `04_summary.ipynb` | Reads the exports only: ladder figures and `RESULTS_SUMMARY.md` |
+| `src/data.py` | Locates and loads the Olist CSVs |
+| `src/features.py` | Order-level feature table, extra features and `LEAKAGE_COLS` |
+| `src/labels.py` | Run-date windows and as-of-run-date targets |
+| `src/splits.py` | Time-aware splits and CV folds |
+| `src/datasets.py` | One shared definition of Train, Validation, CV folds and history per task |
+| `src/preprocessing.py` | Preprocessing shared by both tasks |
+| `src/linear_transforms.py` | Log, cyclic and squared transforms for the linear models |
+| `src/feature_selection.py` | Fixed multicollinearity screen (also a script) |
+| `src/variable_selection.py` | CV-stepwise (1-SE), IC-stepwise, Lasso and overlap, Train only |
+| `src/tuning.py` | Plain unweighted logistic regression with a convergence check |
+| `src/regression_models.py` | Olist promise baseline, waiting-period clipping, pipeline builders |
+| `src/rf_search.py` | Two-stage Random Forest search with cached outputs (also a script) |
+| `src/resampling.py` | Resampling inside CV training folds only |
+| `src/inference.py` | Daily inference over a date range |
+| `src/evaluation.py` | Metrics, comparison, gap, drift and success-criteria tables, fingerprints |
+| `src/interpretation.py` | statsmodels coefficient tables, hypothesis check, permutation importance, PDPs |
+| `src/data_audits.py` | Data, label and transform audits for notebook 01 |
+| `src/validation_timelines.py` | Train / CV / Validation / Test / Monitoring timeline figure |
+| `src/report_figures.py`, `src/model_figures.py` | Figure style and the shared model figures |
+| `src/report_tables.py` | Export tables as HTML, LaTeX and CSV |
+| `src/summary.py` | Ladder figures, `RESULTS_SUMMARY.md` and merged metadata (also a script) |
+| `test_*.py` | Unit tests (`python -m unittest`) |
+| `results/feature_selection/` | Multicollinearity screen tables |
+| `results/simple_to_complex/data/` | Notebook 01 tables |
+| `results/simple_to_complex/classification/`, `regression/` | Tables (HTML, TeX, CSV), RF search cache, `run_metadata.json` per task |
+| `results/simple_to_complex/figures/` | PNG figures at 200 dpi, prefixed `01_` to `04_` by notebook |
+| `results/simple_to_complex/RESULTS_SUMMARY.md` | Generated summary of everything the report needs |
+| `results/simple_to_complex/run_metadata.json` | Both tasks' metadata and package versions |
+| `MULTICOLLINEARITY_NOTES.md` | Notes on the feature funnel and multicollinearity decisions |
+| `Archive/` | Earlier work, kept for restoring (below) |
 
-Both tracks use a 365-day historical window, a 30-day development holdout preceded by a 45-day gap, and five expanding CV folds with 30-calendar-day validation blocks and 45-day gaps. Training outcomes must be known at each validation boundary. The final refit uses the full eligible historical window. Default and tuned candidates use identical rows within each comparison.
+### Archive
+- `Archive/2026-10-08_before_feature_selection/`: the earlier notebooks (`model_*_dev.ipynb`, `model_validation_timelines.ipynb`), `src/`, `requirements.txt` and `README.md` as of `origin/main` before feature selection.
+- `Archive/2026-10-09_before_simple_to_complex/`: the notebooks, `src/`, tests, old `results/` (figures, report tables, tuning JSON) and untracked prediction CSVs (`local_untracked/`) before this rebuild, with `snapshot_manifest.json`.
 
-## Shared predictor set
+To restore, copy the files you need back to `phase2/` (for example `cp -R Archive/2026-10-09_before_simple_to_complex/src/. src/`), or run `git checkout <commit> -- phase2/<path>` with the commit recorded in that folder's `snapshot_manifest.json`.
 
-Both tasks use 27 predictors (25 numeric and two categorical), defined by `SELECTED_NUM_COLS` and `CAT_COLS` in `src/features.py`. The original 41 candidate columns remain in the feature table for audit purposes. The fixed reduction removes duplicate monetary totals/payment amounts, three distance summaries, week-of-year, postcode/city seller counts and two constant payment columns. Price, freight, payment-type counts, instalments, mean distance, calendar context and seller complexity are retained. This domain-based reduction was informed by development-training correlation/VIF diagnostics; it does not claim complete independence of the retained predictors.
-
-## June development and frozen-model evaluation
-
-Both main notebooks use **2 June 2018** as the historical run date. The 365-day historical window spans **18 April 2017–17 April 2018**, with **19 March–17 April 2018** reserved as the 30-day development holdout. A 45-day gap precedes that holdout. Five expanding CV folds each validate on 30 calendar days after a 45-day gap; training outcomes must be known at each validation boundary. `results/figures/09_validation_timelines.png` shows the dates and eligible order counts for both tasks.
-
-1. Evaluate starting configurations and tune hyperparameters using the same buffered historical training data. Classification maximises mean CV average precision (AP); regression minimises mean CV mean absolute error (MAE).
-2. Compare starting and tuned candidates on the development holdout. Record the best-on-holdout candidate without treating it as the final deployment choice.
-3. Refit all candidates on the full eligible June historical window and score June orders. Pool the daily June predictions to calculate candidate performance. Select the highest-AP classification candidate and lowest-MAE regression candidate using these June outcomes.
-4. Discuss feature importance for the June-selected candidate. Score July and August with the same fitted pipeline, preprocessing and parameters, **without retraining, retuning or model reselection**.
-5. Export compact candidate comparisons and frozen-model results with sample counts and explanatory notes.
-
-Classification uses a threshold of 0.5. Default configurations provide the within-family reference for tuning gains. **June is a model-selection cohort, not an untouched final test**, because its outcomes determine the deployment candidate. July and August examine how that fixed model behaves on later orders.
-
-**Timing interpretation:** assessment uses outcomes at approval + 45 days. The final June approvals reach that horizon on **14 August 2018** (available from 15 August under the strict-before-run convention). The July results therefore represent a retrospective frozen-model stress check, not a fully prospective claim that a model selected using all June outcomes was deployable on 1 July. August results likewise include orders before full June outcomes mature. These later cohorts are untouched by selection in this workflow, but their calendar timing must be reported accurately.
-
-Open the exported classification and regression HTML files in `results/report_tables/` in a browser to copy tables into Word, retaining source formatting. Matching LaTeX exports use `booktabs`; compact CSVs contain the same reported metrics. Unknown outcomes are excluded from metrics and counted separately. The notebooks regenerate these outputs when run from the first cell.
-
-Final HTML/LaTeX exports and compact summary CSVs are included in Git. Order-level prediction CSVs, extracted source CSVs, working report prose and Word documents stay local; the bundled source ZIP remains tracked.
-
-## Data source
-
-The source dataset is already tracked as `streamlit_release/data/olist_csv.zip`. The loader reads the extracted CSVs in `Olist_CSV/` and automatically extracts the bundled ZIP when that directory is absent. Extracted CSVs are Git-ignored to avoid duplicating the archive.
+## Setup
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+Data: `src/data.py` reads the Olist CSVs from `Olist_CSV/` one level above `phase2/`. If that folder is missing, it extracts `streamlit_release/data/olist_csv.zip` (also one level above `phase2/`) into it on first run.
 
 ## Running
+From `phase2/`:
 ```bash
-pip install -r requirements.txt matplotlib seaborn jupyter
-cd phase2
-jupyter nbconvert --to notebook --execute model_regression_dev.ipynb   # or open it in Jupyter
-python -m unittest test_tuning
+jupyter nbconvert --to notebook --execute --inplace 01_data_features_multicollinearity.ipynb --ExecutePreprocessor.timeout=-1
+# repeat for 02_classification.ipynb, 03_regression.ipynb and 04_summary.ipynb, in that order
+python -m src.feature_selection                 # multicollinearity screen -> results/feature_selection/
+python -m src.rf_search --task classification   # cached RF search; same for --task regression
+python -m src.summary                           # figures 04_*, RESULTS_SUMMARY.md, run_metadata.json
+python -m unittest                              # all tests
 ```
-Notebooks add `phase2/` to `sys.path`, so `from src... import ...` works from either the project root or `phase2/`.
+Notebooks 02 and 03 load the cached Random Forest search (`rf_best_params.json` in each task folder) with `RUN_RF_SEARCH = False`; run `src.rf_search` only to rebuild it.
+
+Expected runtimes on a laptop: notebook 01 a few minutes; notebooks 02 and 03 about 5 to 25 minutes each; `src.rf_search` about 10 minutes per task; notebook 04 and `src.summary` seconds; `python -m unittest` about 5 seconds.
 
 ## Leakage rules
-- Features must be known at approval time. `LEAKAGE_COLS` in `src/features.py` lists the outcome columns, and the notebooks assert none of them are used.
-- Targets are assigned only from dates before the run date (`labels_as_of`, `regression_targets_as_of`).
-- The development holdout contains the newest historical approval days. CV folds validate on dates after their training dates. June outcomes select the final candidate; July and August do not update it.
-
-The classification notebook also exports the June-selected model’s full risk-decile table at the end: `results/report_tables/classification_june_deciles.html` (Word-friendly table), `.tex`, and `classification_june_decile_coverage.csv` (full-precision values). It reports individual-decile capture and lift, plus cumulative capture, using the same ranking population as the top-10% summary.
+- Features must be known at approval time. `LEAKAGE_COLS` in `src/features.py` lists the outcome columns, and the notebooks assert none is used.
+- Targets are assigned only from dates before the run date (`labels.py`).
+- Selection, transforms and tuning see Train rows only. Validation and Test (June) rows never enter them, and Monitoring months are scored by frozen models (fingerprints are checked unchanged).
+- All models are scored on identical Validation and June order IDs.
