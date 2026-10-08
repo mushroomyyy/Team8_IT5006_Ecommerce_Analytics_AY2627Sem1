@@ -223,4 +223,102 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
 </table>
 <p class="note">LightGBM (default); fitted once using June historical data. June selects the model; later months never refit or retune it. Complete June horizon outcomes are available August 15, so July and early August are retrospective stress tests. Unknown outcomes are excluded; the latest recorded delivery is an unverified observation-end proxy.</p>
 <p>Monthly differences show performance stability for the same fitted model, not changes caused by monthly retraining.</p></section>
+<section>
+<p><b>June risk deciles: LightGBM (default)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Risk decile</th>
+      <th>Orders</th>
+      <th>Late orders</th>
+      <th>Capture (%)</th>
+      <th>Lift</th>
+      <th>Cumulative capture (%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>617</td>
+      <td>47</td>
+      <td>34.31</td>
+      <td>3.43</td>
+      <td>34.31</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>616</td>
+      <td>13</td>
+      <td>9.49</td>
+      <td>0.95</td>
+      <td>43.80</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>617</td>
+      <td>15</td>
+      <td>10.95</td>
+      <td>1.09</td>
+      <td>54.74</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>616</td>
+      <td>15</td>
+      <td>10.95</td>
+      <td>1.10</td>
+      <td>65.69</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>616</td>
+      <td>11</td>
+      <td>8.03</td>
+      <td>0.80</td>
+      <td>73.72</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>617</td>
+      <td>11</td>
+      <td>8.03</td>
+      <td>0.80</td>
+      <td>81.75</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>616</td>
+      <td>6</td>
+      <td>4.38</td>
+      <td>0.44</td>
+      <td>86.13</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>617</td>
+      <td>7</td>
+      <td>5.11</td>
+      <td>0.51</td>
+      <td>91.24</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>616</td>
+      <td>9</td>
+      <td>6.57</td>
+      <td>0.66</td>
+      <td>97.81</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>616</td>
+      <td>3</td>
+      <td>2.19</td>
+      <td>0.22</td>
+      <td>100.00</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Decile 1 has the highest risk. Capture is the share of all known late orders within each decile; cumulative capture includes all higher-risk deciles. Lift is capture share divided by scored-order share, matching the existing top-10% metric; 1 represents random selection. 9 unknown outcomes remain ranked but do not count as late. June informed model selection; these results are descriptive.</p>
+<p>Individual-decile lift shows where late orders concentrate; cumulative capture shows how many late orders could be reached at increasing contact capacity.</p></section>
 </body></html>

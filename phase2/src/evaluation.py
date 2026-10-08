@@ -61,3 +61,49 @@ def get_coverage(prob, y_true):
     summary['coverage'] = (summary['cumulative_positive_labels'] / total_positive
                            if total_positive > 0 else float('nan'))
     return summary.reset_index()
+
+
+def risk_decile_coverage(predictions):
+    """Capture and lift for equally sized groups, highest predicted risk first.
+
+    Unknown outcomes stay in the scored population (operational capacity), but
+    only known late outcomes contribute to capture. Lift follows the notebook's
+    top-10% definition: share of all known late orders / share of scored orders.
+    """
+    ranked = predictions.sort_values(
+        ['predicted_probability', 'order_id'],
+        ascending=[False, True], kind='stable',
+    ).reset_index(drop=True)
+    if len(ranked) < 10:
+        raise ValueError('At least 10 scored orders are required for ten deciles.')
+
+    known_labels = ranked['actual_label'].dropna()
+    if not known_labels.isin([0, 1]).all():
+        raise ValueError('Known classification labels must be 0 or 1.')
+
+    total_late = int(known_labels.sum())
+    late_rate = total_late / len(ranked)
+    rows = []
+    start = 0
+    cumulative_late = 0
+
+    for decile in range(1, 11):
+        stop = int(np.ceil(len(ranked) * decile / 10))
+        group = ranked.iloc[start:stop]
+        late = int(group['actual_label'].sum())
+        cumulative_late += late
+
+        rows.append({
+            'decile': decile,
+            'scored_orders': len(group),
+            'known_orders': int(group['actual_label'].notna().sum()),
+            'late_orders': late,
+            'capture_pct': 100 * late / total_late if total_late else np.nan,
+            'lift': (late / len(group)) / late_rate if late_rate > 0 else np.nan,
+            'cumulative_capture_pct': (
+                100 * cumulative_late / total_late if total_late else np.nan
+            ),
+        })
+        start = stop
+
+    return pd.DataFrame(rows)

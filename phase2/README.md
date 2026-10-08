@@ -58,3 +58,5 @@ Notebooks add `phase2/` to `sys.path`, so `from src... import ...` works from ei
 - Features must be known at approval time. `LEAKAGE_COLS` in `src/features.py` lists the outcome columns, and the notebooks assert none of them are used.
 - Targets are assigned only from dates before the run date (`labels_as_of`, `regression_targets_as_of`).
 - The development holdout contains the newest historical approval days. CV folds validate on dates after their training dates. June outcomes select the final candidate; July and August do not update it.
+
+The classification notebook also exports the June-selected model’s full risk-decile table at the end: `results/report_tables/classification_june_deciles.html` (Word-friendly table), `.tex`, and `classification_june_decile_coverage.csv` (full-precision values). It reports individual-decile capture and lift, plus cumulative capture, using the same ranking population as the top-10% summary.

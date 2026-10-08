@@ -58,3 +58,27 @@ Month & Orders & Late (\%) & AP (\%) & ROC-AUC & Top-10\% capture (\%) & Lift \\
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize LightGBM (default); fitted once using June historical data. June selects the model; later months never refit or retune it. Complete June horizon outcomes are available August 15, so July and early August are retrospective stress tests. Unknown outcomes are excluded; the latest recorded delivery is an unverified observation-end proxy.\end{minipage}
 \end{table}
 Monthly differences show performance stability for the same fitted model, not changes caused by monthly retraining.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{June risk deciles: LightGBM (default)}
+\begin{tabular}{lrrrrr}
+\toprule
+Risk decile & Orders & Late orders & Capture (\%) & Lift & Cumulative capture (\%) \\
+\midrule
+1 & 617 & 47 & 34.31 & 3.43 & 34.31 \\
+2 & 616 & 13 & 9.49 & 0.95 & 43.80 \\
+3 & 617 & 15 & 10.95 & 1.09 & 54.74 \\
+4 & 616 & 15 & 10.95 & 1.10 & 65.69 \\
+5 & 616 & 11 & 8.03 & 0.80 & 73.72 \\
+6 & 617 & 11 & 8.03 & 0.80 & 81.75 \\
+7 & 616 & 6 & 4.38 & 0.44 & 86.13 \\
+8 & 617 & 7 & 5.11 & 0.51 & 91.24 \\
+9 & 616 & 9 & 6.57 & 0.66 & 97.81 \\
+10 & 616 & 3 & 2.19 & 0.22 & 100.00 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Decile 1 has the highest risk. Capture is the share of all known late orders within each decile; cumulative capture includes all higher-risk deciles. Lift is capture share divided by scored-order share, matching the existing top-10\% metric; 1 represents random selection. 9 unknown outcomes remain ranked but do not count as late. June informed model selection; these results are descriptive.\end{minipage}
+\end{table}
+Individual-decile lift shows where late orders concentrate; cumulative capture shows how many late orders could be reached at increasing contact capacity.
