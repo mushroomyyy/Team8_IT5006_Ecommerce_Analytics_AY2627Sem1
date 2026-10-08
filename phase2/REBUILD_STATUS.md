@@ -154,7 +154,7 @@ Also:
 - **No LightGBM in the modelling notebooks.** Remove the `PREVIOUS_PIPELINE` constant and the "versus previous pipeline (LightGBM)" print from 02 and 03, and from their `run_metadata.json`. Keep the old-pipeline comparison (June AP 15.09%, MAE 4.85 days) only in 04 / `RESULTS_SUMMARY.md`, as the "what changed" note. Do this after 03 is committed, together with the ROC change, then re-execute 02 and 03.
 
 ## Recommended order for the remaining work
-1. Validate and commit 03 (see step 8 in the progress table).
+1. ~~Commit 03~~, ~~ROC/LightGBM pass~~, ~~04 summary and README~~: all done. **Pre-merge review in progress** (Sonnet agent started about 05:40 on 9 Oct; it fixes, re-runs 01–04 and does not commit). Then validate its changes, commit, archive the plan and handoff files, merge and push.
 2. Apply the two pending changes in one pass: the ROC curves in 02, and moving the LightGBM comparison out of 02/03. Re-execute 02 and 03, then commit.
 3. Step 9: build `04_summary`, then `RESULTS_SUMMARY.md`.
 4. Step 10: rewrite the README, then archive `PLAN_SIMPLE_TO_COMPLEX.md`, `REBUILD_STATUS.md` and `REBUILD_AGENT_BRIEF.md` into `Archive/2026-10-09_before_simple_to_complex/`.
