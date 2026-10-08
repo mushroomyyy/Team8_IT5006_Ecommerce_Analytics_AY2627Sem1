@@ -29,7 +29,7 @@ All numbers below come from `results/feature_selection/` (written by `python -m 
 ## Why multicollinearity matters here
 
 - **Linear and logistic models** (OLS and plain logistic regression): strongly correlated predictors give unstable coefficients (high variance, sign changes between folds) that cannot be read as the effect of one predictor with the others held fixed. An exact linear identity makes the design matrix singular, so coefficients are not unique.
-- **Tree models** (Decision Tree, Random Forest, XGBoost, LightGBM): prediction is largely unaffected, but split-based importance is shared arbitrarily between near-duplicates, so importance rankings understate each of them.
+- **Tree models** (Random Forest): prediction is largely unaffected, but split-based importance is shared arbitrarily between near-duplicates, so importance rankings understate each of them.
 
 ## Data used for the audit
 

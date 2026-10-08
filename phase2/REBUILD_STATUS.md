@@ -152,3 +152,4 @@ Also:
   - Add the helper to `src/model_figures.py` next to the PR-curve helper, and save the figure as `figures/02_roc_curves.png`.
   - Re-execute 02 (about 5 minutes) and commit.
   - Wait until the 03 agent is finished, because it may also be editing `src/model_figures.py`.
+- **No LightGBM in the modelling notebooks.** Remove the `PREVIOUS_PIPELINE` constant and the "versus previous pipeline (LightGBM)" print from 02 and 03, and from their `run_metadata.json`. Keep the old-pipeline comparison (June AP 15.09%, MAE 4.85 days) only in 04 / `RESULTS_SUMMARY.md`, as the "what changed" note. Do this after 03 is committed, together with the ROC change, then re-execute 02 and 03.
