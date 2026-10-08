@@ -438,3 +438,116 @@ def score_months(fitted, final_df, orders, feature_cols, months):
 def late_probability(fitted, X):
     """Predicted probability of the late class (1) from any fitted classifier."""
     return fitted.predict_proba(X)[:, list(fitted.classes_).index(1)]
+
+
+# ---------------------------------------------------------------------------
+# Regression track: days from the promised delivery date, capped at the waiting period.
+# Predictions are clipped with `clip_to_waiting_period` before any metric is computed.
+# ---------------------------------------------------------------------------
+REGRESSION_CV_METRICS = ['rmse', 'mae', 'r2', 'median_ae', 'bias']
+
+
+def cv_regression_metrics(model, X, y, folds, metrics=None):
+    """Fit `model` on each chronological training fold and score the clipped predictions.
+
+    Returns a DataFrame with one row per fold (metrics from `regression_metrics`).
+    `X` must contain `promised_lead_days`, which sets the clipping bounds.
+    """
+    from sklearn.base import clone
+
+    from .regression_models import score_cohort
+
+    metrics = metrics or REGRESSION_CV_METRICS
+    rows = []
+    for number, (train_idx, valid_idx) in enumerate(folds, 1):
+        fitted = clone(model).fit(X.iloc[train_idx], y.iloc[train_idx])
+        days = score_cohort(fitted, X.iloc[valid_idx], list(X.columns))
+        scores = regression_metrics(y.iloc[valid_idx], days)
+        rows.append({'fold': number, **{m: scores[m] for m in metrics}})
+    return pd.DataFrame(rows)
+
+
+def score_regression_split(model, split, y_true, predicted_days, late_label=None):
+    """One results row: `regression_eval_metrics` for a model on one split.
+
+    Orders whose target is still unknown (NA) are dropped; their count is reported.
+    """
+    y = pd.Series(y_true).astype('Float64').to_numpy(dtype=float, na_value=np.nan)
+    known = ~np.isnan(y)
+    label = None if late_label is None else pd.Series(late_label).reset_index(drop=True)[known]
+    metrics = regression_eval_metrics(y[known], np.asarray(predicted_days, dtype=float)[known], label)
+    return {'model': model, 'split': split, **metrics,
+            'late_rate': metrics['n_actual_late'] / known.sum(), 'n_unknown': int((~known).sum())}
+
+
+def score_regression_months(fitted, final_df, orders, feature_cols, months):
+    """Daily inference for each 'YYYY-MM' month with a fitted regressor.
+
+    Mirrors `score_months`: `run_inference` scores each approval day through the
+    `ClippedDaysScorer` adapter, then the days from the promise (`actual_target`) and the
+    classification label (`actual_label`) are attached at approval day + waiting period.
+    Orders that were cancelled or unavailable are excluded, as in the training cohort.
+    """
+    from . import LOOKBACK
+    from .datasets import EXCLUDED_STATUSES
+    from .inference import month_bounds
+    from .labels import attach_prediction_labels, attach_regression_actuals
+    from .regression_models import ClippedDaysScorer
+
+    cohort = final_df[~final_df['order_status'].isin(EXCLUDED_STATUSES)]
+    scorer = ClippedDaysScorer(fitted)
+    scored = {}
+    for month in months:
+        start, end = month_bounds(month)
+        daily = run_inference(cohort, feature_cols, start, end, scorer, verbose=False)
+        daily = daily.rename(columns={'predicted_probability': 'predicted_days'})
+        daily = attach_regression_actuals(daily, orders, waiting_period=LOOKBACK)
+        labelled = attach_prediction_labels(daily.assign(predicted_probability=0.0), orders, lookback=LOOKBACK)
+        daily['actual_label'] = labelled['actual_label']
+        scored[month] = daily
+    return scored
+
+
+def regression_success_criteria(results, ols_models, forest_models, median_baseline='R0a',
+                                promise_baseline='R0b', splits=('June', 'Validation'), min_gain=0.10):
+    """Pass/fail table for RMSE: >= 10% below the median baseline, below the Olist promise.
+
+    `value` is the relative RMSE reduction against the reference (positive = lower RMSE).
+    Each forest also gets one report-only row: its relative gain over the best OLS model.
+    """
+    rmse = results.set_index(['model', 'split'])['rmse']
+    rows = []
+    for split in splits:
+        models = [m for m in results['model'].unique() if m not in (median_baseline, promise_baseline)]
+        for model in models:
+            for label, reference, threshold in [(f'RMSE >= {min_gain:.0%} below {median_baseline}',
+                                                 median_baseline, min_gain),
+                                                (f'RMSE below {promise_baseline}', promise_baseline, 0.0)]:
+                gain = 1 - rmse[(model, split)] / rmse[(reference, split)]
+                rows.append({'split': split, 'criterion': label, 'model': model, 'value': gain,
+                             'threshold': threshold, 'passed': bool(gain >= threshold if threshold else gain > 0)})
+        best_ols = min(ols_models, key=lambda m: rmse[(m, split)])
+        for model in forest_models:
+            rows.append({'split': split, 'criterion': f'Relative RMSE gain over best OLS ({best_ols}); reported',
+                         'model': model, 'value': 1 - rmse[(model, split)] / rmse[(best_ols, split)],
+                         'threshold': np.nan, 'passed': None})
+    return pd.DataFrame(rows)
+
+
+def error_split_table(results, splits=('Validation', 'June')):
+    """RMSE and MAE (days) for actual-late and actual-on-time orders, by model and split."""
+    columns = [('rmse_late', 'RMSE late'), ('mae_late', 'MAE late'),
+               ('rmse_on_time', 'RMSE on-time'), ('mae_on_time', 'MAE on-time')]
+    parts = {}
+    for split in splits:
+        frame = results[results['split'] == split].set_index('model')
+        parts[split] = frame[[c for c, _ in columns]].rename(columns=dict(columns))
+    return pd.concat(parts, axis=1)
+
+
+def late_flag_table(results, splits=('Validation', 'June')):
+    """Dual framing: precision, recall and F1 of the derived late flag (prediction > 0 days)."""
+    columns = {'late_flag_precision': 'Precision', 'late_flag_recall': 'Recall', 'late_flag_f1': 'F1'}
+    parts = {split: results[results['split'] == split].set_index('model')[list(columns)].rename(columns=columns)
+             for split in splits}
+    return pd.concat(parts, axis=1)

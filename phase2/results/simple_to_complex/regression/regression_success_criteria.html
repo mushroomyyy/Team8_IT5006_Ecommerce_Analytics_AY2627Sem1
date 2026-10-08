@@ -1,0 +1,219 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Regression: success criteria</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>split</th>
+      <th>criterion</th>
+      <th>model</th>
+      <th>value</th>
+      <th>threshold</th>
+      <th>passed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>June</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R1</td>
+      <td>0.368</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE below R0b</td>
+      <td>R1</td>
+      <td>0.646</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R2</td>
+      <td>0.206</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE below R0b</td>
+      <td>R2</td>
+      <td>0.556</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R2B</td>
+      <td>0.368</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE below R0b</td>
+      <td>R2B</td>
+      <td>0.646</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R3</td>
+      <td>0.320</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE below R0b</td>
+      <td>R3</td>
+      <td>0.619</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R3d</td>
+      <td>0.282</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>RMSE below R0b</td>
+      <td>R3d</td>
+      <td>0.598</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>Relative RMSE gain over best OLS (R1); reported</td>
+      <td>R3</td>
+      <td>-0.077</td>
+      <td>NaN</td>
+      <td>reported</td>
+    </tr>
+    <tr>
+      <td>June</td>
+      <td>Relative RMSE gain over best OLS (R1); reported</td>
+      <td>R3d</td>
+      <td>-0.136</td>
+      <td>NaN</td>
+      <td>reported</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R1</td>
+      <td>0.168</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE below R0b</td>
+      <td>R1</td>
+      <td>0.394</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R2</td>
+      <td>0.098</td>
+      <td>0.1</td>
+      <td>fail</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE below R0b</td>
+      <td>R2</td>
+      <td>0.343</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R2B</td>
+      <td>0.168</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE below R0b</td>
+      <td>R2B</td>
+      <td>0.394</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R3</td>
+      <td>0.149</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE below R0b</td>
+      <td>R3</td>
+      <td>0.380</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE &gt;= 10% below R0a</td>
+      <td>R3d</td>
+      <td>0.133</td>
+      <td>0.1</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>RMSE below R0b</td>
+      <td>R3d</td>
+      <td>0.369</td>
+      <td>0.0</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>Relative RMSE gain over best OLS (R1); reported</td>
+      <td>R3</td>
+      <td>-0.023</td>
+      <td>NaN</td>
+      <td>reported</td>
+    </tr>
+    <tr>
+      <td>Validation</td>
+      <td>Relative RMSE gain over best OLS (R1); reported</td>
+      <td>R3d</td>
+      <td>-0.042</td>
+      <td>NaN</td>
+      <td>reported</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

@@ -9,14 +9,16 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import statsmodels.api as sm
+from scipy import stats
 from sklearn.calibration import calibration_curve
 
 from . import report_figures as figs
 
-MODEL_COLORS = {'C0': figs.GRAY, 'R0': figs.GRAY, 'C1': figs.BLUE, 'R1': figs.BLUE,
+MODEL_COLORS = {'C0': figs.GRAY, 'R0': figs.GRAY, 'R0a': figs.GRAY, 'R0b': figs.SLATE, 'C1': figs.BLUE, 'R1': figs.BLUE,
                 'C2': figs.AQUA, 'R2': figs.AQUA, 'C2B': figs.YELLOW, 'R2B': figs.YELLOW,
                 'C3': figs.ORANGE, 'R3': figs.ORANGE, 'C3d': '#8e5bd1', 'R3d': '#8e5bd1'}
-MODEL_MARKERS = {'C3d': 's', 'R3d': 's', 'C0': 'x', 'R0': 'x'}
+MODEL_MARKERS = {'C3d': 's', 'R3d': 's', 'C0': 'x', 'R0': 'x', 'R0a': 'x', 'R0b': 'D'}
 
 
 def _color(model):
@@ -41,16 +43,22 @@ def _finish(fig, title, save_path, subtitle=None):
     return fig
 
 
-def plot_stepwise_path(path, chosen_step, best_step, ylabel, save_path=None, title=None):
-    """CV score against stepwise step with +/-1 SE band, the best step and the 1-SE choice marked."""
+def plot_stepwise_path(path, chosen_step, best_step, ylabel, save_path=None, title=None,
+                       higher_is_better=True):
+    """CV score against stepwise step with +/-1 SE band, the best step and the 1-SE choice marked.
+
+    Pass `higher_is_better=False` for an error such as RMSE: the 1-SE threshold is then the best
+    step plus 1 SE and the legend moves to the upper right.
+    """
     with plt.rc_context(figs.STYLE):
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.fill_between(path['step'], path['cv_mean'] - path['cv_se'], path['cv_mean'] + path['cv_se'],
                         color=figs.BLUE, alpha=0.18, label='CV mean +/- 1 SE (5 folds)')
         ax.plot(path['step'], path['cv_mean'], color=figs.BLUE, marker='o', ms=4, label='CV mean')
         best = path.loc[path['step'] == best_step].iloc[0]
-        ax.axhline(best['cv_mean'] - best['cv_se'], color=figs.GRAY, ls='--', lw=1,
-                   label='Best step minus 1 SE')
+        sign = 1 if higher_is_better else -1
+        ax.axhline(best['cv_mean'] - sign * best['cv_se'], color=figs.GRAY, ls='--', lw=1,
+                   label='Best step minus 1 SE' if higher_is_better else 'Best step plus 1 SE')
         ax.scatter([best_step], [best['cv_mean']], s=90, color=figs.ORANGE, zorder=3,
                    label=f'Best CV step ({best_step})')
         chosen = path.loc[path['step'] == chosen_step].iloc[0]
@@ -59,7 +67,7 @@ def plot_stepwise_path(path, chosen_step, best_step, ylabel, save_path=None, tit
         ax.set_xticks(path['step'], [f"{r.step}: {r.added_unit}" if r.step else '0' for r in path.itertuples()],
                       rotation=90, fontsize=8)
         ax.set(xlabel='Step and the raw feature added at that step', ylabel=ylabel)
-        ax.legend(loc='lower right')
+        ax.legend(loc='lower right' if higher_is_better else 'upper right')
         figs._style(ax, 'y')
         return _finish(fig, title or 'Forward stepwise selection judged by chronological CV', save_path)
 
@@ -202,14 +210,19 @@ def plot_resampling_comparison(summary, labels, save_path=None, title='Class-imb
 
 
 def partial_residual_bins(result, design, y, term, n_bins=20):
-    """Binned component-plus-residual for a logistic fit: mean x, mean partial residual, fitted line.
+    """Binned component-plus-residual: mean x, mean partial residual, fitted line.
 
-    The partial residual is the working residual (y - p) / (p (1 - p)) plus coef * x, so a
-    straight line through the bins means the term is linear on the log-odds scale.
+    The partial residual is the working residual plus coef * x, so a straight line through
+    the bins means the term is linear. For a logit fit the working residual is
+    (y - p) / (p (1 - p)) (log-odds scale); for OLS it is the ordinary residual (days).
     """
     exog = design.assign(const=1.0)[list(result.params.index)]
-    p = np.clip(np.asarray(result.predict(exog)), 1e-9, 1 - 1e-9)
-    working = (np.asarray(y, dtype=float) - p) / (p * (1 - p))
+    fitted = np.asarray(result.predict(exog))
+    if isinstance(result.model, sm.OLS):
+        working = np.asarray(y, dtype=float) - fitted
+    else:
+        p = np.clip(fitted, 1e-9, 1 - 1e-9)
+        working = (np.asarray(y, dtype=float) - p) / (p * (1 - p))
     x = design[term].to_numpy()
     frame = pd.DataFrame({'x': x, 'partial': working + result.params[term] * x})
     frame['bin'] = pd.qcut(frame['x'], n_bins, duplicates='drop')
@@ -219,7 +232,8 @@ def partial_residual_bins(result, design, y, term, n_bins=20):
 
 
 def plot_partial_residuals(result, design, y, terms, save_path=None,
-                           title='Curvature check: binned partial residuals (Train)'):
+                           title='Curvature check: binned partial residuals (Train)',
+                           ylabel='Partial residual (log-odds)'):
     """One panel per term; dots are equal-count bins, the line is the model's linear fit."""
     with plt.rc_context(figs.STYLE):
         fig, axes = plt.subplots(1, len(terms), figsize=(4.6 * len(terms), 4.2), squeeze=False)
@@ -227,7 +241,7 @@ def plot_partial_residuals(result, design, y, terms, save_path=None,
             bins = partial_residual_bins(result, design, y, term)
             ax.scatter(bins['x'], bins['partial'], color=figs.BLUE, s=24, label='Bin mean (20 bins)')
             ax.plot(bins['x'], bins['line'], color=figs.ORANGE, label='Linear fit')
-            ax.set(xlabel=f'{term} (standardised)', ylabel='Partial residual (log-odds)')
+            ax.set(xlabel=f'{term} (standardised)', ylabel=ylabel)
             figs._style(ax, 'y')
             ax.legend()
         return _finish(fig, title, save_path)
@@ -260,4 +274,70 @@ def plot_pr_curves(panels, save_path=None, top_frac=0.10, title='Precision-recal
             ax.set(title=name, xlabel='Recall (share of late orders found)', ylabel='Precision', xlim=(0, 1))
             figs._style(ax, 'both')
             ax.legend(loc='upper right')
+        return _finish(fig, title, save_path)
+
+
+def plot_predicted_vs_actual(panels, save_path=None, title='Predicted versus actual days from the promise',
+                             limits=(-60, 50)):
+    """Hexbin of predicted against actual days for each model; `panels` maps a title to (actual, predicted).
+
+    The dashed diagonal is a perfect prediction; colour is the number of orders (log scale).
+    """
+    with plt.rc_context(figs.STYLE):
+        fig, axes = plt.subplots(1, len(panels), figsize=(4.6 * len(panels), 4.6), squeeze=False)
+        for ax, (name, (actual, predicted)) in zip(axes[0], panels.items()):
+            ax.hexbin(actual, predicted, gridsize=40, bins='log', mincnt=1, cmap='Blues',
+                      extent=(*limits, *limits))
+            ax.plot(limits, limits, color=figs.ORANGE, ls='--', lw=1.2, label='Perfect prediction')
+            ax.set(title=name, xlabel='Actual days from promised date (negative = early)',
+                   ylabel='Predicted days from promised date', xlim=limits, ylim=limits)
+            figs._style(ax, 'both')
+            ax.legend(loc='upper left')
+        return _finish(fig, title, save_path)
+
+
+def plot_ols_diagnostics(fitted, residual, route_type, state, save_path=None, top_states=8,
+                         title='OLS residual diagnostics (Train, R1)'):
+    """Residual versus fitted, normal Q-Q, residuals by route type and by the most common states.
+
+    `residual`, `fitted`, `route_type` and `state` are aligned per order. Spread that grows
+    with the fitted value or differs between groups is the heteroscedasticity that motivates
+    HC3 standard errors.
+    """
+    frame = pd.DataFrame({'fitted': np.asarray(fitted), 'residual': np.asarray(residual),
+                          'route': np.asarray(route_type), 'state': np.asarray(state)})
+    with plt.rc_context(figs.STYLE):
+        fig, axes = plt.subplots(2, 2, figsize=(11, 8.2))
+        ax = axes[0, 0]
+        ax.hexbin(frame['fitted'], frame['residual'], gridsize=40, bins='log', mincnt=1, cmap='Blues')
+        frame['group'] = pd.qcut(frame['fitted'], 20, duplicates='drop')
+        means = frame.groupby('group', observed=True)[['fitted', 'residual']].mean()
+        ax.plot(means['fitted'], means['residual'], color=figs.ORANGE, marker='o', ms=3, label='Mean in 20 fitted-value bins')
+        ax.axhline(0, color=figs.GRAY, ls='--', lw=1)
+        ax.set(title='Residual versus fitted', xlabel='Fitted days from promised date',
+               ylabel='Residual (days)')
+        ax.legend(loc='upper left')
+        figs._style(ax, 'both')
+        ax = axes[0, 1]
+        (theory, ordered), (slope, intercept, _) = stats.probplot(frame['residual'], dist='norm')
+        ax.scatter(theory, ordered, s=4, color=figs.BLUE, alpha=0.4, label='Residual quantiles')
+        ax.plot(theory, slope * theory + intercept, color=figs.ORANGE, label='Normal reference line')
+        ax.set(title='Normal Q-Q plot', xlabel='Theoretical normal quantile',
+               ylabel='Residual quantile (days)')
+        ax.legend(loc='upper left')
+        figs._style(ax, 'both')
+        routes = sorted(frame['route'].unique())
+        axes[1, 0].boxplot([frame.loc[frame['route'] == r, 'residual'] for r in routes], showfliers=False,
+                           patch_artist=True, boxprops={'facecolor': figs.BLUE, 'alpha': 0.5})
+        axes[1, 0].set_xticks(range(1, len(routes) + 1), routes, rotation=15)
+        axes[1, 0].set(title='Residual by route type', xlabel='Route type', ylabel='Residual (days)')
+        states = frame['state'].value_counts().head(top_states).index.tolist()
+        axes[1, 1].boxplot([frame.loc[frame['state'] == s, 'residual'] for s in states], showfliers=False,
+                           patch_artist=True, boxprops={'facecolor': figs.AQUA, 'alpha': 0.5})
+        axes[1, 1].set_xticks(range(1, len(states) + 1), states)
+        axes[1, 1].set(title=f'Residual by customer state ({top_states} most common)',
+                       xlabel='Customer state', ylabel='Residual (days)')
+        for ax in axes[1]:
+            ax.axhline(0, color=figs.GRAY, ls='--', lw=1)
+            figs._style(ax, 'y')
         return _finish(fig, title, save_path)

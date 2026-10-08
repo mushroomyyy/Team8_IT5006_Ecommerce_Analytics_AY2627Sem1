@@ -1,0 +1,17 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Random Forest: tuned (R3) minus default (R3d)}
+\begin{tabular}{lrrrrrrrrrrr}
+\toprule
+metric & CV: R3 & CV: R3d & CV: gain & Validation: R3 & Validation: R3d & Validation: gain & June: R3 & June: R3d & June: gain & Train - CV gap: R3 & Train - CV gap: R3d \\
+\midrule
+rmse & 8.3095 & 8.7104 & -0.4008 & 8.3975 & 8.5563 & -0.1588 & 7.9533 & 8.3931 & -0.4399 & -1.5297 & -5.7608 \\
+mae & 5.6956 & 6.2901 & -0.5944 & 5.6754 & 6.0589 & -0.3835 & 6.4473 & 6.8037 & -0.3565 & -1.1609 & -4.2898 \\
+r2 & 0.1774 & 0.0942 & 0.0832 & 0.2114 & 0.1813 & 0.0301 & 0.2861 & 0.2049 & 0.0812 & 0.2749 & 0.8022 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Negative gain is better for RMSE and MAE. Gaps are Train minus CV mean.\end{minipage}
+\end{table}
+

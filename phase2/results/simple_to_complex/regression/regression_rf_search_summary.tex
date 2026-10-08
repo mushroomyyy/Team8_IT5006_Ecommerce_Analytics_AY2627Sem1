@@ -1,0 +1,60 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Random Forest search space}
+\begin{tabular}{lr}
+\toprule
+parameter & values searched (Stage A) \\
+\midrule
+max\_depth & None, 6, 8, 10, 12, 16, 20, 30 \\
+min\_samples\_leaf & 1, 2, 5, 10, 20, 50, 100, 200 \\
+min\_samples\_split & 2, 5, 10, 20, 50 \\
+max\_features & log2, sqrt, 0.2, 0.3, 0.5, 0.7, 1.0 \\
+max\_samples & None, 0.5, 0.7, 0.9 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Random Forest search summary}
+\begin{tabular}{lr}
+\toprule
+Item & Value \\
+\midrule
+Stage A candidates & 60 \\
+Stage A trees & 200 \\
+Stage B candidates & 36 \\
+Stage B trees & 300 or 500 \\
+Best CV RMSE, days (mean +/- SD) & 8.335 +/- 0.819 \\
+Stage A best CV RMSE, days & 8.353 \\
+Search time (Stage A + B, s) & 532 \\
+Best parameters & \{"min\_samples\_split": 50, "max\_samples": 0.9, "max\_depth": null, "min\_samples\_leaf": 2, "max\_features": 0.3, "n\_estimators": 500\} \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Stage B top candidates}
+\begin{tabular}{lrrrrrrrrrrrrrrr}
+\toprule
+max\_depth & max\_features & max\_samples & min\_samples\_leaf & min\_samples\_split & n\_estimators & mean\_score & sd\_score & mean\_fit\_time & mean\_score\_time & split0\_test\_score & split1\_test\_score & split2\_test\_score & split3\_test\_score & split4\_test\_score & cv\_rmse \\
+\midrule
+nan & 0.3 & 0.9 & 2 & 50 & 500 & -8.3354 & 0.8193 & 18.1547 & 0.2262 & -7.3751 & -7.4181 & -9.4175 & -8.9627 & -8.5038 & 8.3354 \\
+30.0 & 0.3 & 0.9 & 2 & 50 & 500 & -8.3364 & 0.8194 & 17.6394 & 0.2491 & -7.3753 & -7.4189 & -9.4155 & -8.9683 & -8.5039 & 8.3364 \\
+nan & 0.3 & 0.9 & 2 & 50 & 300 & -8.339 & 0.8152 & 11.6897 & 0.1725 & -7.3849 & -7.4208 & -9.4136 & -8.957 & -8.5188 & 8.339 \\
+30.0 & 0.3 & 0.9 & 2 & 50 & 300 & -8.3398 & 0.8152 & 10.2222 & 0.1354 & -7.3841 & -7.4214 & -9.4086 & -8.9658 & -8.5188 & 8.3398 \\
+30.0 & 0.3 & 0.9 & 1 & 50 & 500 & -8.3437 & 0.8214 & 16.9836 & 0.2306 & -7.3603 & -7.4248 & -9.4135 & -8.9483 & -8.5715 & 8.3437 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+
