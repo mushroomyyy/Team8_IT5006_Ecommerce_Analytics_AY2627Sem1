@@ -1,0 +1,207 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Random Forest search space</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>parameter</th>
+      <th>values searched (Stage A)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>max_depth</td>
+      <td>None, 6, 8, 10, 12, 16, 20, 30</td>
+    </tr>
+    <tr>
+      <td>min_samples_leaf</td>
+      <td>1, 2, 5, 10, 20, 50, 100, 200</td>
+    </tr>
+    <tr>
+      <td>min_samples_split</td>
+      <td>2, 5, 10, 20, 50</td>
+    </tr>
+    <tr>
+      <td>max_features</td>
+      <td>log2, sqrt, 0.2, 0.3, 0.5, 0.7, 1.0</td>
+    </tr>
+    <tr>
+      <td>max_samples</td>
+      <td>None, 0.5, 0.7, 0.9</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+<section>
+<p><b>Random Forest search summary</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Item</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Stage A candidates</td>
+      <td>60</td>
+    </tr>
+    <tr>
+      <td>Stage A trees</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>Stage B candidates</td>
+      <td>36</td>
+    </tr>
+    <tr>
+      <td>Stage B trees</td>
+      <td>300 or 500</td>
+    </tr>
+    <tr>
+      <td>Best CV RMSE, days (mean +/- SD)</td>
+      <td>8.335 +/- 0.819</td>
+    </tr>
+    <tr>
+      <td>Stage A best CV RMSE, days</td>
+      <td>8.353</td>
+    </tr>
+    <tr>
+      <td>Search time (Stage A + B, s)</td>
+      <td>532</td>
+    </tr>
+    <tr>
+      <td>Best parameters</td>
+      <td>{"min_samples_split": 50, "max_samples": 0.9, "max_depth": null, "min_samples_leaf": 2, "max_features": 0.3, "n_estimators": 500}</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+<section>
+<p><b>Stage B top candidates</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>max_depth</th>
+      <th>max_features</th>
+      <th>max_samples</th>
+      <th>min_samples_leaf</th>
+      <th>min_samples_split</th>
+      <th>n_estimators</th>
+      <th>mean_score</th>
+      <th>sd_score</th>
+      <th>mean_fit_time</th>
+      <th>mean_score_time</th>
+      <th>split0_test_score</th>
+      <th>split1_test_score</th>
+      <th>split2_test_score</th>
+      <th>split3_test_score</th>
+      <th>split4_test_score</th>
+      <th>cv_rmse</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NaN</td>
+      <td>0.3</td>
+      <td>0.9</td>
+      <td>2</td>
+      <td>50</td>
+      <td>500</td>
+      <td>-8.3354</td>
+      <td>0.8193</td>
+      <td>18.1547</td>
+      <td>0.2262</td>
+      <td>-7.3751</td>
+      <td>-7.4181</td>
+      <td>-9.4175</td>
+      <td>-8.9627</td>
+      <td>-8.5038</td>
+      <td>8.3354</td>
+    </tr>
+    <tr>
+      <td>30.0</td>
+      <td>0.3</td>
+      <td>0.9</td>
+      <td>2</td>
+      <td>50</td>
+      <td>500</td>
+      <td>-8.3364</td>
+      <td>0.8194</td>
+      <td>17.6394</td>
+      <td>0.2491</td>
+      <td>-7.3753</td>
+      <td>-7.4189</td>
+      <td>-9.4155</td>
+      <td>-8.9683</td>
+      <td>-8.5039</td>
+      <td>8.3364</td>
+    </tr>
+    <tr>
+      <td>NaN</td>
+      <td>0.3</td>
+      <td>0.9</td>
+      <td>2</td>
+      <td>50</td>
+      <td>300</td>
+      <td>-8.3390</td>
+      <td>0.8152</td>
+      <td>11.6897</td>
+      <td>0.1725</td>
+      <td>-7.3849</td>
+      <td>-7.4208</td>
+      <td>-9.4136</td>
+      <td>-8.9570</td>
+      <td>-8.5188</td>
+      <td>8.3390</td>
+    </tr>
+    <tr>
+      <td>30.0</td>
+      <td>0.3</td>
+      <td>0.9</td>
+      <td>2</td>
+      <td>50</td>
+      <td>300</td>
+      <td>-8.3398</td>
+      <td>0.8152</td>
+      <td>10.2222</td>
+      <td>0.1354</td>
+      <td>-7.3841</td>
+      <td>-7.4214</td>
+      <td>-9.4086</td>
+      <td>-8.9658</td>
+      <td>-8.5188</td>
+      <td>8.3398</td>
+    </tr>
+    <tr>
+      <td>30.0</td>
+      <td>0.3</td>
+      <td>0.9</td>
+      <td>1</td>
+      <td>50</td>
+      <td>500</td>
+      <td>-8.3437</td>
+      <td>0.8214</td>
+      <td>16.9836</td>
+      <td>0.2306</td>
+      <td>-7.3603</td>
+      <td>-7.4248</td>
+      <td>-9.4135</td>
+      <td>-8.9483</td>
+      <td>-8.5715</td>
+      <td>8.3437</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

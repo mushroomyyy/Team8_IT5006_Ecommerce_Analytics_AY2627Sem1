@@ -1,0 +1,221 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Random Forest search space</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>parameter</th>
+      <th>values searched (Stage A)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>max_depth</td>
+      <td>None, 6, 8, 10, 12, 16, 20, 30</td>
+    </tr>
+    <tr>
+      <td>min_samples_leaf</td>
+      <td>1, 2, 5, 10, 20, 50, 100, 200</td>
+    </tr>
+    <tr>
+      <td>min_samples_split</td>
+      <td>2, 5, 10, 20, 50</td>
+    </tr>
+    <tr>
+      <td>max_features</td>
+      <td>log2, sqrt, 0.2, 0.3, 0.5, 0.7, 1.0</td>
+    </tr>
+    <tr>
+      <td>max_samples</td>
+      <td>None, 0.5, 0.7, 0.9</td>
+    </tr>
+    <tr>
+      <td>class_weight</td>
+      <td>None, balanced, balanced_subsample</td>
+    </tr>
+    <tr>
+      <td>criterion</td>
+      <td>gini, entropy</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+<section>
+<p><b>Random Forest search summary</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Item</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Stage A candidates</td>
+      <td>60</td>
+    </tr>
+    <tr>
+      <td>Stage A trees</td>
+      <td>200</td>
+    </tr>
+    <tr>
+      <td>Stage B candidates</td>
+      <td>24</td>
+    </tr>
+    <tr>
+      <td>Stage B trees</td>
+      <td>300 or 500</td>
+    </tr>
+    <tr>
+      <td>Best CV AP (mean +/- SD)</td>
+      <td>0.2691 +/- 0.0331</td>
+    </tr>
+    <tr>
+      <td>Stage A best CV AP</td>
+      <td>0.2657</td>
+    </tr>
+    <tr>
+      <td>Search time (Stage A + B, s)</td>
+      <td>206</td>
+    </tr>
+    <tr>
+      <td>Best parameters</td>
+      <td>{"min_samples_split": 50, "max_samples": 0.7, "criterion": "entropy", "class_weight": null, "max_depth": 8, "min_samples_leaf": 2, "max_features": "log2", "n_estimators": 500}</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+<section>
+<p><b>Stage B top candidates</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>class_weight</th>
+      <th>criterion</th>
+      <th>max_depth</th>
+      <th>max_features</th>
+      <th>max_samples</th>
+      <th>min_samples_leaf</th>
+      <th>min_samples_split</th>
+      <th>n_estimators</th>
+      <th>mean_score</th>
+      <th>sd_score</th>
+      <th>mean_fit_time</th>
+      <th>mean_score_time</th>
+      <th>split0_test_score</th>
+      <th>split1_test_score</th>
+      <th>split2_test_score</th>
+      <th>split3_test_score</th>
+      <th>split4_test_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NaN</td>
+      <td>entropy</td>
+      <td>8</td>
+      <td>log2</td>
+      <td>0.7</td>
+      <td>2</td>
+      <td>50</td>
+      <td>500</td>
+      <td>0.2691</td>
+      <td>0.0331</td>
+      <td>3.9767</td>
+      <td>0.1321</td>
+      <td>0.2775</td>
+      <td>0.3133</td>
+      <td>0.2925</td>
+      <td>0.2302</td>
+      <td>0.2318</td>
+    </tr>
+    <tr>
+      <td>NaN</td>
+      <td>entropy</td>
+      <td>8</td>
+      <td>log2</td>
+      <td>0.7</td>
+      <td>1</td>
+      <td>50</td>
+      <td>500</td>
+      <td>0.2685</td>
+      <td>0.0332</td>
+      <td>4.0024</td>
+      <td>0.1207</td>
+      <td>0.2751</td>
+      <td>0.3132</td>
+      <td>0.2924</td>
+      <td>0.2260</td>
+      <td>0.2357</td>
+    </tr>
+    <tr>
+      <td>NaN</td>
+      <td>entropy</td>
+      <td>10</td>
+      <td>log2</td>
+      <td>0.7</td>
+      <td>1</td>
+      <td>50</td>
+      <td>500</td>
+      <td>0.2683</td>
+      <td>0.0336</td>
+      <td>4.3130</td>
+      <td>0.1515</td>
+      <td>0.2697</td>
+      <td>0.3141</td>
+      <td>0.2957</td>
+      <td>0.2324</td>
+      <td>0.2294</td>
+    </tr>
+    <tr>
+      <td>NaN</td>
+      <td>entropy</td>
+      <td>10</td>
+      <td>log2</td>
+      <td>0.7</td>
+      <td>2</td>
+      <td>50</td>
+      <td>500</td>
+      <td>0.2678</td>
+      <td>0.0348</td>
+      <td>4.6221</td>
+      <td>0.1456</td>
+      <td>0.2700</td>
+      <td>0.3155</td>
+      <td>0.2955</td>
+      <td>0.2280</td>
+      <td>0.2299</td>
+    </tr>
+    <tr>
+      <td>NaN</td>
+      <td>entropy</td>
+      <td>10</td>
+      <td>log2</td>
+      <td>0.7</td>
+      <td>1</td>
+      <td>50</td>
+      <td>300</td>
+      <td>0.2677</td>
+      <td>0.0336</td>
+      <td>2.5247</td>
+      <td>0.0807</td>
+      <td>0.2665</td>
+      <td>0.3138</td>
+      <td>0.2962</td>
+      <td>0.2342</td>
+      <td>0.2278</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

@@ -1,0 +1,100 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Transformation groups judged by CV average precision</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>design</th>
+      <th>groups</th>
+      <th>cv_mean</th>
+      <th>cv_sd</th>
+      <th>change_vs_kept</th>
+      <th>kept</th>
+      <th>step</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>raw</td>
+      <td></td>
+      <td>0.1294</td>
+      <td>0.0220</td>
+      <td>0.0000</td>
+      <td>True</td>
+      <td>log, cyclic</td>
+    </tr>
+    <tr>
+      <td>raw + log</td>
+      <td>log</td>
+      <td>0.1380</td>
+      <td>0.0244</td>
+      <td>NaN</td>
+      <td>False</td>
+      <td>log, cyclic</td>
+    </tr>
+    <tr>
+      <td>kept (raw) + log</td>
+      <td>log</td>
+      <td>0.1380</td>
+      <td>0.0244</td>
+      <td>0.0087</td>
+      <td>True</td>
+      <td>log, cyclic</td>
+    </tr>
+    <tr>
+      <td>raw + cyclic</td>
+      <td>cyclic</td>
+      <td>0.1289</td>
+      <td>0.0234</td>
+      <td>NaN</td>
+      <td>False</td>
+      <td>log, cyclic</td>
+    </tr>
+    <tr>
+      <td>kept (log) + cyclic</td>
+      <td>log+cyclic</td>
+      <td>0.1383</td>
+      <td>0.0261</td>
+      <td>0.0003</td>
+      <td>True</td>
+      <td>log, cyclic</td>
+    </tr>
+    <tr>
+      <td>log+cyclic</td>
+      <td>log+cyclic</td>
+      <td>0.1383</td>
+      <td>0.0261</td>
+      <td>0.0000</td>
+      <td>True</td>
+      <td>squared (promised_lead_days, approval_lag_hours, payment_value_sum)</td>
+    </tr>
+    <tr>
+      <td>log+cyclic + squared</td>
+      <td>log+cyclic+squared</td>
+      <td>0.1399</td>
+      <td>0.0259</td>
+      <td>NaN</td>
+      <td>False</td>
+      <td>squared (promised_lead_days, approval_lag_hours, payment_value_sum)</td>
+    </tr>
+    <tr>
+      <td>kept (log+cyclic) + squared</td>
+      <td>log+cyclic+squared</td>
+      <td>0.1399</td>
+      <td>0.0259</td>
+      <td>0.0016</td>
+      <td>True</td>
+      <td>squared (promised_lead_days, approval_lag_hours, payment_value_sum)</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

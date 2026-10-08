@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>C1 class-weight sensitivity (CV)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>avg_precision mean +/- SD</th>
+      <th>roc_auc mean +/- SD</th>
+      <th>brier mean +/- SD</th>
+      <th>precision_top10 mean +/- SD</th>
+      <th>top10_capture mean +/- SD</th>
+      <th>top10_lift mean +/- SD</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>C1 (unweighted)</td>
+      <td>0.1399 +/- 0.0259</td>
+      <td>0.6075 +/- 0.0362</td>
+      <td>0.0871 +/- 0.0291</td>
+      <td>0.1634 +/- 0.0250</td>
+      <td>0.1823 +/- 0.0488</td>
+      <td>1.8211 +/- 0.4861</td>
+    </tr>
+    <tr>
+      <td>C1 (class_weight='balanced')</td>
+      <td>0.1367 +/- 0.0268</td>
+      <td>0.6095 +/- 0.0329</td>
+      <td>0.2796 +/- 0.0437</td>
+      <td>0.1591 +/- 0.0226</td>
+      <td>0.1778 +/- 0.0481</td>
+      <td>1.7762 +/- 0.4791</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

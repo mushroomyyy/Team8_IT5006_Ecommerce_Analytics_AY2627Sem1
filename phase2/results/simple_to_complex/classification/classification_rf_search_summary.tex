@@ -1,0 +1,62 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Random Forest search space}
+\begin{tabular}{lr}
+\toprule
+parameter & values searched (Stage A) \\
+\midrule
+max\_depth & None, 6, 8, 10, 12, 16, 20, 30 \\
+min\_samples\_leaf & 1, 2, 5, 10, 20, 50, 100, 200 \\
+min\_samples\_split & 2, 5, 10, 20, 50 \\
+max\_features & log2, sqrt, 0.2, 0.3, 0.5, 0.7, 1.0 \\
+max\_samples & None, 0.5, 0.7, 0.9 \\
+class\_weight & None, balanced, balanced\_subsample \\
+criterion & gini, entropy \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Random Forest search summary}
+\begin{tabular}{lr}
+\toprule
+Item & Value \\
+\midrule
+Stage A candidates & 60 \\
+Stage A trees & 200 \\
+Stage B candidates & 24 \\
+Stage B trees & 300 or 500 \\
+Best CV AP (mean +/- SD) & 0.2691 +/- 0.0331 \\
+Stage A best CV AP & 0.2657 \\
+Search time (Stage A + B, s) & 206 \\
+Best parameters & \{"min\_samples\_split": 50, "max\_samples": 0.7, "criterion": "entropy", "class\_weight": null, "max\_depth": 8, "min\_samples\_leaf": 2, "max\_features": "log2", "n\_estimators": 500\} \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Stage B top candidates}
+\begin{tabular}{lrrrrrrrrrrrrrrrr}
+\toprule
+class\_weight & criterion & max\_depth & max\_features & max\_samples & min\_samples\_leaf & min\_samples\_split & n\_estimators & mean\_score & sd\_score & mean\_fit\_time & mean\_score\_time & split0\_test\_score & split1\_test\_score & split2\_test\_score & split3\_test\_score & split4\_test\_score \\
+\midrule
+nan & entropy & 8 & log2 & 0.7 & 2 & 50 & 500 & 0.2691 & 0.0331 & 3.9767 & 0.1321 & 0.2775 & 0.3133 & 0.2925 & 0.2302 & 0.2318 \\
+nan & entropy & 8 & log2 & 0.7 & 1 & 50 & 500 & 0.2685 & 0.0332 & 4.0024 & 0.1207 & 0.2751 & 0.3132 & 0.2924 & 0.226 & 0.2357 \\
+nan & entropy & 10 & log2 & 0.7 & 1 & 50 & 500 & 0.2683 & 0.0336 & 4.313 & 0.1515 & 0.2697 & 0.3141 & 0.2957 & 0.2324 & 0.2294 \\
+nan & entropy & 10 & log2 & 0.7 & 2 & 50 & 500 & 0.2678 & 0.0348 & 4.6221 & 0.1456 & 0.27 & 0.3155 & 0.2955 & 0.228 & 0.2299 \\
+nan & entropy & 10 & log2 & 0.7 & 1 & 50 & 300 & 0.2677 & 0.0336 & 2.5247 & 0.0807 & 0.2665 & 0.3138 & 0.2962 & 0.2342 & 0.2278 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+

@@ -1,0 +1,31 @@
+{
+  "source": "simple-to-complex (pre-rebuild)",
+  "commit": "504e4a009d7d259312e4fa0d401bff671007f7c2",
+  "snapshot_date": "2026-10-09",
+  "files": [
+    "phase2/MULTICOLLINEARITY_NOTES.md",
+    "phase2/README.md",
+    "phase2/classification_evaluation.ipynb",
+    "phase2/model_classification_dev.ipynb",
+    "phase2/model_classification_feature_selection.ipynb",
+    "phase2/model_regression_dev.ipynb",
+    "phase2/model_regression_feature_selection.ipynb",
+    "phase2/model_validation_timelines.ipynb",
+    "phase2/requirements.txt",
+    "phase2/src/__init__.py",
+    "phase2/src/data.py",
+    "phase2/src/evaluation.py",
+    "phase2/src/feature_selection.py",
+    "phase2/src/features.py",
+    "phase2/src/labels.py",
+    "phase2/src/preprocessing.py",
+    "phase2/src/report_figures.py",
+    "phase2/src/report_tables.py",
+    "phase2/src/splits.py",
+    "phase2/src/tuning.py",
+    "phase2/src/validation_timelines.py",
+    "phase2/test_feature_selection.py",
+    "phase2/test_historical_features.py",
+    "phase2/test_tuning.py"
+  ]
+}

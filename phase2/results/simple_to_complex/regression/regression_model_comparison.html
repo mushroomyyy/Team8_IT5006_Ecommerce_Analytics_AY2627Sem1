@@ -1,0 +1,419 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Regression: RMSE, days (primary; lower is better)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>Train</th>
+      <th>CV mean +/- SD</th>
+      <th>Validation</th>
+      <th>June</th>
+      <th>July</th>
+      <th>August</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R0a</td>
+      <td>9.115</td>
+      <td>9.265 +/- 1.022</td>
+      <td>9.864</td>
+      <td>11.688</td>
+      <td>8.162</td>
+      <td>8.416</td>
+    </tr>
+    <tr>
+      <td>R0b</td>
+      <td>14.426</td>
+      <td>14.255 +/- 1.237</td>
+      <td>13.550</td>
+      <td>20.888</td>
+      <td>13.994</td>
+      <td>11.739</td>
+    </tr>
+    <tr>
+      <td>R1</td>
+      <td>7.894</td>
+      <td>8.627 +/- 1.320</td>
+      <td>8.209</td>
+      <td>7.385</td>
+      <td>7.293</td>
+      <td>6.467</td>
+    </tr>
+    <tr>
+      <td>R2</td>
+      <td>8.349</td>
+      <td>8.578 +/- 1.151</td>
+      <td>8.899</td>
+      <td>9.282</td>
+      <td>7.361</td>
+      <td>6.613</td>
+    </tr>
+    <tr>
+      <td>R2B</td>
+      <td>7.898</td>
+      <td>8.612 +/- 1.342</td>
+      <td>8.208</td>
+      <td>7.391</td>
+      <td>7.275</td>
+      <td>6.460</td>
+    </tr>
+    <tr>
+      <td>R3</td>
+      <td>6.780</td>
+      <td>8.310 +/- 0.934</td>
+      <td>8.397</td>
+      <td>7.953</td>
+      <td>7.453</td>
+      <td>7.497</td>
+    </tr>
+    <tr>
+      <td>R3d</td>
+      <td>2.950</td>
+      <td>8.710 +/- 1.014</td>
+      <td>8.556</td>
+      <td>8.393</td>
+      <td>8.283</td>
+      <td>8.288</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.</p>
+<p></p></section>
+<section>
+<p><b>Regression: MAE, days</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>Train</th>
+      <th>CV mean +/- SD</th>
+      <th>Validation</th>
+      <th>June</th>
+      <th>July</th>
+      <th>August</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R0a</td>
+      <td>6.100</td>
+      <td>6.324 +/- 0.725</td>
+      <td>6.733</td>
+      <td>9.163</td>
+      <td>5.467</td>
+      <td>5.906</td>
+    </tr>
+    <tr>
+      <td>R0b</td>
+      <td>13.012</td>
+      <td>12.810 +/- 1.300</td>
+      <td>11.867</td>
+      <td>19.299</td>
+      <td>12.261</td>
+      <td>8.923</td>
+    </tr>
+    <tr>
+      <td>R1</td>
+      <td>5.336</td>
+      <td>5.900 +/- 0.822</td>
+      <td>5.615</td>
+      <td>5.824</td>
+      <td>5.208</td>
+      <td>4.416</td>
+    </tr>
+    <tr>
+      <td>R2</td>
+      <td>5.741</td>
+      <td>5.804 +/- 0.866</td>
+      <td>6.072</td>
+      <td>7.935</td>
+      <td>5.186</td>
+      <td>4.158</td>
+    </tr>
+    <tr>
+      <td>R2B</td>
+      <td>5.341</td>
+      <td>5.878 +/- 0.826</td>
+      <td>5.615</td>
+      <td>5.830</td>
+      <td>5.189</td>
+      <td>4.406</td>
+    </tr>
+    <tr>
+      <td>R3</td>
+      <td>4.535</td>
+      <td>5.696 +/- 0.889</td>
+      <td>5.675</td>
+      <td>6.447</td>
+      <td>5.308</td>
+      <td>5.187</td>
+    </tr>
+    <tr>
+      <td>R3d</td>
+      <td>2.000</td>
+      <td>6.290 +/- 1.066</td>
+      <td>6.059</td>
+      <td>6.804</td>
+      <td>6.198</td>
+      <td>6.013</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.</p>
+<p></p></section>
+<section>
+<p><b>Regression: R-squared</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>Train</th>
+      <th>CV mean +/- SD</th>
+      <th>Validation</th>
+      <th>June</th>
+      <th>July</th>
+      <th>August</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R0a</td>
+      <td>0.010</td>
+      <td>-0.025 +/- 0.126</td>
+      <td>-0.088</td>
+      <td>-0.542</td>
+      <td>0.082</td>
+      <td>0.140</td>
+    </tr>
+    <tr>
+      <td>R0b</td>
+      <td>-1.479</td>
+      <td>-1.463 +/- 0.469</td>
+      <td>-1.053</td>
+      <td>-3.924</td>
+      <td>-1.698</td>
+      <td>-0.673</td>
+    </tr>
+    <tr>
+      <td>R1</td>
+      <td>0.258</td>
+      <td>0.112 +/- 0.169</td>
+      <td>0.246</td>
+      <td>0.384</td>
+      <td>0.267</td>
+      <td>0.492</td>
+    </tr>
+    <tr>
+      <td>R2</td>
+      <td>0.170</td>
+      <td>0.123 +/- 0.130</td>
+      <td>0.114</td>
+      <td>0.028</td>
+      <td>0.253</td>
+      <td>0.469</td>
+    </tr>
+    <tr>
+      <td>R2B</td>
+      <td>0.257</td>
+      <td>0.115 +/- 0.173</td>
+      <td>0.247</td>
+      <td>0.383</td>
+      <td>0.271</td>
+      <td>0.493</td>
+    </tr>
+    <tr>
+      <td>R3</td>
+      <td>0.452</td>
+      <td>0.177 +/- 0.086</td>
+      <td>0.211</td>
+      <td>0.286</td>
+      <td>0.235</td>
+      <td>0.317</td>
+    </tr>
+    <tr>
+      <td>R3d</td>
+      <td>0.896</td>
+      <td>0.094 +/- 0.125</td>
+      <td>0.181</td>
+      <td>0.205</td>
+      <td>0.055</td>
+      <td>0.166</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.</p>
+<p></p></section>
+<section>
+<p><b>Regression: Median absolute error, days</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>Train</th>
+      <th>CV mean +/- SD</th>
+      <th>Validation</th>
+      <th>June</th>
+      <th>July</th>
+      <th>August</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R0a</td>
+      <td>4.000</td>
+      <td>4.400 +/- 0.548</td>
+      <td>5.000</td>
+      <td>8.000</td>
+      <td>4.000</td>
+      <td>5.000</td>
+    </tr>
+    <tr>
+      <td>R0b</td>
+      <td>13.000</td>
+      <td>12.800 +/- 1.304</td>
+      <td>11.000</td>
+      <td>19.000</td>
+      <td>11.000</td>
+      <td>7.000</td>
+    </tr>
+    <tr>
+      <td>R1</td>
+      <td>3.832</td>
+      <td>4.170 +/- 0.681</td>
+      <td>3.977</td>
+      <td>5.048</td>
+      <td>4.141</td>
+      <td>3.347</td>
+    </tr>
+    <tr>
+      <td>R2</td>
+      <td>4.238</td>
+      <td>4.157 +/- 0.702</td>
+      <td>4.254</td>
+      <td>7.531</td>
+      <td>3.971</td>
+      <td>2.865</td>
+    </tr>
+    <tr>
+      <td>R2B</td>
+      <td>3.844</td>
+      <td>4.150 +/- 0.633</td>
+      <td>3.962</td>
+      <td>5.068</td>
+      <td>4.095</td>
+      <td>3.357</td>
+    </tr>
+    <tr>
+      <td>R3</td>
+      <td>3.170</td>
+      <td>4.162 +/- 0.907</td>
+      <td>3.864</td>
+      <td>5.828</td>
+      <td>4.125</td>
+      <td>3.695</td>
+    </tr>
+    <tr>
+      <td>R3d</td>
+      <td>1.390</td>
+      <td>4.807 +/- 1.251</td>
+      <td>4.410</td>
+      <td>6.050</td>
+      <td>4.910</td>
+      <td>4.410</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.</p>
+<p></p></section>
+<section>
+<p><b>Regression: Bias (prediction minus actual), days</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Model</th>
+      <th>Train</th>
+      <th>CV mean +/- SD</th>
+      <th>Validation</th>
+      <th>June</th>
+      <th>July</th>
+      <th>August</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R0a</td>
+      <td>-1.515</td>
+      <td>-1.785 +/- 1.911</td>
+      <td>-3.022</td>
+      <td>7.153</td>
+      <td>-0.324</td>
+      <td>-2.509</td>
+    </tr>
+    <tr>
+      <td>R0b</td>
+      <td>11.333</td>
+      <td>11.055 +/- 1.890</td>
+      <td>9.745</td>
+      <td>18.821</td>
+      <td>11.136</td>
+      <td>7.643</td>
+    </tr>
+    <tr>
+      <td>R1</td>
+      <td>0.000</td>
+      <td>-1.061 +/- 2.608</td>
+      <td>-0.304</td>
+      <td>4.125</td>
+      <td>2.343</td>
+      <td>1.988</td>
+    </tr>
+    <tr>
+      <td>R2</td>
+      <td>-0.000</td>
+      <td>-1.183 +/- 1.347</td>
+      <td>-0.831</td>
+      <td>6.520</td>
+      <td>2.335</td>
+      <td>0.432</td>
+    </tr>
+    <tr>
+      <td>R2B</td>
+      <td>0.000</td>
+      <td>-1.099 +/- 2.545</td>
+      <td>-0.302</td>
+      <td>4.128</td>
+      <td>2.315</td>
+      <td>1.975</td>
+    </tr>
+    <tr>
+      <td>R3</td>
+      <td>0.035</td>
+      <td>-0.539 +/- 1.088</td>
+      <td>-0.714</td>
+      <td>4.943</td>
+      <td>2.556</td>
+      <td>1.719</td>
+    </tr>
+    <tr>
+      <td>R3d</td>
+      <td>0.148</td>
+      <td>0.567 +/- 1.696</td>
+      <td>0.300</td>
+      <td>5.280</td>
+      <td>3.779</td>
+      <td>3.607</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.</p>
+<p></p></section>
+</body></html>

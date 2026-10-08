@@ -1,0 +1,19 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Random Forest: tuned (C3) minus default (C3d)}
+\begin{tabular}{lrrrrrrrrrrr}
+\toprule
+metric & CV: C3 & CV: C3d & CV: gain & Validation: C3 & Validation: C3d & Validation: gain & June: C3 & June: C3d & June: gain & Train - CV gap: C3 & Train - CV gap: C3d \\
+\midrule
+avg\_precision & 0.2691 & 0.2526 & 0.0165 & 0.2194 & 0.2038 & 0.0156 & 0.1122 & 0.1097 & 0.0025 & 0.1289 & 0.7474 \\
+roc\_auc & 0.6536 & 0.6246 & 0.029 & 0.7009 & 0.6686 & 0.0324 & 0.6369 & 0.6529 & -0.0159 & 0.124 & 0.3754 \\
+brier & 0.0812 & 0.0794 & 0.0018 & 0.0905 & 0.0889 & 0.0017 & 0.0268 & 0.0266 & 0.0002 & -0.0106 & -0.0698 \\
+precision\_top10 & 0.2239 & 0.2125 & 0.0114 & 0.246 & 0.2358 & 0.0102 & 0.0729 & 0.0697 & 0.0032 & 0.1206 & 0.6707 \\
+top10\_lift & 2.4802 & 2.293 & 0.1872 & 2.3703 & 2.2721 & 0.0982 & 3.2815 & 3.1356 & 0.1458 & 1.4196 & 7.7052 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Positive gain is better except for Brier. Gaps are Train minus CV mean.\end{minipage}
+\end{table}
+

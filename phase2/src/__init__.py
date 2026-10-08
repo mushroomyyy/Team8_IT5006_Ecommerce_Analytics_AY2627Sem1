@@ -1,4 +1,4 @@
-"""Shared Phase 2 helpers, extracted from model_dev_v2.ipynb so every notebook reuses one copy."""
+"""Shared Phase 2 constants and package of helpers used by every notebook."""
 
 RANDOM_STATE = 42
 LOOKBACK = 45   # Days between the newest training approval and the inference date

@@ -1,0 +1,11 @@
+feature,missing,share_pct
+order_product_photos_mean,2005,2.0260916136986022
+seller_dist_km_mean,1108,1.1196556149516466
+order_product_volume_cm3_sum,635,0.6416798876302306
+order_item_count,619,0.625511575500965
+order_seller_count,619,0.625511575500965
+order_frieght_value_sum,619,0.625511575500965
+order_product_weight_g_sum,619,0.625511575500965
+order_product_category_count,619,0.625511575500965
+seller_state_count,619,0.625511575500965
+freight_to_price_ratio,619,0.625511575500965

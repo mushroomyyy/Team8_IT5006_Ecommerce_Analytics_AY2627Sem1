@@ -1,0 +1,58 @@
+Term,Basis,Days per unit,95% CI per unit,Days per 1 SD,95% CI per 1 SD,p-value
+order_approved_day_of_week_sin,n/a,,,,,<0.001
+order_approved_day_of_week_cos,n/a,,,,,0.117
+order_approved_day_of_month,per 1 unit,-0.005,-0.013 to 0.004,-0.041,-0.118 to 0.035,0.289
+order_approved_month_sin,n/a,,,,,<0.001
+order_approved_month_cos,n/a,,,,,<0.001
+order_item_count,per 1 unit,-0.731,-0.922 to -0.541,-0.391,-0.493 to -0.289,<0.001
+order_seller_count,per 1 unit,-4.261,-5.267 to -3.254,-0.509,-0.629 to -0.388,<0.001
+sq_order_seller_count,n/a,,,,,<0.001
+log_order_frieght_value_sum,per doubling,0.596,0.309 to 0.883,0.434,0.225 to 0.643,<0.001
+log_order_product_weight_g_sum,per doubling,0.102,0.025 to 0.178,0.199,0.049 to 0.349,0.009
+order_product_category_count,per 1 unit,-0.688,-1.506 to 0.129,-0.062,-0.135 to 0.012,0.099
+log_seller_dist_km_mean,per doubling,0.607,0.492 to 0.723,1.166,0.943 to 1.388,<0.001
+sq_seller_dist_km_mean,n/a,,,,,0.029
+seller_state_count,per 1 unit,-1.99,-2.745 to -1.235,-0.145,-0.200 to -0.090,<0.001
+log_payment_value_sum,per doubling,0.054,-0.113 to 0.221,0.062,-0.129 to 0.253,0.524
+promised_lead_days,per 1 unit,-0.751,-0.771 to -0.730,-5.593,-5.747 to -5.440,<0.001
+sq_promised_lead_days,n/a,,,,,0.116
+log_approval_lag_hours,per doubling,0.173,0.117 to 0.228,0.36,0.244 to 0.476,<0.001
+log_order_product_volume_cm3_sum,per doubling,0.124,0.060 to 0.188,0.24,0.116 to 0.363,<0.001
+order_product_photos_mean,per 1 unit,-0.091,-0.134 to -0.048,-0.157,-0.230 to -0.083,<0.001
+log_freight_to_price_ratio,per doubling,0.422,-0.191 to 1.035,0.109,-0.050 to 0.268,0.178
+payment_installments_max,per 1 unit,0.027,-0.005 to 0.060,0.077,-0.015 to 0.168,0.101
+is_weekend_approval,per 1 unit,-0.421,-0.710 to -0.131,-0.175,-0.296 to -0.055,0.004
+is_black_friday_period,per 1 unit,3.406,3.042 to 3.770,0.986,0.881 to 1.092,<0.001
+is_december_peak,per 1 unit,1.133,0.852 to 1.413,0.378,0.284 to 0.471,<0.001
+log_orders_approved_prev_7d,per doubling,0.361,0.135 to 0.587,0.202,0.075 to 0.328,0.002
+customer_state_AC,vs reference level,0.935,-1.512 to 3.382,,,0.454
+customer_state_AL,vs reference level,9.142,7.596 to 10.688,,,<0.001
+customer_state_AM,vs reference level,6.895,4.506 to 9.284,,,<0.001
+customer_state_AP,vs reference level,3.53,0.965 to 6.094,,,0.007
+customer_state_BA,vs reference level,3.975,3.443 to 4.506,,,<0.001
+customer_state_CE,vs reference level,3.792,2.999 to 4.584,,,<0.001
+customer_state_DF,vs reference level,0.794,0.252 to 1.337,,,0.004
+customer_state_ES,vs reference level,1.835,1.323 to 2.347,,,<0.001
+customer_state_GO,vs reference level,2.093,1.546 to 2.639,,,<0.001
+customer_state_MA,vs reference level,5.211,4.194 to 6.227,,,<0.001
+customer_state_MG,vs reference level,-0.309,-0.561 to -0.057,,,0.016
+customer_state_MS,vs reference level,1.179,0.394 to 1.964,,,0.003
+customer_state_MT,vs reference level,2.169,1.374 to 2.964,,,<0.001
+customer_state_PA,vs reference level,4.881,3.939 to 5.822,,,<0.001
+customer_state_PB,vs reference level,4.867,3.558 to 6.176,,,<0.001
+customer_state_PE,vs reference level,3.364,2.559 to 4.169,,,<0.001
+customer_state_PI,vs reference level,2.505,1.270 to 3.740,,,<0.001
+customer_state_PR,vs reference level,0.181,-0.162 to 0.525,,,0.301
+customer_state_RJ,vs reference level,3.401,3.098 to 3.705,,,<0.001
+customer_state_RN,vs reference level,2.88,1.634 to 4.126,,,<0.001
+customer_state_RO,vs reference level,0.739,-0.602 to 2.079,,,0.280
+customer_state_RR,vs reference level,4.221,-1.800 to 10.241,,,0.169
+customer_state_RS,vs reference level,1.849,1.470 to 2.229,,,<0.001
+customer_state_SC,vs reference level,2.872,2.439 to 3.306,,,<0.001
+customer_state_SE,vs reference level,6.013,4.523 to 7.502,,,<0.001
+customer_state_TO,vs reference level,1.855,0.504 to 3.206,,,0.007
+route_type_2. All same-state,vs reference level,-0.739,-1.020 to -0.459,,,<0.001
+payment_combination_boleto,vs reference level,-0.603,-0.900 to -0.306,,,<0.001
+payment_combination_credit_card+voucher,vs reference level,0.204,-0.252 to 0.660,,,0.380
+payment_combination_debit_card,vs reference level,0.465,-0.294 to 1.225,,,0.230
+payment_combination_voucher,vs reference level,0.357,-0.235 to 0.949,,,0.237

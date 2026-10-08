@@ -1,0 +1,5 @@
+group,orders,mean_days_from_promise,task
+1. All interstate,29933,-12.086793839575051,regression
+2. All same-state,15320,-10.1177545691906,regression
+3. Mixed,118,-18.5,regression
+seller_state_count >= 2,227,-18.39647577092511,regression

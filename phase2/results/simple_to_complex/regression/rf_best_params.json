@@ -1,0 +1,81 @@
+{
+  "best_params": {
+    "min_samples_split": 50,
+    "max_samples": 0.9,
+    "max_depth": null,
+    "min_samples_leaf": 2,
+    "max_features": 0.3,
+    "n_estimators": 500
+  },
+  "stage_a_best_params": {
+    "min_samples_split": 50,
+    "min_samples_leaf": 2,
+    "max_samples": 0.9,
+    "max_features": 0.5,
+    "max_depth": null
+  },
+  "metadata": {
+    "task": "regression",
+    "scoring": "neg_root_mean_squared_error",
+    "n_iter_stage_a": 60,
+    "stage_a_trees": 200,
+    "stage_b_trees": [
+      300,
+      500
+    ],
+    "stage_b_width": 1,
+    "stage_b_candidates": 36,
+    "tie_tolerance": 0.0001,
+    "train_rows": 45371,
+    "n_cv_folds": 5,
+    "features": {
+      "numeric": [
+        "order_approved_day_of_week",
+        "order_approved_day_of_month",
+        "order_approved_month",
+        "order_item_count",
+        "order_seller_count",
+        "order_frieght_value_sum",
+        "order_product_weight_g_sum",
+        "order_product_category_count",
+        "seller_dist_km_mean",
+        "seller_state_count",
+        "payment_value_sum",
+        "promised_lead_days",
+        "approval_lag_hours",
+        "order_product_volume_cm3_sum",
+        "order_product_photos_mean",
+        "freight_to_price_ratio",
+        "payment_installments_max",
+        "is_weekend_approval",
+        "is_black_friday_period",
+        "is_december_peak",
+        "orders_approved_prev_7d"
+      ],
+      "categorical": [
+        "customer_state",
+        "route_type",
+        "payment_combination"
+      ]
+    },
+    "best_cv_mean": -8.335441532545264,
+    "best_cv_sd": 0.8193219030237641,
+    "stage_a_best_cv_mean": -8.3527465138308,
+    "stage_a_seconds": 155.6,
+    "stage_b_seconds": 376.2,
+    "run_date": "2026-10-09T01:22:24",
+    "random_state": 42,
+    "versions": {
+      "python": "3.13.5",
+      "scikit-learn": "1.9.1",
+      "numpy": "2.5.3",
+      "pandas": "3.0.6"
+    },
+    "row_counts": {
+      "train": 45371,
+      "validation": 6847,
+      "history": 62841,
+      "cv_folds": 5
+    }
+  }
+}

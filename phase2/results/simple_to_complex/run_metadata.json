@@ -1,0 +1,751 @@
+{
+  "tasks": {
+    "classification": {
+      "task": "classification",
+      "run_date": "2018-06-02",
+      "lookback_days": 45,
+      "random_state": 42,
+      "dates": {
+        "train": [
+          "2017-04-18 00:00:00",
+          "2018-02-01 00:00:00"
+        ],
+        "validation": [
+          "2018-03-19 00:00:00",
+          "2018-04-17 00:00:00"
+        ],
+        "test_june": [
+          "2018-06-01",
+          "2018-06-30"
+        ],
+        "monitoring": [
+          "2018-07-01",
+          "2018-08-31"
+        ]
+      },
+      "row_counts": {
+        "train": 45972,
+        "validation": 6870,
+        "history": 63592,
+        "cv_folds": 5,
+        "train_late": 4061,
+        "validation_late": 713,
+        "june_scored": 6164,
+        "june_known": 6155,
+        "july_scored": 6129,
+        "august_scored": 6606
+      },
+      "features": {
+        "numeric": [
+          "order_approved_day_of_week",
+          "order_approved_day_of_month",
+          "order_approved_month",
+          "order_item_count",
+          "order_seller_count",
+          "order_frieght_value_sum",
+          "order_product_weight_g_sum",
+          "order_product_category_count",
+          "seller_dist_km_mean",
+          "seller_state_count",
+          "payment_value_sum",
+          "promised_lead_days",
+          "approval_lag_hours",
+          "order_product_volume_cm3_sum",
+          "order_product_photos_mean",
+          "freight_to_price_ratio",
+          "payment_installments_max",
+          "is_weekend_approval",
+          "is_black_friday_period",
+          "is_december_peak",
+          "orders_approved_prev_7d"
+        ],
+        "categorical": [
+          "customer_state",
+          "route_type",
+          "payment_combination"
+        ]
+      },
+      "linear_transforms": {
+        "groups_kept": [
+          "log",
+          "cyclic",
+          "squared"
+        ],
+        "log_cols": [
+          "payment_value_sum",
+          "order_frieght_value_sum",
+          "order_product_weight_g_sum",
+          "order_product_volume_cm3_sum",
+          "approval_lag_hours",
+          "seller_dist_km_mean",
+          "freight_to_price_ratio",
+          "orders_approved_prev_7d"
+        ],
+        "squared_cols": [
+          "promised_lead_days",
+          "approval_lag_hours",
+          "payment_value_sum"
+        ],
+        "cyclic": true,
+        "merge_mixed_route": true
+      },
+      "selected_variables": {
+        "C1": [
+          "order_approved_day_of_week",
+          "order_approved_day_of_month",
+          "order_approved_month",
+          "order_item_count",
+          "order_seller_count",
+          "order_frieght_value_sum",
+          "order_product_weight_g_sum",
+          "order_product_category_count",
+          "seller_dist_km_mean",
+          "seller_state_count",
+          "payment_value_sum",
+          "promised_lead_days",
+          "approval_lag_hours",
+          "order_product_volume_cm3_sum",
+          "order_product_photos_mean",
+          "freight_to_price_ratio",
+          "payment_installments_max",
+          "is_weekend_approval",
+          "is_black_friday_period",
+          "is_december_peak",
+          "orders_approved_prev_7d",
+          "customer_state",
+          "route_type",
+          "payment_combination"
+        ],
+        "C2": [
+          "customer_state",
+          "order_approved_day_of_month",
+          "order_seller_count",
+          "order_approved_day_of_week",
+          "promised_lead_days",
+          "route_type"
+        ],
+        "C2B": [
+          "is_black_friday_period",
+          "customer_state",
+          "route_type",
+          "promised_lead_days",
+          "order_approved_month",
+          "order_seller_count",
+          "payment_value_sum",
+          "is_december_peak",
+          "approval_lag_hours",
+          "order_item_count",
+          "order_product_volume_cm3_sum",
+          "orders_approved_prev_7d",
+          "seller_dist_km_mean",
+          "order_product_photos_mean"
+        ],
+        "AIC": [
+          "customer_state",
+          "is_black_friday_period",
+          "route_type",
+          "promised_lead_days",
+          "order_approved_month",
+          "payment_value_sum",
+          "order_seller_count",
+          "is_december_peak",
+          "approval_lag_hours",
+          "order_item_count",
+          "order_product_volume_cm3_sum",
+          "orders_approved_prev_7d",
+          "seller_dist_km_mean",
+          "order_product_photos_mean",
+          "seller_state_count",
+          "order_approved_day_of_week",
+          "is_weekend_approval",
+          "payment_combination",
+          "order_approved_day_of_month"
+        ],
+        "Lasso": [
+          "order_approved_day_of_week",
+          "order_approved_day_of_month",
+          "order_approved_month",
+          "order_item_count",
+          "order_seller_count",
+          "order_frieght_value_sum",
+          "order_product_weight_g_sum",
+          "order_product_category_count",
+          "seller_dist_km_mean",
+          "seller_state_count",
+          "payment_value_sum",
+          "promised_lead_days",
+          "approval_lag_hours",
+          "order_product_volume_cm3_sum",
+          "order_product_photos_mean",
+          "freight_to_price_ratio",
+          "payment_installments_max",
+          "is_weekend_approval",
+          "is_black_friday_period",
+          "is_december_peak",
+          "orders_approved_prev_7d",
+          "customer_state",
+          "route_type",
+          "payment_combination"
+        ]
+      },
+      "stepwise": {
+        "best_step": 15,
+        "one_se_step": 6,
+        "lasso_C": 1291.5496650148827
+      },
+      "rf_best_params": {
+        "min_samples_split": 50,
+        "max_samples": 0.7,
+        "criterion": "entropy",
+        "class_weight": null,
+        "max_depth": 8,
+        "min_samples_leaf": 2,
+        "max_features": "log2",
+        "n_estimators": 500
+      },
+      "rf_search": {
+        "n_iter_stage_a": 60,
+        "best_cv_mean": 0.2690619357464787,
+        "best_cv_sd": 0.03307563022974996,
+        "stage_a_seconds": 167.3,
+        "stage_b_seconds": 39.1
+      },
+      "rf_default_params": {
+        "n_estimators": 100,
+        "random_state": 42,
+        "other": "scikit-learn defaults"
+      },
+      "resampling": {
+        "adopted": false,
+        "clear_ap_gain_any": false,
+        "ap_gain_vs_none": {
+          "C1/none": 0.0,
+          "C1/undersample": -0.00997,
+          "C1/oversample": -0.00539,
+          "C1/smotenc": -0.01113,
+          "C3/none": 0.0,
+          "C3/undersample": -0.00229,
+          "C3/oversample": 0.00111,
+          "C3/smotenc": -0.03749
+        }
+      },
+      "fingerprints": {
+        "C0": "6cfc3554829e5180e75812d90052c0786ed0e5489debab5be35fcfe266cb3be9",
+        "C1": "af006b8157d9fda04eb448c3889e599c5c9f44a398cfbf5aabbeaf201e1222b8",
+        "C2": "ea2b8ce2adcf910a91d3f926aca7d6616ce232b26c5d68aa8c7b037366ced12c",
+        "C2B": "f1c226fb2ef6cd1d7a5902c0f19a3b7699999e93d5911bfd159c1a1688b49592",
+        "C3": "9f7b8ab14796ecdd2bc3abed12b10f2d3094bbc595268b9f02a346dc5ec45d9a",
+        "C3d": "80cab31f8d470b89ea01b4eaf2becac8777971e8dd2dd9b1cc124958bb55130b"
+      },
+      "logistic_convergence": {
+        "C1": {
+          "converged": true,
+          "fallback": null
+        },
+        "C2": {
+          "converged": true,
+          "fallback": null
+        },
+        "C2B": {
+          "converged": true,
+          "fallback": null
+        }
+      },
+      "coefficient_checks": {
+        "C1": {
+          "max_abs_gap_identified_terms": 0.00028123603926433205,
+          "converged": true,
+          "unstable_terms": {
+            "seller_state_count": 100.0
+          }
+        },
+        "C2": {
+          "max_abs_gap_identified_terms": 7.572179655168654e-05,
+          "converged": true,
+          "unstable_terms": {}
+        }
+      },
+      "headline_june": {
+        "C0": {
+          "avg_precision": 0.022258326563769294,
+          "roc_auc": 0.5,
+          "brier": 0.029373114083012637,
+          "precision_top10": 0.014586709886547812,
+          "top10_lift": 0.6562954725597132,
+          "late_rate": 0.022258326563769294
+        },
+        "C1": {
+          "avg_precision": 0.0816168319405422,
+          "roc_auc": 0.6933736503385222,
+          "brier": 0.023482027828168377,
+          "precision_top10": 0.07293354943273905,
+          "top10_lift": 3.281477362798566,
+          "late_rate": 0.022258326563769294
+        },
+        "C2": {
+          "avg_precision": 0.06783218228110466,
+          "roc_auc": 0.6918744981600211,
+          "brier": 0.025971036608624716,
+          "precision_top10": 0.07293354943273905,
+          "top10_lift": 3.281477362798566,
+          "late_rate": 0.022258326563769294
+        },
+        "C2B": {
+          "avg_precision": 0.08116976409011664,
+          "roc_auc": 0.696231257565503,
+          "brier": 0.023359372598683613,
+          "precision_top10": 0.06969205834683954,
+          "top10_lift": 3.1356339244519633,
+          "late_rate": 0.022258326563769294
+        },
+        "C3": {
+          "avg_precision": 0.11215692321859022,
+          "roc_auc": 0.6369274172615972,
+          "brier": 0.026799866607279392,
+          "precision_top10": 0.07293354943273905,
+          "top10_lift": 3.281477362798566,
+          "late_rate": 0.022258326563769294
+        },
+        "C3d": {
+          "avg_precision": 0.10969713710362942,
+          "roc_auc": 0.652852876892437,
+          "brier": 0.02660333610885459,
+          "precision_top10": 0.06969205834683954,
+          "top10_lift": 3.1356339244519633,
+          "late_rate": 0.022258326563769294
+        }
+      },
+      "headline_validation": {
+        "C0": {
+          "avg_precision": 0.10378457059679767,
+          "roc_auc": 0.5,
+          "brier": 0.09325198013678918,
+          "precision_top10": 0.09606986899563319,
+          "top10_lift": 0.9256661991584852,
+          "late_rate": 0.10378457059679767
+        },
+        "C1": {
+          "avg_precision": 0.24014883884760227,
+          "roc_auc": 0.7178218340519837,
+          "brier": 0.08735041799900466,
+          "precision_top10": 0.3027656477438137,
+          "top10_lift": 2.917251051893408,
+          "late_rate": 0.10378457059679767
+        },
+        "C2": {
+          "avg_precision": 0.23872508654072433,
+          "roc_auc": 0.712030298357085,
+          "brier": 0.0883874866824611,
+          "precision_top10": 0.3056768558951965,
+          "top10_lift": 2.945301542776998,
+          "late_rate": 0.10378457059679767
+        },
+        "C2B": {
+          "avg_precision": 0.24388942947489295,
+          "roc_auc": 0.7212608324348778,
+          "brier": 0.08725579550960069,
+          "precision_top10": 0.31149927219796214,
+          "top10_lift": 3.0014025245441793,
+          "late_rate": 0.10378457059679767
+        },
+        "C3": {
+          "avg_precision": 0.21943198013365045,
+          "roc_auc": 0.700925251614999,
+          "brier": 0.090538733073484,
+          "precision_top10": 0.24599708879184862,
+          "top10_lift": 2.370266479663394,
+          "late_rate": 0.10378457059679767
+        },
+        "C3d": {
+          "avg_precision": 0.20379263769516637,
+          "roc_auc": 0.668554884906198,
+          "brier": 0.0888824017467249,
+          "precision_top10": 0.23580786026200873,
+          "top10_lift": 2.272089761570827,
+          "late_rate": 0.10378457059679767
+        }
+      },
+      "versions": {
+        "python": "3.13.5",
+        "scikit-learn": "1.9.1",
+        "numpy": "2.5.3",
+        "pandas": "3.0.6",
+        "statsmodels": "0.15.0",
+        "imbalanced-learn": "0.14.2"
+      }
+    },
+    "regression": {
+      "task": "regression",
+      "run_date": "2018-06-02",
+      "lookback_days": 45,
+      "random_state": 42,
+      "dates": {
+        "train": [
+          "2017-04-18 00:00:00",
+          "2018-02-01 00:00:00"
+        ],
+        "validation": [
+          "2018-03-19 00:00:00",
+          "2018-04-17 00:00:00"
+        ],
+        "test_june": [
+          "2018-06-01",
+          "2018-06-30"
+        ],
+        "monitoring": [
+          "2018-07-01",
+          "2018-08-31"
+        ]
+      },
+      "row_counts": {
+        "train": 45371,
+        "validation": 6847,
+        "history": 62841,
+        "cv_folds": 5,
+        "train_late": 3426,
+        "validation_late": 686,
+        "june_scored": 6142,
+        "june_known": 6142,
+        "july_scored": 6078,
+        "august_scored": 6561
+      },
+      "features": {
+        "numeric": [
+          "order_approved_day_of_week",
+          "order_approved_day_of_month",
+          "order_approved_month",
+          "order_item_count",
+          "order_seller_count",
+          "order_frieght_value_sum",
+          "order_product_weight_g_sum",
+          "order_product_category_count",
+          "seller_dist_km_mean",
+          "seller_state_count",
+          "payment_value_sum",
+          "promised_lead_days",
+          "approval_lag_hours",
+          "order_product_volume_cm3_sum",
+          "order_product_photos_mean",
+          "freight_to_price_ratio",
+          "payment_installments_max",
+          "is_weekend_approval",
+          "is_black_friday_period",
+          "is_december_peak",
+          "orders_approved_prev_7d"
+        ],
+        "categorical": [
+          "customer_state",
+          "route_type",
+          "payment_combination"
+        ]
+      },
+      "linear_transforms": {
+        "groups_kept": [
+          "log",
+          "cyclic",
+          "squared"
+        ],
+        "log_cols": [
+          "payment_value_sum",
+          "order_frieght_value_sum",
+          "order_product_weight_g_sum",
+          "order_product_volume_cm3_sum",
+          "approval_lag_hours",
+          "seller_dist_km_mean",
+          "freight_to_price_ratio",
+          "orders_approved_prev_7d"
+        ],
+        "squared_cols": [
+          "promised_lead_days",
+          "seller_dist_km_mean",
+          "order_seller_count"
+        ],
+        "cyclic": true,
+        "merge_mixed_route": true
+      },
+      "selected_variables": {
+        "R1": [
+          "order_approved_day_of_week",
+          "order_approved_day_of_month",
+          "order_approved_month",
+          "order_item_count",
+          "order_seller_count",
+          "order_frieght_value_sum",
+          "order_product_weight_g_sum",
+          "order_product_category_count",
+          "seller_dist_km_mean",
+          "seller_state_count",
+          "payment_value_sum",
+          "promised_lead_days",
+          "approval_lag_hours",
+          "order_product_volume_cm3_sum",
+          "order_product_photos_mean",
+          "freight_to_price_ratio",
+          "payment_installments_max",
+          "is_weekend_approval",
+          "is_black_friday_period",
+          "is_december_peak",
+          "orders_approved_prev_7d",
+          "customer_state",
+          "route_type",
+          "payment_combination"
+        ],
+        "R2": [
+          "promised_lead_days"
+        ],
+        "R2B": [
+          "promised_lead_days",
+          "customer_state",
+          "is_black_friday_period",
+          "order_approved_month",
+          "seller_dist_km_mean",
+          "order_product_weight_g_sum",
+          "order_seller_count",
+          "is_december_peak",
+          "order_approved_day_of_week",
+          "route_type",
+          "order_item_count",
+          "order_frieght_value_sum",
+          "order_product_photos_mean",
+          "approval_lag_hours",
+          "order_product_volume_cm3_sum",
+          "orders_approved_prev_7d",
+          "is_weekend_approval"
+        ],
+        "AIC": [
+          "promised_lead_days",
+          "customer_state",
+          "is_black_friday_period",
+          "order_approved_month",
+          "seller_dist_km_mean",
+          "order_product_weight_g_sum",
+          "order_seller_count",
+          "is_december_peak",
+          "order_approved_day_of_week",
+          "route_type",
+          "order_item_count",
+          "order_frieght_value_sum",
+          "order_product_photos_mean",
+          "approval_lag_hours",
+          "payment_combination",
+          "order_product_volume_cm3_sum",
+          "orders_approved_prev_7d",
+          "seller_state_count",
+          "is_weekend_approval",
+          "payment_installments_max",
+          "freight_to_price_ratio"
+        ],
+        "Lasso": [
+          "order_approved_day_of_week",
+          "order_approved_month",
+          "order_item_count",
+          "order_seller_count",
+          "order_frieght_value_sum",
+          "seller_dist_km_mean",
+          "seller_state_count",
+          "promised_lead_days",
+          "approval_lag_hours",
+          "is_black_friday_period",
+          "orders_approved_prev_7d",
+          "customer_state"
+        ]
+      },
+      "stepwise": {
+        "best_step": 14,
+        "one_se_step": 1,
+        "lasso_alpha": 0.22575320727376827
+      },
+      "rf_best_params": {
+        "min_samples_split": 50,
+        "max_samples": 0.9,
+        "max_depth": null,
+        "min_samples_leaf": 2,
+        "max_features": 0.3,
+        "n_estimators": 500
+      },
+      "rf_search": {
+        "n_iter_stage_a": 60,
+        "best_cv_mean": -8.335441532545264,
+        "best_cv_sd": 0.8193219030237641,
+        "stage_a_seconds": 155.6,
+        "stage_b_seconds": 376.2
+      },
+      "rf_default_params": {
+        "n_estimators": 100,
+        "random_state": 42,
+        "other": "scikit-learn defaults"
+      },
+      "resampling": {
+        "adopted": false,
+        "note": "No resampling experiment and no reweighting for regression."
+      },
+      "fingerprints": {
+        "R0a": "aa458ba0e06a2f8c69f1e45dfa2bb4afccc7627da5513f4386b25fabc17b2b29",
+        "R0b": "1c7d431dae39804d33b07dde205b8f975fc6dd026477bbdbbdb11512f109bb59",
+        "R1": "02725134c68d747fe6d1142d83efdd8d67f056f5d8199dbb92621b733a76da86",
+        "R2": "98f94cb448dd5c61a8626c69d21391d410b31b95ff9d034facc0c8adc663bb9f",
+        "R2B": "09f3b829984000e5178be0572e7b304df2682cf32de42b29bd0b72fb5000b7f6",
+        "R3": "e966d2bf96e28d621683b0247df8a1455013386df42985edd1114d7ac30930c3",
+        "R3d": "7cd4ce93d7a827e4ab204da848bff62ff0284390f56caa23e2ebbf2ee3a21caf"
+      },
+      "coefficient_checks": {
+        "R1": {
+          "max_abs_gap": 1.9184653865522705e-13,
+          "n_terms": 58,
+          "covariance": "HC3"
+        },
+        "R2": {
+          "max_abs_gap": 5.5067062021407764e-14,
+          "n_terms": 3,
+          "covariance": "HC3"
+        }
+      },
+      "headline_june": {
+        "R0a": {
+          "rmse": 11.687856584237435,
+          "mae": 9.163139042657114,
+          "r2": -0.5418002493839018,
+          "median_ae": 8.0,
+          "bias": 7.152718984044285,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.018886356235753826
+        },
+        "R0b": {
+          "rmse": 20.887703502381168,
+          "mae": 19.299413871703027,
+          "r2": -3.9242461259993906,
+          "median_ae": 19.0,
+          "bias": 18.820742429176164,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.018886356235753826
+        },
+        "R1": {
+          "rmse": 7.385431866818005,
+          "mae": 5.823664983649107,
+          "r2": 0.3843836358214341,
+          "median_ae": 5.04832645983077,
+          "bias": 4.1247628247615005,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.018886356235753826
+        },
+        "R2": {
+          "rmse": 9.281956080738363,
+          "mae": 7.934856221071178,
+          "r2": 0.027616945315444896,
+          "median_ae": 7.531466348881175,
+          "bias": 6.5196024617968575,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.018886356235753826
+        },
+        "R2B": {
+          "rmse": 7.390750209678022,
+          "mae": 5.829761778413421,
+          "r2": 0.38349669033209677,
+          "median_ae": 5.067750584460239,
+          "bias": 4.127673079985546,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.018886356235753826
+        },
+        "R3": {
+          "rmse": 7.953278344753935,
+          "mae": 6.44726427445255,
+          "r2": 0.2860780619782499,
+          "median_ae": 5.8276250816113535,
+          "bias": 4.9432673618556615,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.018886356235753826
+        },
+        "R3d": {
+          "rmse": 8.39313470982357,
+          "mae": 6.803725170954087,
+          "r2": 0.2049274660430871,
+          "median_ae": 6.050000000000001,
+          "bias": 5.280374470856398,
+          "late_flag_f1": 0.06451612903225806,
+          "late_rate": 0.018886356235753826
+        }
+      },
+      "headline_validation": {
+        "R0a": {
+          "rmse": 9.86393483641972,
+          "mae": 6.732583613261283,
+          "r2": -0.08802801061145771,
+          "median_ae": 5.0,
+          "bias": -3.022053454067475,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.10062801226814663
+        },
+        "R0b": {
+          "rmse": 13.550289306690825,
+          "mae": 11.86709507813641,
+          "r2": -1.0532263190309616,
+          "median_ae": 11.0,
+          "bias": 9.744705710530159,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.10062801226814663
+        },
+        "R1": {
+          "rmse": 8.209144477177597,
+          "mae": 5.6146116396968075,
+          "r2": 0.24640937795208484,
+          "median_ae": 3.976507468781662,
+          "bias": -0.30387482259637605,
+          "late_flag_f1": 0.019971469329529243,
+          "late_rate": 0.10062801226814663
+        },
+        "R2": {
+          "rmse": 8.898889514944248,
+          "mae": 6.071661099690917,
+          "r2": 0.11445361068429694,
+          "median_ae": 4.254310234732164,
+          "bias": -0.8310469945112243,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.10062801226814663
+        },
+        "R2B": {
+          "rmse": 8.20803743051993,
+          "mae": 5.615052879031438,
+          "r2": 0.24661261562916958,
+          "median_ae": 3.9615927483604825,
+          "bias": -0.30249975537317886,
+          "late_flag_f1": 0.017142857142857144,
+          "late_rate": 0.10062801226814663
+        },
+        "R3": {
+          "rmse": 8.39747261170767,
+          "mae": 5.675402525122131,
+          "r2": 0.21143612222020025,
+          "median_ae": 3.8642596149297024,
+          "bias": -0.7140992211280729,
+          "late_flag_f1": 0.0,
+          "late_rate": 0.10062801226814663
+        },
+        "R3d": {
+          "rmse": 8.556277500456417,
+          "mae": 6.05890024828392,
+          "r2": 0.18132899396897384,
+          "median_ae": 4.41,
+          "bias": 0.300395793778297,
+          "late_flag_f1": 0.05869074492099323,
+          "late_rate": 0.10062801226814663
+        }
+      },
+      "versions": {
+        "python": "3.13.5",
+        "scikit-learn": "1.9.1",
+        "numpy": "2.5.3",
+        "pandas": "3.0.6",
+        "statsmodels": "0.15.0"
+      }
+    }
+  },
+  "package_versions": {
+    "python": "3.13.5",
+    "scikit-learn": "1.9.1",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "statsmodels": "0.15.0",
+    "imbalanced-learn": "0.14.2"
+  },
+  "package_version_conflicts": []
+}

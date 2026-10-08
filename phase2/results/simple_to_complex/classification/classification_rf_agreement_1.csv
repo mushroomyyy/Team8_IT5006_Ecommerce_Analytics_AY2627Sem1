@@ -1,0 +1,11 @@
+rank,feature,importance_mean,linear_min_p,linear_significant
+1,customer_state,0.0382,0.0,True
+2,promised_lead_days,0.0339,0.0,True
+3,route_type,0.0323,0.0,True
+4,seller_dist_km_mean,0.0231,0.0004,True
+5,payment_value_sum,0.0117,0.0235,True
+6,order_product_weight_g_sum,0.0094,0.9706,False
+7,order_approved_day_of_month,0.0091,0.0705,False
+8,order_frieght_value_sum,0.0041,0.545,False
+9,orders_approved_prev_7d,0.0032,0.0002,True
+10,order_seller_count,0.0014,0.0013,True

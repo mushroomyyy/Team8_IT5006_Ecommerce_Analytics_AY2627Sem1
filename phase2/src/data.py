@@ -1,4 +1,4 @@
-"""Locate and load the Olist tables (model_dev_v2.ipynb cells 3, 5 and 6)."""
+"""Locate and load the Olist tables."""
 import os
 import zipfile
 

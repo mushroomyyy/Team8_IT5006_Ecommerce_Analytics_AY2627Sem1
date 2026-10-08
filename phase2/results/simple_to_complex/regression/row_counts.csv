@@ -1,0 +1,4 @@
+Split,Orders,Mean days from promise,Median days,SD days,Late orders (> 0 days),Late rate (%),First approval,Last approval
+Train,45371,-11.44,-13.0,9.16,3426,7.55,2017-04-18,2018-02-01
+Validation,6847,-9.78,-11.0,9.46,686,10.02,2018-03-19,2018-04-17
+History before 2 June (June refit),62841,-10.51,-12.0,9.66,6161,9.8,2017-04-18,2018-04-17

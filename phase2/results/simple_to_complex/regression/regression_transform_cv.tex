@@ -1,0 +1,22 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Transformation groups judged by CV RMSE}
+\begin{tabular}{lrrrrrr}
+\toprule
+design & groups & cv\_sd & kept & cv\_rmse & rmse\_change & step \\
+\midrule
+raw &  & 2.477 & True & 9.5289 & -0.0 & log, cyclic \\
+raw + log & log & 1.8005 & False & 9.0974 & nan & log, cyclic \\
+kept (raw) + log & log & 1.8005 & True & 9.0974 & -0.4315 & log, cyclic \\
+raw + cyclic & cyclic & 1.894 & False & 9.0696 & nan & log, cyclic \\
+kept (log) + cyclic & log+cyclic & 1.3489 & True & 8.6509 & -0.4465 & log, cyclic \\
+log+cyclic & log+cyclic & 1.3489 & True & 8.6509 & -0.0 & squared (promised\_lead\_days, seller\_dist\_km\_mean, order\_seller\_count) \\
+log+cyclic + squared & log+cyclic+squared & 1.3199 & False & 8.6278 & nan & squared (promised\_lead\_days, seller\_dist\_km\_mean, order\_seller\_count) \\
+kept (log+cyclic) + squared & log+cyclic+squared & 1.3199 & True & 8.6278 & -0.0231 & squared (promised\_lead\_days, seller\_dist\_km\_mean, order\_seller\_count) \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+

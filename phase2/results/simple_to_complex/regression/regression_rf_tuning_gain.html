@@ -1,0 +1,75 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Random Forest: tuned (R3) minus default (R3d)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>metric</th>
+      <th>CV: R3</th>
+      <th>CV: R3d</th>
+      <th>CV: gain</th>
+      <th>Validation: R3</th>
+      <th>Validation: R3d</th>
+      <th>Validation: gain</th>
+      <th>June: R3</th>
+      <th>June: R3d</th>
+      <th>June: gain</th>
+      <th>Train - CV gap: R3</th>
+      <th>Train - CV gap: R3d</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>rmse</td>
+      <td>8.3095</td>
+      <td>8.7104</td>
+      <td>-0.4008</td>
+      <td>8.3975</td>
+      <td>8.5563</td>
+      <td>-0.1588</td>
+      <td>7.9533</td>
+      <td>8.3931</td>
+      <td>-0.4399</td>
+      <td>-1.5297</td>
+      <td>-5.7608</td>
+    </tr>
+    <tr>
+      <td>mae</td>
+      <td>5.6956</td>
+      <td>6.2901</td>
+      <td>-0.5944</td>
+      <td>5.6754</td>
+      <td>6.0589</td>
+      <td>-0.3835</td>
+      <td>6.4473</td>
+      <td>6.8037</td>
+      <td>-0.3565</td>
+      <td>-1.1609</td>
+      <td>-4.2898</td>
+    </tr>
+    <tr>
+      <td>r2</td>
+      <td>0.1774</td>
+      <td>0.0942</td>
+      <td>0.0832</td>
+      <td>0.2114</td>
+      <td>0.1813</td>
+      <td>0.0301</td>
+      <td>0.2861</td>
+      <td>0.2049</td>
+      <td>0.0812</td>
+      <td>0.2749</td>
+      <td>0.8022</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Negative gain is better for RMSE and MAE. Gaps are Train minus CV mean.</p>
+<p></p></section>
+</body></html>

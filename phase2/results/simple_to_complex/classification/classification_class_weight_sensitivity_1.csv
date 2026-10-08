@@ -1,0 +1,3 @@
+Model,avg_precision mean +/- SD,roc_auc mean +/- SD,brier mean +/- SD,precision_top10 mean +/- SD,top10_capture mean +/- SD,top10_lift mean +/- SD
+C1 (unweighted),0.1399 +/- 0.0259,0.6075 +/- 0.0362,0.0871 +/- 0.0291,0.1634 +/- 0.0250,0.1823 +/- 0.0488,1.8211 +/- 0.4861
+C1 (class_weight='balanced'),0.1367 +/- 0.0268,0.6095 +/- 0.0329,0.2796 +/- 0.0437,0.1591 +/- 0.0226,0.1778 +/- 0.0481,1.7762 +/- 0.4791

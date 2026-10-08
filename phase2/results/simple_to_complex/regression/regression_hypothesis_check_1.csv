@@ -1,0 +1,29 @@
+hypothesis,feature,model,expected_sign,term,coef,p_value,observed_sign,verdict
+time,is_weekend_approval,R1,+,is_weekend_approval,-0.175,0.0044,-,disagree
+time,is_black_friday_period,R1,+,is_black_friday_period,0.986,0.0,+,agree
+time,is_december_peak,R1,+,is_december_peak,0.378,0.0,+,agree
+workload,orders_approved_prev_7d,R1,+,log_orders_approved_prev_7d,0.202,0.0018,+,agree
+workload,approval_lag_hours,R1,+,log_approval_lag_hours,0.36,0.0,+,agree
+order,order_item_count,R1,+,order_item_count,-0.391,0.0,-,disagree
+order,order_seller_count,R1,+,order_seller_count,-0.509,0.0,-,disagree
+order,order_product_weight_g_sum,R1,+,log_order_product_weight_g_sum,0.199,0.0094,+,agree
+order,order_product_volume_cm3_sum,R1,+,log_order_product_volume_cm3_sum,0.24,0.0001,+,agree
+distance,seller_dist_km_mean,R1,+,log_seller_dist_km_mean,1.166,0.0,+,agree
+distance,seller_state_count,R1,+,seller_state_count,-0.145,0.0,-,disagree
+payment,payment_installments_max,R1,+,payment_installments_max,0.077,0.1008,+,not significant
+payment,payment_value_sum,R1,+,log_payment_value_sum,0.062,0.5239,+,not significant
+promise,promised_lead_days,R1,-,promised_lead_days,-5.593,0.0,-,agree
+time,is_weekend_approval,R2,+,,,,,not in model
+time,is_black_friday_period,R2,+,,,,,not in model
+time,is_december_peak,R2,+,,,,,not in model
+workload,orders_approved_prev_7d,R2,+,,,,,not in model
+workload,approval_lag_hours,R2,+,,,,,not in model
+order,order_item_count,R2,+,,,,,not in model
+order,order_seller_count,R2,+,,,,,not in model
+order,order_product_weight_g_sum,R2,+,,,,,not in model
+order,order_product_volume_cm3_sum,R2,+,,,,,not in model
+distance,seller_dist_km_mean,R2,+,,,,,not in model
+distance,seller_state_count,R2,+,,,,,not in model
+payment,payment_installments_max,R2,+,,,,,not in model
+payment,payment_value_sum,R2,+,,,,,not in model
+promise,promised_lead_days,R2,-,promised_lead_days,-3.318,0.0,-,agree

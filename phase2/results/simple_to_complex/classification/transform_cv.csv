@@ -1,0 +1,9 @@
+design,groups,cv_mean,cv_sd,change_vs_kept,kept,step
+raw,,0.12935287839448217,0.02197354230030167,0.0,True,"log, cyclic"
+raw + log,log,0.13803036927518914,0.02439560958933322,,False,"log, cyclic"
+kept (raw) + log,log,0.13803036927518914,0.02439560958933322,0.008677490880706962,True,"log, cyclic"
+raw + cyclic,cyclic,0.12893105046943565,0.023444325945566277,,False,"log, cyclic"
+kept (log) + cyclic,log+cyclic,0.1383452710266144,0.02611683224872293,0.00031490175142526167,True,"log, cyclic"
+log+cyclic,log+cyclic,0.1383452710266144,0.02611683224872293,0.0,True,"squared (promised_lead_days, approval_lag_hours, payment_value_sum)"
+log+cyclic + squared,log+cyclic+squared,0.1399002068380494,0.02589390827090737,,False,"squared (promised_lead_days, approval_lag_hours, payment_value_sum)"
+kept (log+cyclic) + squared,log+cyclic+squared,0.1399002068380494,0.02589390827090737,0.0015549358114350098,True,"squared (promised_lead_days, approval_lag_hours, payment_value_sum)"

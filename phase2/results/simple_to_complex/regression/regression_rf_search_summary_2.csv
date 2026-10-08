@@ -1,0 +1,9 @@
+Item,Value
+Stage A candidates,60
+Stage A trees,200
+Stage B candidates,36
+Stage B trees,300 or 500
+"Best CV RMSE, days (mean +/- SD)",8.335 +/- 0.819
+"Stage A best CV RMSE, days",8.353
+"Search time (Stage A + B, s)",532
+Best parameters,"{""min_samples_split"": 50, ""max_samples"": 0.9, ""max_depth"": null, ""min_samples_leaf"": 2, ""max_features"": 0.3, ""n_estimators"": 500}"

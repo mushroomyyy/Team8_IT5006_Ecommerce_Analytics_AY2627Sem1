@@ -1,13 +1,13 @@
-"""Order-level feature table (model_dev_v2.ipynb cells 14-26) plus extra leakage-safe features.
+"""Order-level feature table plus extra leakage-safe features.
 
-`build_feature_table` reproduces v2's `final_df` exactly. `add_extra_features` appends
+`build_feature_table` builds one row per approved order. `add_extra_features` appends
 new columns that are all known when the order is approved, and never reads
 `order_delivered_carrier_date` or `order_delivered_customer_date`.
 """
 import numpy as np
 import pandas as pd
 
-# Base feature set used by model_dev_v2.ipynb
+# Base candidate numeric features
 NUM_COLS = [
     'order_approved_day_of_week',
     'order_approved_day_of_month',
@@ -40,14 +40,7 @@ NUM_COLS = [
     'payment_type_count_voucher',
 ]
 CAT_COLS = ['customer_state', 'route_type']
-
-# Classification history features: only outcomes known before each approval day.
-HISTORY_NUM_COLS = [
-    'seller_late_rate_mean',
-    'seller_no_history_share',
-    'product_late_rate_mean',
-    'product_no_history_share',
-]
+SELECTED_CAT_COLS = CAT_COLS + ['payment_combination']
 
 # Added by add_extra_features; each is known at approval time
 EXTRA_NUM_COLS = [
@@ -61,6 +54,34 @@ EXTRA_NUM_COLS = [
     'is_black_friday_period',        # 2017-11-20 to 2017-11-30 order spike (Phase 1 EDA)
     'is_december_peak',
     'orders_approved_prev_7d',       # Platform load over the 7 completed days before approval
+]
+
+# A fixed, shared reduction of the original 41 approval-time predictors.
+# Payment combination is a separate categorical predictor. See the full audit
+# and the reference-coded categorical caveats in MULTICOLLINEARITY_NOTES.md.
+COLLINEARITY_EXCLUDED_COLS = [
+    'order_approved_week_of_year',
+    'order_revenue_sum',
+    'seller_dist_km_min',
+    'seller_dist_km_max',
+    'seller_dist_km_median',
+    'payment_type_value_boleto',
+    'payment_type_value_credit_card',
+    'payment_type_value_debit_card',
+    'payment_type_value_not_defined',
+    'payment_type_value_voucher',
+    'payment_type_count_boleto',
+    'payment_type_count_credit_card',
+    'payment_type_count_debit_card',
+    'payment_type_count_not_defined',
+    'payment_type_count_voucher',
+    'order_pdt_price_sum',
+    'seller_zip_code_prefix_count',
+    'seller_city_count',
+]
+SELECTED_NUM_COLS = [
+    column for column in NUM_COLS + EXTRA_NUM_COLS
+    if column not in COLLINEARITY_EXCLUDED_COLS
 ]
 
 # Columns that define the outcome and must never be used as predictors
@@ -204,94 +225,6 @@ def build_feature_table(olist, min_partition='2017-01'):
     return final_df[final_df['partition_yyyymm'] >= min_partition].reset_index(drop=True)
 
 
-def add_historical_performance(final_df, olist, smoothing=10, exclude_order_ids=()):
-    """Append seller/product late history known before each order's approval day.
-
-    Each distinct order-entity pair contributes once. A delivered-on-time label
-    becomes known the day after delivery; a late label becomes known the day
-    after the promised date. Same-day outcomes are deliberately unavailable.
-    Rates use an as-of global late rate as the smoothing prior; new entities
-    receive that prior and a count of zero. `exclude_order_ids` prevents
-    validation or scored orders from contributing labels to any history.
-    """
-    if smoothing < 0:
-        raise ValueError('smoothing must be non-negative')
-    orders = olist['orders'][['order_id', 'order_approved_at',
-                              'order_delivered_customer_date',
-                              'order_estimated_delivery_date']].copy()
-    approved = orders['order_approved_at'].dt.normalize()
-    delivered = orders['order_delivered_customer_date'].dt.normalize()
-    promised = orders['order_estimated_delivery_date'].dt.normalize()
-    valid = approved.notna() & promised.notna() & ~(delivered.notna() & delivered.lt(approved))
-    on_time = valid & delivered.notna() & delivered.le(promised)
-    late = valid & ~on_time
-    # labels_as_of excludes the run day. This is the first day on which its
-    # verdict can be used by a newly approved order.
-    orders['known_day'] = pd.NaT
-    orders.loc[on_time, 'known_day'] = delivered[on_time] + pd.Timedelta(days=1)
-    orders.loc[late, 'known_day'] = promised[late] + pd.Timedelta(days=1)
-    orders['known_day'] = orders['known_day'].where(
-        orders['known_day'].gt(approved), approved + pd.Timedelta(days=1))
-    orders['late'] = late.astype(int)
-    known = orders.loc[valid, ['order_id', 'known_day', 'late']].copy()
-    if len(exclude_order_ids):
-        known = known.loc[~known['order_id'].isin(exclude_order_ids)].copy()
-    known['known_day'] = known['known_day'].astype('datetime64[ns]')
-    queries = final_df[['order_id', 'order_approved_dt']].copy()
-    queries['order_approved_dt'] = (pd.to_datetime(queries['order_approved_dt'])
-                                    .dt.normalize().astype('datetime64[ns]'))
-
-    def prior_counts(events, requests, entity):
-        daily = events.groupby([entity, 'known_day'], as_index=False).agg(
-            n=('late', 'size'), late_n=('late', 'sum'))
-        daily = daily.sort_values('known_day')
-        daily['prior_n'] = daily.groupby(entity)['n'].cumsum()
-        daily['prior_late_n'] = daily.groupby(entity)['late_n'].cumsum()
-        return pd.merge_asof(
-            requests.sort_values('order_approved_dt'),
-            daily[[entity, 'known_day', 'prior_n', 'prior_late_n']],
-            left_on='order_approved_dt', right_on='known_day', by=entity,
-            direction='backward', allow_exact_matches=True)
-
-    global_daily = known.groupby('known_day', as_index=False).agg(
-        n=('late', 'size'), late_n=('late', 'sum')).sort_values('known_day')
-    global_daily['global_n'] = global_daily['n'].cumsum()
-    global_daily['global_late_n'] = global_daily['late_n'].cumsum()
-    global_rates = pd.merge_asof(
-        queries.sort_values('order_approved_dt'),
-        global_daily[['known_day', 'global_n', 'global_late_n']],
-        left_on='order_approved_dt', right_on='known_day', direction='backward')
-    global_rates['global_rate'] = (global_rates['global_late_n']
-                                   / global_rates['global_n']).fillna(0.5)
-    global_rate = global_rates.set_index('order_id')['global_rate']
-
-    result = final_df.copy()
-    pairs = olist['order_items'][['order_id', 'seller_id', 'product_id']]
-    for entity, prefix in [('seller_id', 'seller'), ('product_id', 'product')]:
-        membership = pairs[['order_id', entity]].drop_duplicates().dropna()
-        events = membership.merge(known, on='order_id', how='inner')
-        requests = membership.merge(queries, on='order_id', how='inner')
-        history = prior_counts(events, requests, entity)
-        history['prior_n'] = history['prior_n'].fillna(0)
-        history['prior_late_n'] = history['prior_late_n'].fillna(0)
-        history['no_history'] = history['prior_n'].eq(0).astype(float)
-        prior = history['order_id'].map(global_rate)
-        history['rate'] = ((history['prior_late_n'] + smoothing * prior)
-                           / (history['prior_n'] + smoothing))
-        if smoothing == 0:
-            history['rate'] = history['rate'].fillna(prior)
-        summary = history.groupby('order_id').agg(
-            **{f'{prefix}_late_rate_mean': ('rate', 'mean'),
-               f'{prefix}_no_history_share': ('no_history', 'mean')})
-        result = result.join(summary, on='order_id')
-    for col in HISTORY_NUM_COLS:
-        if col.endswith('no_history_share'):
-            result[col] = result[col].fillna(1)
-        else:
-            result[col] = result[col].fillna(result['order_id'].map(global_rate))
-    return result
-
-
 def add_extra_features(final_df, olist):
     """Return a copy of `final_df` with EXTRA_NUM_COLS appended."""
     df = final_df.copy()
@@ -316,6 +249,10 @@ def add_extra_features(final_df, olist):
     installments = olist['payments'].groupby('order_id')['payment_installments'].max()
     df = df.join(item_agg, on='order_id')
     df['payment_installments_max'] = df['order_id'].map(installments)
+    payment_types = olist['payments'][['order_id', 'payment_type']].drop_duplicates()
+    combinations = payment_types.dropna(subset=['payment_type']).groupby('order_id')['payment_type'].agg(
+        lambda types: '+'.join(sorted(set(types.astype(str)))))
+    df['payment_combination'] = df['order_id'].map(combinations).fillna('no_payment')
     df['freight_to_price_ratio'] = (df['order_frieght_value_sum']
                                     / df['order_pdt_price_sum'].replace(0, np.nan))
 

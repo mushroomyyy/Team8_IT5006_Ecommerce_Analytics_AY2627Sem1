@@ -1,165 +1,156 @@
-"""Plot the monthly validation workflow from the rows and CV splits used by models."""
+"""Timeline figure: Train, CV, Validation, Test (June) and Monitoring (July, August).
+
+`task_timeline` collects the dates and order counts of one task from its `TaskData`;
+`plot_validation_timelines` draws the classification and regression panels together.
+"""
 import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.pyplot as plt
 import pandas as pd
 
+from .labels import attach_prediction_labels, attach_regression_actuals
+from .report_figures import AQUA, BLUE, INK, INK2, ORANGE, PURPLE, SLATE, STYLE, UNUSED
 
-COLORS = {
-    'train': '#2878D0',
-    'buffer': '#E5E3DF',
-    'validation': '#F36B32',
-    'holdout': '#13A87A',
-    'evaluation': '#8060B8',
-    'frozen': '#668A9B',
-}
+COLORS = {'train': BLUE, 'buffer': UNUSED, 'cv': ORANGE, 'validation': AQUA,
+          'test': PURPLE, 'monitoring': SLATE}
+MONTHS = [('Test (June)', '2018-06-01', 'test'), ('Monitoring (July)', '2018-07-01', 'monitoring'),
+          ('Monitoring (August)', '2018-08-01', 'monitoring')]
 
 
-def _period(rows, date_col='order_approved_dt'):
-    if rows.empty:
-        raise ValueError('Timeline periods must contain at least one eligible order')
-    dates = pd.to_datetime(rows[date_col]).dt.normalize()
-    return dates.min(), dates.max(), len(rows)
+def cohort_counts(final_df, orders, task, month_start, lookback):
+    """Orders approved in a month that are scored, and those whose outcome is known at +45 days.
+
+    Classification scores orders that were not already delivered on their approval day.
+    """
+    start = pd.Timestamp(month_start)
+    end = start + pd.offsets.MonthEnd(0)
+    cohort = final_df[final_df['order_approved_dt'].between(start, end)]
+    if task == 'classification':
+        delivered = pd.to_datetime(cohort['order_delivered_customer_date']).dt.normalize()
+        cohort = cohort[delivered.isna() | delivered.gt(cohort['order_approved_dt'])]
+        stub = cohort[['order_id', 'order_approved_dt']].assign(predicted_probability=0.0)
+        evaluated = attach_prediction_labels(stub, orders, lookback=lookback)['actual_label'].notna().sum()
+    else:
+        stub = cohort[['order_id', 'order_approved_dt']]
+        evaluated = attach_regression_actuals(stub, orders, waiting_period=lookback)['actual_target'].notna().sum()
+    return {'start': start, 'end': end, 'scored': len(cohort), 'evaluated': int(evaluated)}
 
 
-def _bar(ax, start, end, y, color, text=None, text_color='#202020', height=0.58,
-         edgecolor='white'):
+def task_timeline(task_data, final_df, orders, lookback):
+    """Everything the timeline panel needs for one task."""
+    return {'name': task_data.task.capitalize(), 'train': task_data.train_df,
+            'validation': task_data.validation_df, 'history': task_data.history_df,
+            'folds': task_data.folds, 'window': task_data.window,
+            'cohorts': [{'label': label, 'role': role,
+                         **cohort_counts(final_df, orders, task_data.task, start, lookback)}
+                        for label, start, role in MONTHS]}
+
+
+def _bar(ax, start, end, y, color, text=None, text_color=INK, height=0.58):
     """Draw an inclusive calendar-date interval as a horizontal bar."""
     start, end = pd.Timestamp(start).normalize(), pd.Timestamp(end).normalize()
     width = max((end - start).days + 1, 1)
     ax.barh(y, width, left=mdates.date2num(start), height=height, color=color,
-            edgecolor=edgecolor, linewidth=0.6, align='center')
+            edgecolor='white', linewidth=0.6)
     if text:
         ax.text(mdates.date2num(start) + width / 2, y, text, ha='center', va='center',
                 fontsize=8, color=text_color, clip_on=True)
 
 
-def _draw_panel(ax, name, timeline, n_splits, validation_days, gap_days,
-                holdout_gap_days, test_days, inference_start, inference_end):
-    train = timeline['development_train']
-    holdout = timeline['development_holdout']
-    final_refit = timeline['final_refit']
-    evaluation_scored = timeline['evaluation_scored']
-    evaluation_count = timeline['evaluation_count']
-    folds = timeline['cv_folds']
-    date_col = timeline.get('date_col', 'order_approved_dt')
+def _note(ax, start, end, y, text, ha='center'):
+    """Caption above a bar, centred on the interval."""
+    x = mdates.date2num(start) + (mdates.date2num(end) - mdates.date2num(start)) / 2
+    ax.text(x, y + 0.34, text, ha=ha, va='bottom', fontsize=7.4, color=INK2, clip_on=False)
 
-    hold_start, hold_end, hold_count = _period(holdout, date_col)
-    full_start, full_end, full_count = _period(final_refit, date_col)
-    _, _, score_count = _period(evaluation_scored, date_col)
 
-    labels = [f'CV fold {i}' for i in range(1, n_splits + 1)] + [
-        'Development\nholdout', 'Candidate refits', 'June selection']
+def _days(rows):
+    dates = pd.to_datetime(rows['order_approved_dt']).dt.normalize()
+    return dates.min(), dates.max()
+
+
+def _draw_panel(ax, timeline, gap_days):
+    train, validation, folds = timeline['train'], timeline['validation'], timeline['folds']
+    window_start, window_end = (pd.Timestamp(d) for d in timeline['window'])
+    labels = [f'CV fold {i}' for i in range(1, len(folds) + 1)] + [
+        'Train and\nValidation', 'Refit and\nTest (June)', 'Monitoring\n(frozen models)']
     ys = list(range(len(labels) - 1, -1, -1))
     ax.set_yticks(ys, labels)
-    ax.set_title(name, loc='left', fontsize=13, fontweight='bold', pad=11)
+    ax.set_title(timeline['name'], loc='left', fontsize=13, fontweight='bold', pad=11)
+    train_dates = pd.to_datetime(train['order_approved_dt']).dt.normalize()
+    first_valid = train_dates.max() - pd.Timedelta(days=len(folds) * 30 - 1)
 
-    # Validation blocks are exact calendar intervals; their order counts come
-    # from each notebook's post-eligibility dataframe and returned fold indices.
-    fold_anchor = pd.to_datetime(train[date_col]).dt.normalize().max()
-    first_valid = fold_anchor - pd.Timedelta(days=n_splits * validation_days - 1)
     for i, (train_idx, valid_idx) in enumerate(folds):
-        y = ys[i]
-        fold_train = train.iloc[train_idx]
-        fold_valid = train.iloc[valid_idx]
-        train_start, train_end, train_count = _period(fold_train, date_col)
-        valid_start = first_valid + pd.Timedelta(days=i * validation_days)
-        valid_end = valid_start + pd.Timedelta(days=validation_days - 1)
-        _bar(ax, train_start, train_end, y, COLORS['train'],
-             f'{train_count:,} train', 'white')
-        gap_start = valid_start - pd.Timedelta(days=gap_days)
-        _bar(ax, gap_start, valid_start - pd.Timedelta(days=1), y,
-             COLORS['buffer'], f'{gap_days}d')
-        _bar(ax, valid_start, valid_end, y, COLORS['validation'])
-        # Keep every annotation in its own row, clear of the preceding bar.
-        label_y = y + 0.34
-        ax.text(mdates.date2num(valid_start + (valid_end - valid_start) / 2), label_y,
-                f'{valid_start:%d %b}–{valid_end:%d %b} | '
-                f'{validation_days}d | {len(fold_valid):,} orders',
-                ha='center', va='bottom', fontsize=7.2, color='#202020', clip_on=False)
+        start, end = _days(train.iloc[train_idx])
+        valid_start = first_valid + pd.Timedelta(days=30 * i)
+        valid_end = valid_start + pd.Timedelta(days=29)
+        _bar(ax, start, end, ys[i], COLORS['train'], f'{len(train_idx):,} Train', 'white')
+        _bar(ax, valid_start - pd.Timedelta(days=gap_days), valid_start - pd.Timedelta(days=1),
+             ys[i], COLORS['buffer'], f'{gap_days}d')
+        _bar(ax, valid_start, valid_end, ys[i], COLORS['cv'])
+        _note(ax, valid_start, valid_end, ys[i],
+              f'{valid_start:%d %b}-{valid_end:%d %b} | {len(valid_idx):,} orders')
 
-    # Green development holdout and its preceding excluded buffer.
-    y = ys[n_splits]
-    train_start, train_end, train_count = _period(train, date_col)
-    hold_gap_start = hold_start - pd.Timedelta(days=holdout_gap_days)
-    _bar(ax, train_start, train_end, y, COLORS['train'],
-         f'{train_count:,} train | {len(pd.date_range(train_start, train_end))} calendar days', 'white')
-    _bar(ax, hold_gap_start, hold_start - pd.Timedelta(days=1), y,
-         COLORS['buffer'], f'{holdout_gap_days}d')
-    _bar(ax, hold_start, hold_end, y, COLORS['holdout'])
-    ax.text(mdates.date2num(hold_start + (hold_end - hold_start) / 2), y + 0.34,
-            f'{hold_start:%d %b}–{hold_end:%d %b} | {test_days}d | {hold_count:,} orders',
-            ha='center', va='bottom', fontsize=7.5, color='#202020', clip_on=False)
+    y = ys[len(folds)]
+    start, end = _days(train)
+    val_start, val_end = _days(validation)
+    _bar(ax, start, end, y, COLORS['train'], f'{len(train):,} Train', 'white')
+    _bar(ax, val_start - pd.Timedelta(days=gap_days), val_start - pd.Timedelta(days=1), y,
+         COLORS['buffer'], f'{gap_days}d')
+    _bar(ax, val_start, val_end, y, COLORS['validation'])
+    _note(ax, val_start, val_end, y, f'Validation {val_start:%d %b}-{val_end:%d %b} | {len(validation):,} orders')
 
-    # All candidates are refit on the full eligible history at the June run date.
-    y = ys[n_splits + 1]
-    history_days = (pd.Timestamp(timeline['window_end']) -
-                    pd.Timestamp(timeline['window_start'])).days + 1
-    _bar(ax, timeline['window_start'], timeline['window_end'], y, COLORS['train'],
-         f'Full-history refit: {history_days} days | {full_count:,} orders', 'white')
-    buffer_start = pd.Timestamp(timeline['window_end']) + pd.Timedelta(days=1)
-    buffer_end = pd.Timestamp(inference_start) - pd.Timedelta(days=1)
-    if buffer_start <= buffer_end:
-        _bar(ax, buffer_start, buffer_end, y, COLORS['buffer'], '45d cutoff')
+    y = ys[len(folds) + 1]
+    test = timeline['cohorts'][0]
+    _bar(ax, window_start, window_end, y, COLORS['train'],
+         f'Refit on all known outcomes | {len(timeline["history"]):,} orders', 'white')
+    _bar(ax, window_end + pd.Timedelta(days=1), test['start'] - pd.Timedelta(days=1), y,
+         COLORS['buffer'], f'{gap_days}d cut-off')
+    _bar(ax, test['start'], test['end'], y, COLORS['test'])
+    _note(ax, test['start'], test['end'], y,
+          f'Test (June) | {test["scored"]:,} scored, {test["evaluated"]:,} evaluated', ha='right')
 
-    # June chooses the deployment candidate; July and August reuse its fitted weights.
-    y = ys[n_splits + 2]
-    _bar(ax, inference_start, inference_end, y, COLORS['evaluation'])
-    evaluation_start = pd.Timestamp(inference_start)
-    evaluation_end = pd.Timestamp(inference_end)
-    ax.text(mdates.date2num(evaluation_start) - 3, y,
-            f'{score_count:,} scored / {evaluation_count:,} evaluated; choose model using June outcomes',
-            ha='right', va='center', fontsize=8, color='#202020', clip_on=False)
-    ax.text(mdates.date2num(evaluation_end), y + 0.32,
-            f'{evaluation_start.day}–{evaluation_end.day} {evaluation_start:%b} | {(evaluation_end - evaluation_start).days + 1} days', ha='right', va='bottom', fontsize=8,
-            color='#202020', clip_on=False)
+    y = ys[-1]
+    monitoring = timeline['cohorts'][1:]
+    for cohort in monitoring:
+        _bar(ax, cohort['start'], cohort['end'], y, COLORS['monitoring'], cohort['label'].split('(')[1][:-1],
+             'white')
+    ax.text(mdates.date2num(monitoring[0]['start']) - 3, y,
+            ' | '.join(f'{c["label"].split("(")[1][:-1]}: {c["scored"]:,} scored, {c["evaluated"]:,} evaluated'
+                       for c in monitoring), ha='right', va='center', fontsize=7.4, color=INK2)
 
     ax.grid(axis='x', color='#e8e8e8', linewidth=0.7)
     ax.set_axisbelow(True)
     ax.spines[['top', 'right', 'left']].set_visible(False)
     ax.tick_params(axis='y', length=0, labelsize=8)
-    ax.tick_params(axis='x', labelsize=8)
-    ax.tick_params(axis='x', which='both', bottom=True, labelbottom=True)
+    ax.tick_params(axis='x', labelsize=8, labelbottom=True)
     ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
-    ax.set_xlim(pd.Timestamp(timeline['window_start']) - pd.Timedelta(days=8),
-                pd.Timestamp(inference_end) + pd.Timedelta(days=10))
+    ax.set_xlim(window_start - pd.Timedelta(days=8), timeline['cohorts'][-1]['end'] + pd.Timedelta(days=10))
+    ax.set_xlabel('Order approval date')
 
 
-def plot_validation_timelines(classification, regression, output_path,
-                              n_splits=5, validation_days=30, gap_days=45,
-                              holdout_gap_days=45, test_days=30,
-                              inference_start='2018-06-01', inference_end='2018-06-30'):
-    """Save the two-panel monthly timeline using actual eligible rows and fold indices.
-
-    Each timeline mapping must provide `development_train`, `development_holdout`,
-    `cv_folds`, `final_refit`, `evaluation_scored`, `evaluation_count`, `window_start`, and
-    `window_end`. Fold indices must be the exact post-availability indices used in
-    the corresponding model notebook.
-    """
-    fig, axes = plt.subplots(2, 1, figsize=(16, 10), sharex=True,
-                             gridspec_kw={'height_ratios': [1, 1], 'hspace': 0.30})
-    run_label = pd.Timestamp(inference_start).strftime('%B %Y')
-    _draw_panel(axes[0], f'Classification — {run_label} run', classification,
-                n_splits, validation_days, gap_days, holdout_gap_days,
-                test_days, inference_start, inference_end)
-    _draw_panel(axes[1], f'Regression — {run_label} run', regression,
-                n_splits, validation_days, gap_days, holdout_gap_days,
-                test_days, inference_start, inference_end)
-
-    legend = [
-        patches.Patch(color=COLORS['train'], label='Training / refit'),
-        patches.Patch(color=COLORS['buffer'], label='Excluded buffer'),
-        patches.Patch(color=COLORS['validation'], label='CV validation'),
-        patches.Patch(color=COLORS['holdout'], label='Development holdout'),
-        patches.Patch(color=COLORS['evaluation'], label='June candidate selection'),
-    ]
-    fig.legend(handles=legend, loc='upper center', ncol=3, frameon=False,
-               bbox_to_anchor=(0.5, 1.005), fontsize=9)
-    fig.subplots_adjust(left=0.13, right=0.88, top=0.93, bottom=0.085)
-    fig.text(0.13, 0.015,
-             'June selects the deployment candidate; its metrics are not an untouched test.\n'
-             'Complete June outcomes are available from 15 August; later frozen-model results are retrospective checks.',
-             ha='left', va='bottom', fontsize=8)
-    fig.savefig(output_path, dpi=220, bbox_inches='tight')
+def plot_validation_timelines(timelines, output_path, gap_days=45):
+    """Save the stacked task panels (one `task_timeline` mapping per panel) as a PNG."""
+    with plt.rc_context(STYLE):
+        fig, axes = plt.subplots(len(timelines), 1, figsize=(16, 5.0 * len(timelines)),
+                                 gridspec_kw={'hspace': 0.5})
+        for ax, timeline in zip(axes, timelines):
+            _draw_panel(ax, timeline, gap_days)
+        legend = [patches.Patch(color=COLORS['train'], label='Train / refit'),
+                  patches.Patch(color=COLORS['buffer'], label='Excluded gap'),
+                  patches.Patch(color=COLORS['cv'], label='CV validation'),
+                  patches.Patch(color=COLORS['validation'], label='Validation'),
+                  patches.Patch(color=COLORS['test'], label='Test (June)'),
+                  patches.Patch(color=COLORS['monitoring'], label='Monitoring (July, August)')]
+        fig.legend(handles=legend, loc='upper center', ncol=6, frameon=False,
+                   bbox_to_anchor=(0.5, 0.94), fontsize=9)
+        fig.suptitle('Train, CV, Validation, Test (June) and Monitoring timeline', x=0.02, y=0.99,
+                     ha='left', fontsize=14, fontweight='bold')
+        fig.subplots_adjust(left=0.1, right=0.97, top=0.86, bottom=0.11)
+        fig.text(0.1, 0.005,
+                 'All decisions use Train only. Validation is a diagnostic. Test (June) is scored daily by models refit '
+                 'on all outcomes known before 2 June.\nMonitoring scores the same frozen models on July and August '
+                 'with no refit. "Evaluated" counts orders whose outcome is known 45 days after approval.',
+                 ha='left', va='bottom', fontsize=8.5, color=INK2)
+        fig.savefig(output_path, dpi=200)
     return fig

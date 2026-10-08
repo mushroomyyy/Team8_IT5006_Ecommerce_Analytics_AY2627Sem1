@@ -1,0 +1,103 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Random Forest: tuned (C3) minus default (C3d)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>metric</th>
+      <th>CV: C3</th>
+      <th>CV: C3d</th>
+      <th>CV: gain</th>
+      <th>Validation: C3</th>
+      <th>Validation: C3d</th>
+      <th>Validation: gain</th>
+      <th>June: C3</th>
+      <th>June: C3d</th>
+      <th>June: gain</th>
+      <th>Train - CV gap: C3</th>
+      <th>Train - CV gap: C3d</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>avg_precision</td>
+      <td>0.2691</td>
+      <td>0.2526</td>
+      <td>0.0165</td>
+      <td>0.2194</td>
+      <td>0.2038</td>
+      <td>0.0156</td>
+      <td>0.1122</td>
+      <td>0.1097</td>
+      <td>0.0025</td>
+      <td>0.1289</td>
+      <td>0.7474</td>
+    </tr>
+    <tr>
+      <td>roc_auc</td>
+      <td>0.6536</td>
+      <td>0.6246</td>
+      <td>0.0290</td>
+      <td>0.7009</td>
+      <td>0.6686</td>
+      <td>0.0324</td>
+      <td>0.6369</td>
+      <td>0.6529</td>
+      <td>-0.0159</td>
+      <td>0.1240</td>
+      <td>0.3754</td>
+    </tr>
+    <tr>
+      <td>brier</td>
+      <td>0.0812</td>
+      <td>0.0794</td>
+      <td>0.0018</td>
+      <td>0.0905</td>
+      <td>0.0889</td>
+      <td>0.0017</td>
+      <td>0.0268</td>
+      <td>0.0266</td>
+      <td>0.0002</td>
+      <td>-0.0106</td>
+      <td>-0.0698</td>
+    </tr>
+    <tr>
+      <td>precision_top10</td>
+      <td>0.2239</td>
+      <td>0.2125</td>
+      <td>0.0114</td>
+      <td>0.2460</td>
+      <td>0.2358</td>
+      <td>0.0102</td>
+      <td>0.0729</td>
+      <td>0.0697</td>
+      <td>0.0032</td>
+      <td>0.1206</td>
+      <td>0.6707</td>
+    </tr>
+    <tr>
+      <td>top10_lift</td>
+      <td>2.4802</td>
+      <td>2.2930</td>
+      <td>0.1872</td>
+      <td>2.3703</td>
+      <td>2.2721</td>
+      <td>0.0982</td>
+      <td>3.2815</td>
+      <td>3.1356</td>
+      <td>0.1458</td>
+      <td>1.4196</td>
+      <td>7.7052</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Positive gain is better except for Brier. Gaps are Train minus CV mean.</p>
+<p></p></section>
+</body></html>

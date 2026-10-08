@@ -1,0 +1,26 @@
+step,added_unit,n_units,n_encoded_columns,cv_mean,cv_se
+0,(intercept only),0,0,0.0957,0.0153
+1,customer_state,1,26,0.1303,0.0174
+2,order_approved_day_of_month,2,27,0.135,0.0191
+3,order_seller_count,3,28,0.1362,0.0192
+4,order_approved_day_of_week,4,30,0.1368,0.0185
+5,promised_lead_days,5,32,0.1372,0.0171
+6,route_type,6,33,0.1548,0.0165
+7,order_product_weight_g_sum,7,34,0.1563,0.0168
+8,approval_lag_hours,8,36,0.1576,0.0167
+9,order_frieght_value_sum,9,37,0.1578,0.0167
+10,order_item_count,10,38,0.1581,0.0167
+11,is_weekend_approval,11,39,0.1583,0.0166
+12,payment_combination,12,43,0.1584,0.0166
+13,seller_state_count,13,44,0.1584,0.0166
+14,is_black_friday_period,14,45,0.1584,0.0166
+15,is_december_peak,15,46,0.1584,0.0166
+16,order_product_photos_mean,16,47,0.1583,0.0166
+17,order_product_category_count,17,48,0.1581,0.0166
+18,freight_to_price_ratio,18,49,0.1575,0.0164
+19,order_product_volume_cm3_sum,19,50,0.1572,0.0167
+20,payment_installments_max,20,51,0.1564,0.0167
+21,seller_dist_km_mean,21,52,0.1544,0.0166
+22,payment_value_sum,22,54,0.1529,0.016
+23,order_approved_month,23,56,0.1485,0.0163
+24,orders_approved_prev_7d,24,57,0.1399,0.0116

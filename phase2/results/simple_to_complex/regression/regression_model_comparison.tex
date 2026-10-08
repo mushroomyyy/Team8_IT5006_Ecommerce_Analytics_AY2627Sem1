@@ -1,0 +1,105 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Regression: RMSE, days (primary; lower is better)}
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & Train & CV mean +/- SD & Validation & June & July & August \\
+\midrule
+R0a & 9.115 & 9.265 +/- 1.022 & 9.864 & 11.688 & 8.162 & 8.416 \\
+R0b & 14.426 & 14.255 +/- 1.237 & 13.550 & 20.888 & 13.994 & 11.739 \\
+R1 & 7.894 & 8.627 +/- 1.320 & 8.209 & 7.385 & 7.293 & 6.467 \\
+R2 & 8.349 & 8.578 +/- 1.151 & 8.899 & 9.282 & 7.361 & 6.613 \\
+R2B & 7.898 & 8.612 +/- 1.342 & 8.208 & 7.391 & 7.275 & 6.460 \\
+R3 & 6.780 & 8.310 +/- 0.934 & 8.397 & 7.953 & 7.453 & 7.497 \\
+R3d & 2.950 & 8.710 +/- 1.014 & 8.556 & 8.393 & 8.283 & 8.288 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Regression: MAE, days}
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & Train & CV mean +/- SD & Validation & June & July & August \\
+\midrule
+R0a & 6.100 & 6.324 +/- 0.725 & 6.733 & 9.163 & 5.467 & 5.906 \\
+R0b & 13.012 & 12.810 +/- 1.300 & 11.867 & 19.299 & 12.261 & 8.923 \\
+R1 & 5.336 & 5.900 +/- 0.822 & 5.615 & 5.824 & 5.208 & 4.416 \\
+R2 & 5.741 & 5.804 +/- 0.866 & 6.072 & 7.935 & 5.186 & 4.158 \\
+R2B & 5.341 & 5.878 +/- 0.826 & 5.615 & 5.830 & 5.189 & 4.406 \\
+R3 & 4.535 & 5.696 +/- 0.889 & 5.675 & 6.447 & 5.308 & 5.187 \\
+R3d & 2.000 & 6.290 +/- 1.066 & 6.059 & 6.804 & 6.198 & 6.013 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Regression: R-squared}
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & Train & CV mean +/- SD & Validation & June & July & August \\
+\midrule
+R0a & 0.010 & -0.025 +/- 0.126 & -0.088 & -0.542 & 0.082 & 0.140 \\
+R0b & -1.479 & -1.463 +/- 0.469 & -1.053 & -3.924 & -1.698 & -0.673 \\
+R1 & 0.258 & 0.112 +/- 0.169 & 0.246 & 0.384 & 0.267 & 0.492 \\
+R2 & 0.170 & 0.123 +/- 0.130 & 0.114 & 0.028 & 0.253 & 0.469 \\
+R2B & 0.257 & 0.115 +/- 0.173 & 0.247 & 0.383 & 0.271 & 0.493 \\
+R3 & 0.452 & 0.177 +/- 0.086 & 0.211 & 0.286 & 0.235 & 0.317 \\
+R3d & 0.896 & 0.094 +/- 0.125 & 0.181 & 0.205 & 0.055 & 0.166 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Regression: Median absolute error, days}
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & Train & CV mean +/- SD & Validation & June & July & August \\
+\midrule
+R0a & 4.000 & 4.400 +/- 0.548 & 5.000 & 8.000 & 4.000 & 5.000 \\
+R0b & 13.000 & 12.800 +/- 1.304 & 11.000 & 19.000 & 11.000 & 7.000 \\
+R1 & 3.832 & 4.170 +/- 0.681 & 3.977 & 5.048 & 4.141 & 3.347 \\
+R2 & 4.238 & 4.157 +/- 0.702 & 4.254 & 7.531 & 3.971 & 2.865 \\
+R2B & 3.844 & 4.150 +/- 0.633 & 3.962 & 5.068 & 4.095 & 3.357 \\
+R3 & 3.170 & 4.162 +/- 0.907 & 3.864 & 5.828 & 4.125 & 3.695 \\
+R3d & 1.390 & 4.807 +/- 1.251 & 4.410 & 6.050 & 4.910 & 4.410 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Regression: Bias (prediction minus actual), days}
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & Train & CV mean +/- SD & Validation & June & July & August \\
+\midrule
+R0a & -1.515 & -1.785 +/- 1.911 & -3.022 & 7.153 & -0.324 & -2.509 \\
+R0b & 11.333 & 11.055 +/- 1.890 & 9.745 & 18.821 & 11.136 & 7.643 \\
+R1 & 0.000 & -1.061 +/- 2.608 & -0.304 & 4.125 & 2.343 & 1.988 \\
+R2 & -0.000 & -1.183 +/- 1.347 & -0.831 & 6.520 & 2.335 & 0.432 \\
+R2B & 0.000 & -1.099 +/- 2.545 & -0.302 & 4.128 & 2.315 & 1.975 \\
+R3 & 0.035 & -0.539 +/- 1.088 & -0.714 & 4.943 & 2.556 & 1.719 \\
+R3d & 0.148 & 0.567 +/- 1.696 & 0.300 & 5.280 & 3.779 & 3.607 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
+\end{table}
+

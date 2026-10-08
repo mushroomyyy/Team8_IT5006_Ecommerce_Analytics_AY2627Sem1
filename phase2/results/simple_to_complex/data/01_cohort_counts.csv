@@ -1,0 +1,7 @@
+task,cohort,scored,evaluated
+Classification,Test (June),6164,6155
+Classification,Monitoring (July),6129,6125
+Classification,Monitoring (August),6606,6606
+Regression,Test (June),6164,6164
+Regression,Monitoring (July),6176,6159
+Regression,Monitoring (August),6620,6612

@@ -1,0 +1,5 @@
+group,orders,late_orders,late_rate_pct,task
+1. All interstate,30450,3142,10.318555008210181,classification
+2. All same-state,15404,919,5.965982861594391,classification
+3. Mixed,118,0,0.0,classification
+seller_state_count >= 2,227,0,0.0,classification

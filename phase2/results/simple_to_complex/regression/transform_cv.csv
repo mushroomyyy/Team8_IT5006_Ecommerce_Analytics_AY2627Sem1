@@ -1,0 +1,9 @@
+design,groups,cv_sd,kept,cv_rmse,rmse_change,step
+raw,,2.476987075000531,True,9.528895501954569,-0.0,"log, cyclic"
+raw + log,log,1.8004738692471471,False,9.09740190862605,,"log, cyclic"
+kept (raw) + log,log,1.8004738692471471,True,9.09740190862605,-0.43149359332851844,"log, cyclic"
+raw + cyclic,cyclic,1.8940131299889198,False,9.06958129654779,,"log, cyclic"
+kept (log) + cyclic,log+cyclic,1.348854051845298,True,8.65090223753217,-0.4464996710938802,"log, cyclic"
+log+cyclic,log+cyclic,1.348854051845298,True,8.65090223753217,-0.0,"squared (promised_lead_days, seller_dist_km_mean, order_seller_count)"
+log+cyclic + squared,log+cyclic+squared,1.319870449434895,False,8.627752729706257,,"squared (promised_lead_days, seller_dist_km_mean, order_seller_count)"
+kept (log+cyclic) + squared,log+cyclic+squared,1.319870449434895,True,8.627752729706257,-0.023149507825912963,"squared (promised_lead_days, seller_dist_km_mean, order_seller_count)"
