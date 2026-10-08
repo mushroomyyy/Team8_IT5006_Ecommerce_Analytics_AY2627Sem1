@@ -11,6 +11,8 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import cross_validate
 
+from .inference import run_inference
+
 
 def classification_metrics(y_true, y_pred, y_prob=None):
     """Imbalance-aware classification metrics; the late class (1) is positive."""
@@ -251,3 +253,188 @@ def fingerprint(fitted):
     digest = hashlib.sha256()
     _hash_state(digest, fitted, frozenset())
     return digest.hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Shared result tables. `results` is a long frame with one row per (model, split)
+# and one column per metric; `cv_folds` has one row per (model, fold). Both tasks use
+# the same layout, so the regression notebook reuses these helpers unchanged.
+# ---------------------------------------------------------------------------
+CLASSIFICATION_CV_METRICS = ['avg_precision', 'roc_auc', 'brier', 'precision_top10', 'top10_capture',
+                             'top10_lift']
+SPLIT_ORDER = ['Train', 'CV', 'Validation', 'June', 'July', 'August']
+
+
+def cv_classification_metrics(model, X, y, folds, metrics=None):
+    """Fit `model` on each chronological training fold and score its validation fold.
+
+    Returns a DataFrame with one row per fold (metrics from `classification_eval_metrics`).
+    Resampling pipelines resample only the training part of each fold, because the
+    validation fold only goes through `predict_proba`.
+    """
+    from sklearn.base import clone
+
+    metrics = metrics or CLASSIFICATION_CV_METRICS
+    rows = []
+    for number, (train_idx, valid_idx) in enumerate(folds, 1):
+        fitted = clone(model).fit(X.iloc[train_idx], y.iloc[train_idx])
+        prob = fitted.predict_proba(X.iloc[valid_idx])[:, list(fitted.classes_).index(1)]
+        scores = classification_eval_metrics(y.iloc[valid_idx], prob)
+        rows.append({'fold': number, **{m: scores[m] for m in metrics}})
+    return pd.DataFrame(rows)
+
+
+def cv_mean_sd(cv_folds):
+    """Mean and sample SD (ddof=1) of every metric per model from a long per-fold frame."""
+    grouped = cv_folds.drop(columns='fold').groupby('model', sort=False)
+    return grouped.mean(), grouped.std(ddof=1)
+
+
+def greedy_transform_cv(build_model, groups, X, y, folds, scoring, higher_is_better=True, initial=()):
+    """Add transform groups one at a time and keep each only if mean CV score improves.
+
+    `build_model(kept_groups)` returns an unfitted pipeline using those groups;
+    `groups` is the ordered list of group names to try. Each group is also scored
+    alone on the starting design (`initial` groups already kept). Returns (table, kept
+    groups). `scoring` is a scorer name; `cv_mean` is in that scorer's own units.
+    """
+    sign = 1 if higher_is_better else -1
+
+    def score(kept):
+        values = cross_validate(build_model(kept), X, y, cv=folds, scoring=scoring,
+                                n_jobs=-1, error_score='raise')['test_score']
+        return sign * values.mean(), values.std(ddof=1)
+
+    start = list(initial)
+    base_mean, base_sd = score(start)
+    rows = [{'design': '+'.join(start) or 'raw', 'groups': '+'.join(start), 'cv_mean': sign * base_mean, 'cv_sd': base_sd,
+             'change_vs_kept': 0.0, 'kept': True}]
+    kept, best = start, base_mean
+    for group in groups:
+        alone_mean, alone_sd = score(start + [group])
+        mean, sd = score(kept + [group])
+        improved = mean > best
+        rows.append({'design': f'{rows[0]["design"]} + {group}', 'groups': '+'.join(start + [group]), 'cv_mean': sign * alone_mean,
+                     'cv_sd': alone_sd, 'change_vs_kept': np.nan, 'kept': False})
+        rows.append({'design': f'kept ({"+".join(kept) or "raw"}) + {group}', 'groups': '+'.join(kept + [group]),
+                     'cv_mean': sign * mean, 'cv_sd': sd,
+                     'change_vs_kept': sign * (mean - best), 'kept': improved})
+        if improved:
+            kept, best = kept + [group], mean
+    return pd.DataFrame(rows), kept
+
+
+def _tidy_split(split):
+    return 'CV' if split.startswith('CV') else split
+
+
+def comparison_table(results, cv_folds, metric, percent=False, splits=None):
+    """Wide table (model x split) for one metric; CV shows mean +/- SD.
+
+    `percent=True` multiplies by 100. Splits missing from `results` are skipped.
+    """
+    scale = 100 if percent else 1
+    digits = 2 if percent else 3
+    mean, sd = cv_mean_sd(cv_folds)
+    wide = results.pivot(index='model', columns='split', values=metric) * scale
+    table = pd.DataFrame(index=wide.index)
+    for split in splits or SPLIT_ORDER:
+        if split == 'CV':
+            table['CV mean +/- SD'] = [f'{mean.loc[m, metric] * scale:.{digits}f} +/- '
+                                       f'{sd.loc[m, metric] * scale:.{digits}f}' for m in wide.index]
+        elif split in wide.columns:
+            table[split] = wide[split].map(lambda v: f'{v:.{digits}f}')
+    table.index.name = 'Model'
+    return table.reset_index()
+
+
+def overfitting_gaps(results, cv_folds, metrics):
+    """Train (in-sample) minus CV mean for each model and metric (positive = higher on Train)."""
+    mean, _ = cv_mean_sd(cv_folds)
+    train = results[results['split'] == 'Train'].set_index('model')[metrics]
+    return (train - mean[metrics].reindex(train.index)).rename_axis('model').reset_index()
+
+
+def tuning_gain_table(results, cv_folds, tuned, default, metrics, splits=('CV', 'Validation', 'June')):
+    """Tuned minus default model for each metric and split, plus both models' Train - CV gaps."""
+    mean, _ = cv_mean_sd(cv_folds)
+    rows = []
+    for metric in metrics:
+        row = {'metric': metric}
+        for split in splits:
+            if split == 'CV':
+                a, b = mean.loc[tuned, metric], mean.loc[default, metric]
+            else:
+                lookup = results.set_index(['model', 'split'])[metric]
+                a, b = lookup[(tuned, split)], lookup[(default, split)]
+            row[f'{split}: {tuned}'], row[f'{split}: {default}'] = a, b
+            row[f'{split}: gain'] = a - b
+        gaps = overfitting_gaps(results, cv_folds, [metric]).set_index('model')[metric]
+        row[f'Train - CV gap: {tuned}'], row[f'Train - CV gap: {default}'] = gaps[tuned], gaps[default]
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def drift_table(results, metrics, periods=('June', 'July', 'August')):
+    """Long table of each metric by model and monitoring period, with change since June."""
+    subset = results[results['split'].isin(periods)]
+    rows = []
+    for model, frame in subset.groupby('model', sort=False):
+        frame = frame.set_index('split')
+        for metric in metrics:
+            row = {'model': model, 'metric': metric}
+            row.update({p: frame.loc[p, metric] for p in periods if p in frame.index})
+            row['change_june_to_last'] = row[periods[-1]] - row[periods[0]]
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def classification_success_criteria(results, linear_models, forest_model, splits=('June', 'Validation'),
+                                    lift_target=2.0, rf_precision_ratio=1.10):
+    """Pass/fail table: top-10% lift >= 2 for every model; forest precision >= 1.10 x best linear."""
+    lookup = results.set_index(['model', 'split'])
+    rows = []
+    for split in splits:
+        for model in results['model'].unique():
+            if model.startswith('C0'):
+                continue
+            lift = lookup.loc[(model, split), 'top10_lift']
+            rows.append({'split': split, 'criterion': f'Top-10% lift >= {lift_target:g}', 'model': model,
+                         'value': lift, 'threshold': lift_target, 'passed': bool(lift >= lift_target)})
+        best_linear = max(linear_models, key=lambda m: lookup.loc[(m, split), 'precision_top10'])
+        threshold = rf_precision_ratio * lookup.loc[(best_linear, split), 'precision_top10']
+        for model in forest_model:
+            value = lookup.loc[(model, split), 'precision_top10']
+            rows.append({'split': split,
+                         'criterion': f'Top-10% precision >= {rf_precision_ratio:g} x best linear ({best_linear})',
+                         'model': model, 'value': value, 'threshold': threshold,
+                         'passed': bool(value >= threshold)})
+    return pd.DataFrame(rows)
+
+
+def score_split(model, split, y_true, prob, order_ids=None):
+    """One results row: `classification_eval_metrics` for a model on one split."""
+    return {'model': model, 'split': split, **classification_eval_metrics(y_true, prob, order_ids=order_ids)}
+
+
+def score_months(fitted, final_df, orders, feature_cols, months):
+    """Daily inference for each 'YYYY-MM' month, labelled at approval day + lookback.
+
+    Returns {month: DataFrame(order_id, predicted_probability, actual_label, ...)}; the
+    daily scores are pooled per month before any metric is computed.
+    """
+    from . import LOOKBACK
+    from .inference import month_bounds
+    from .labels import attach_prediction_labels
+
+    scored = {}
+    for month in months:
+        start, end = month_bounds(month)
+        daily = run_inference(final_df, feature_cols, start, end, fitted, verbose=False)
+        scored[month] = attach_prediction_labels(daily, orders, lookback=LOOKBACK)
+    return scored
+
+
+def late_probability(fitted, X):
+    """Predicted probability of the late class (1) from any fitted classifier."""
+    return fitted.predict_proba(X)[:, list(fitted.classes_).index(1)]

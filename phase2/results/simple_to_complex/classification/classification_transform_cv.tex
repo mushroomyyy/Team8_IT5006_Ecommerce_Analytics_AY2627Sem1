@@ -1,0 +1,22 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Transformation groups judged by CV average precision}
+\begin{tabular}{lrrrrrr}
+\toprule
+design & groups & cv\_mean & cv\_sd & change\_vs\_kept & kept & step \\
+\midrule
+raw &  & 0.1294 & 0.022 & 0.0 & True & log, cyclic \\
+raw + log & log & 0.138 & 0.0244 & nan & False & log, cyclic \\
+kept (raw) + log & log & 0.138 & 0.0244 & 0.0087 & True & log, cyclic \\
+raw + cyclic & cyclic & 0.1289 & 0.0234 & nan & False & log, cyclic \\
+kept (log) + cyclic & log+cyclic & 0.1383 & 0.0261 & 0.0003 & True & log, cyclic \\
+log+cyclic & log+cyclic & 0.1383 & 0.0261 & 0.0 & True & squared (promised\_lead\_days, approval\_lag\_hours, payment\_value\_sum) \\
+log+cyclic + squared & log+cyclic+squared & 0.1399 & 0.0259 & nan & False & squared (promised\_lead\_days, approval\_lag\_hours, payment\_value\_sum) \\
+kept (log+cyclic) + squared & log+cyclic+squared & 0.1399 & 0.0259 & 0.0016 & True & squared (promised\_lead\_days, approval\_lag\_hours, payment\_value\_sum) \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+

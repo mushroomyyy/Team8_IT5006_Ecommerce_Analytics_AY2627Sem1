@@ -1,0 +1,16 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{C1 class-weight sensitivity (CV)}
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & avg\_precision mean +/- SD & roc\_auc mean +/- SD & brier mean +/- SD & precision\_top10 mean +/- SD & top10\_capture mean +/- SD & top10\_lift mean +/- SD \\
+\midrule
+C1 (unweighted) & 0.1399 +/- 0.0259 & 0.6075 +/- 0.0362 & 0.0871 +/- 0.0291 & 0.1634 +/- 0.0250 & 0.1823 +/- 0.0488 & 1.8211 +/- 0.4861 \\
+C1 (class\_weight='balanced') & 0.1367 +/- 0.0268 & 0.6095 +/- 0.0329 & 0.2796 +/- 0.0437 & 0.1591 +/- 0.0226 & 0.1778 +/- 0.0481 & 1.7762 +/- 0.4791 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+

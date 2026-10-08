@@ -1,0 +1,15 @@
+split,criterion,model,value,threshold,passed
+June,Top-10% lift >= 2,C1,3.281,2.0,pass
+June,Top-10% lift >= 2,C2,3.281,2.0,pass
+June,Top-10% lift >= 2,C2B,3.136,2.0,pass
+June,Top-10% lift >= 2,C3,3.281,2.0,pass
+June,Top-10% lift >= 2,C3d,3.136,2.0,pass
+June,Top-10% precision >= 1.1 x best linear (C1),C3,0.073,0.08,fail
+June,Top-10% precision >= 1.1 x best linear (C1),C3d,0.07,0.08,fail
+Validation,Top-10% lift >= 2,C1,2.917,2.0,pass
+Validation,Top-10% lift >= 2,C2,2.945,2.0,pass
+Validation,Top-10% lift >= 2,C2B,3.001,2.0,pass
+Validation,Top-10% lift >= 2,C3,2.37,2.0,pass
+Validation,Top-10% lift >= 2,C3d,2.272,2.0,pass
+Validation,Top-10% precision >= 1.1 x best linear (C2),C3,0.246,0.336,fail
+Validation,Top-10% precision >= 1.1 x best linear (C2),C3d,0.236,0.336,fail

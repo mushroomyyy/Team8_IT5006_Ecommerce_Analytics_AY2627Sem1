@@ -1,0 +1,96 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Random Forest top features versus C1 significance</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>rank</th>
+      <th>feature</th>
+      <th>importance_mean</th>
+      <th>linear_min_p</th>
+      <th>linear_significant</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>customer_state</td>
+      <td>0.0382</td>
+      <td>0.0000</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>promised_lead_days</td>
+      <td>0.0339</td>
+      <td>0.0000</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>route_type</td>
+      <td>0.0323</td>
+      <td>0.0000</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>seller_dist_km_mean</td>
+      <td>0.0231</td>
+      <td>0.0004</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>payment_value_sum</td>
+      <td>0.0117</td>
+      <td>0.0235</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>order_product_weight_g_sum</td>
+      <td>0.0094</td>
+      <td>0.9706</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>order_approved_day_of_month</td>
+      <td>0.0091</td>
+      <td>0.0705</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>order_frieght_value_sum</td>
+      <td>0.0041</td>
+      <td>0.5450</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>orders_approved_prev_7d</td>
+      <td>0.0032</td>
+      <td>0.0002</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>order_seller_count</td>
+      <td>0.0014</td>
+      <td>0.0013</td>
+      <td>True</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

@@ -1,0 +1,378 @@
+{
+  "task": "classification",
+  "run_date": "2018-06-02",
+  "lookback_days": 45,
+  "random_state": 42,
+  "dates": {
+    "train": [
+      "2017-04-18 00:00:00",
+      "2018-02-01 00:00:00"
+    ],
+    "validation": [
+      "2018-03-19 00:00:00",
+      "2018-04-17 00:00:00"
+    ],
+    "test_june": [
+      "2018-06-01",
+      "2018-06-30"
+    ],
+    "monitoring": [
+      "2018-07-01",
+      "2018-08-31"
+    ]
+  },
+  "row_counts": {
+    "train": 45972,
+    "validation": 6870,
+    "history": 63592,
+    "cv_folds": 5,
+    "train_late": 4061,
+    "validation_late": 713,
+    "june_scored": 6164,
+    "june_known": 6155,
+    "july_scored": 6129,
+    "august_scored": 6606
+  },
+  "features": {
+    "numeric": [
+      "order_approved_day_of_week",
+      "order_approved_day_of_month",
+      "order_approved_month",
+      "order_item_count",
+      "order_seller_count",
+      "order_frieght_value_sum",
+      "order_product_weight_g_sum",
+      "order_product_category_count",
+      "seller_dist_km_mean",
+      "seller_state_count",
+      "payment_value_sum",
+      "promised_lead_days",
+      "approval_lag_hours",
+      "order_product_volume_cm3_sum",
+      "order_product_photos_mean",
+      "freight_to_price_ratio",
+      "payment_installments_max",
+      "is_weekend_approval",
+      "is_black_friday_period",
+      "is_december_peak",
+      "orders_approved_prev_7d"
+    ],
+    "categorical": [
+      "customer_state",
+      "route_type",
+      "payment_combination"
+    ]
+  },
+  "linear_transforms": {
+    "groups_kept": [
+      "log",
+      "cyclic",
+      "squared"
+    ],
+    "log_cols": [
+      "payment_value_sum",
+      "order_frieght_value_sum",
+      "order_product_weight_g_sum",
+      "order_product_volume_cm3_sum",
+      "approval_lag_hours",
+      "seller_dist_km_mean",
+      "freight_to_price_ratio",
+      "orders_approved_prev_7d"
+    ],
+    "squared_cols": [
+      "promised_lead_days",
+      "approval_lag_hours",
+      "payment_value_sum"
+    ],
+    "cyclic": true,
+    "merge_mixed_route": true
+  },
+  "selected_variables": {
+    "C1": [
+      "order_approved_day_of_week",
+      "order_approved_day_of_month",
+      "order_approved_month",
+      "order_item_count",
+      "order_seller_count",
+      "order_frieght_value_sum",
+      "order_product_weight_g_sum",
+      "order_product_category_count",
+      "seller_dist_km_mean",
+      "seller_state_count",
+      "payment_value_sum",
+      "promised_lead_days",
+      "approval_lag_hours",
+      "order_product_volume_cm3_sum",
+      "order_product_photos_mean",
+      "freight_to_price_ratio",
+      "payment_installments_max",
+      "is_weekend_approval",
+      "is_black_friday_period",
+      "is_december_peak",
+      "orders_approved_prev_7d",
+      "customer_state",
+      "route_type",
+      "payment_combination"
+    ],
+    "C2": [
+      "customer_state",
+      "order_approved_day_of_month",
+      "order_seller_count",
+      "order_approved_day_of_week",
+      "promised_lead_days",
+      "route_type"
+    ],
+    "C2B": [
+      "is_black_friday_period",
+      "customer_state",
+      "route_type",
+      "promised_lead_days",
+      "order_approved_month",
+      "order_seller_count",
+      "payment_value_sum",
+      "is_december_peak",
+      "approval_lag_hours",
+      "order_item_count",
+      "order_product_volume_cm3_sum",
+      "orders_approved_prev_7d",
+      "seller_dist_km_mean",
+      "order_product_photos_mean"
+    ],
+    "AIC": [
+      "customer_state",
+      "is_black_friday_period",
+      "route_type",
+      "promised_lead_days",
+      "order_approved_month",
+      "payment_value_sum",
+      "order_seller_count",
+      "is_december_peak",
+      "approval_lag_hours",
+      "order_item_count",
+      "order_product_volume_cm3_sum",
+      "orders_approved_prev_7d",
+      "seller_dist_km_mean",
+      "order_product_photos_mean",
+      "seller_state_count",
+      "order_approved_day_of_week",
+      "is_weekend_approval",
+      "payment_combination",
+      "order_approved_day_of_month"
+    ],
+    "Lasso": [
+      "order_approved_day_of_week",
+      "order_approved_day_of_month",
+      "order_approved_month",
+      "order_item_count",
+      "order_seller_count",
+      "order_frieght_value_sum",
+      "order_product_weight_g_sum",
+      "order_product_category_count",
+      "seller_dist_km_mean",
+      "seller_state_count",
+      "payment_value_sum",
+      "promised_lead_days",
+      "approval_lag_hours",
+      "order_product_volume_cm3_sum",
+      "order_product_photos_mean",
+      "freight_to_price_ratio",
+      "payment_installments_max",
+      "is_weekend_approval",
+      "is_black_friday_period",
+      "is_december_peak",
+      "orders_approved_prev_7d",
+      "customer_state",
+      "route_type",
+      "payment_combination"
+    ]
+  },
+  "stepwise": {
+    "best_step": 15,
+    "one_se_step": 6,
+    "lasso_C": 1291.5496650148827
+  },
+  "rf_best_params": {
+    "min_samples_split": 50,
+    "max_samples": 0.7,
+    "criterion": "entropy",
+    "class_weight": null,
+    "max_depth": 8,
+    "min_samples_leaf": 2,
+    "max_features": "log2",
+    "n_estimators": 500
+  },
+  "rf_search": {
+    "n_iter_stage_a": 60,
+    "best_cv_mean": 0.2690619357464787,
+    "best_cv_sd": 0.03307563022974996,
+    "stage_a_seconds": 167.3,
+    "stage_b_seconds": 39.1
+  },
+  "rf_default_params": {
+    "n_estimators": 100,
+    "random_state": 42,
+    "other": "scikit-learn defaults"
+  },
+  "resampling": {
+    "adopted": false,
+    "clear_ap_gain_any": false,
+    "ap_gain_vs_none": {
+      "C1/none": 0.0,
+      "C1/undersample": -0.00997,
+      "C1/oversample": -0.00539,
+      "C1/smotenc": -0.01113,
+      "C3/none": 0.0,
+      "C3/undersample": -0.00229,
+      "C3/oversample": 0.00111,
+      "C3/smotenc": -0.03749
+    }
+  },
+  "fingerprints": {
+    "C0": "6cfc3554829e5180e75812d90052c0786ed0e5489debab5be35fcfe266cb3be9",
+    "C1": "af006b8157d9fda04eb448c3889e599c5c9f44a398cfbf5aabbeaf201e1222b8",
+    "C2": "ea2b8ce2adcf910a91d3f926aca7d6616ce232b26c5d68aa8c7b037366ced12c",
+    "C2B": "f1c226fb2ef6cd1d7a5902c0f19a3b7699999e93d5911bfd159c1a1688b49592",
+    "C3": "9f7b8ab14796ecdd2bc3abed12b10f2d3094bbc595268b9f02a346dc5ec45d9a",
+    "C3d": "80cab31f8d470b89ea01b4eaf2becac8777971e8dd2dd9b1cc124958bb55130b"
+  },
+  "logistic_convergence": {
+    "C1": {
+      "converged": true,
+      "fallback": null
+    },
+    "C2": {
+      "converged": true,
+      "fallback": null
+    },
+    "C2B": {
+      "converged": true,
+      "fallback": null
+    }
+  },
+  "coefficient_checks": {
+    "C1": {
+      "max_abs_gap_identified_terms": 0.00028123603926433205,
+      "converged": true,
+      "unstable_terms": {
+        "seller_state_count": 100.0
+      }
+    },
+    "C2": {
+      "max_abs_gap_identified_terms": 7.572179655168654e-05,
+      "converged": true,
+      "unstable_terms": {}
+    }
+  },
+  "headline_june": {
+    "C0": {
+      "avg_precision": 0.022258326563769294,
+      "roc_auc": 0.5,
+      "brier": 0.029373114083012637,
+      "precision_top10": 0.014586709886547812,
+      "top10_lift": 0.6562954725597132,
+      "late_rate": 0.022258326563769294
+    },
+    "C1": {
+      "avg_precision": 0.0816168319405422,
+      "roc_auc": 0.6933736503385222,
+      "brier": 0.023482027828168377,
+      "precision_top10": 0.07293354943273905,
+      "top10_lift": 3.281477362798566,
+      "late_rate": 0.022258326563769294
+    },
+    "C2": {
+      "avg_precision": 0.06783218228110466,
+      "roc_auc": 0.6918744981600211,
+      "brier": 0.025971036608624716,
+      "precision_top10": 0.07293354943273905,
+      "top10_lift": 3.281477362798566,
+      "late_rate": 0.022258326563769294
+    },
+    "C2B": {
+      "avg_precision": 0.08116976409011664,
+      "roc_auc": 0.696231257565503,
+      "brier": 0.023359372598683613,
+      "precision_top10": 0.06969205834683954,
+      "top10_lift": 3.1356339244519633,
+      "late_rate": 0.022258326563769294
+    },
+    "C3": {
+      "avg_precision": 0.11215692321859022,
+      "roc_auc": 0.6369274172615972,
+      "brier": 0.026799866607279392,
+      "precision_top10": 0.07293354943273905,
+      "top10_lift": 3.281477362798566,
+      "late_rate": 0.022258326563769294
+    },
+    "C3d": {
+      "avg_precision": 0.10969713710362942,
+      "roc_auc": 0.652852876892437,
+      "brier": 0.02660333610885459,
+      "precision_top10": 0.06969205834683954,
+      "top10_lift": 3.1356339244519633,
+      "late_rate": 0.022258326563769294
+    }
+  },
+  "headline_validation": {
+    "C0": {
+      "avg_precision": 0.10378457059679767,
+      "roc_auc": 0.5,
+      "brier": 0.09325198013678918,
+      "precision_top10": 0.09606986899563319,
+      "top10_lift": 0.9256661991584852,
+      "late_rate": 0.10378457059679767
+    },
+    "C1": {
+      "avg_precision": 0.24014883884760227,
+      "roc_auc": 0.7178218340519837,
+      "brier": 0.08735041799900466,
+      "precision_top10": 0.3027656477438137,
+      "top10_lift": 2.917251051893408,
+      "late_rate": 0.10378457059679767
+    },
+    "C2": {
+      "avg_precision": 0.23872508654072433,
+      "roc_auc": 0.712030298357085,
+      "brier": 0.0883874866824611,
+      "precision_top10": 0.3056768558951965,
+      "top10_lift": 2.945301542776998,
+      "late_rate": 0.10378457059679767
+    },
+    "C2B": {
+      "avg_precision": 0.24388942947489295,
+      "roc_auc": 0.7212608324348778,
+      "brier": 0.08725579550960069,
+      "precision_top10": 0.31149927219796214,
+      "top10_lift": 3.0014025245441793,
+      "late_rate": 0.10378457059679767
+    },
+    "C3": {
+      "avg_precision": 0.21943198013365045,
+      "roc_auc": 0.700925251614999,
+      "brier": 0.090538733073484,
+      "precision_top10": 0.24599708879184862,
+      "top10_lift": 2.370266479663394,
+      "late_rate": 0.10378457059679767
+    },
+    "C3d": {
+      "avg_precision": 0.20379263769516637,
+      "roc_auc": 0.668554884906198,
+      "brier": 0.0888824017467249,
+      "precision_top10": 0.23580786026200873,
+      "top10_lift": 2.272089761570827,
+      "late_rate": 0.10378457059679767
+    }
+  },
+  "previous_pipeline": {
+    "model": "LightGBM",
+    "june_average_precision": 0.1509
+  },
+  "versions": {
+    "python": "3.13.5",
+    "scikit-learn": "1.9.1",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "statsmodels": "0.15.0",
+    "imbalanced-learn": "0.14.2"
+  }
+}

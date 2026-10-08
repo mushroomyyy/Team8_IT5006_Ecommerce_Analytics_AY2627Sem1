@@ -39,3 +39,4 @@ Python/Jupyter: ../.venv/bin/python, ../.venv/bin/jupyter. Run from phase2/.
 
 ## Added later (user requirements)
 - **Default vs tuned RF:** add an untuned RF row in each task: C3d/R3d, scikit-learn defaults with random_state=42, the same raw 24 features and preprocessor. Evaluate it everywhere C3/R3 is. Export a "tuning gain" table (tuned minus default on CV / Validation / June, plus Train − CV overfitting gaps) as `{task}_rf_tuning_gain`.
+- **PR curve comparison (classification):** overlay the PR curves of the best plain logistic (C2, plus C1) and the tuned RF (C3) on June and on Validation. Show AP in the legend, a no-skill line at the late rate, and the top-10% operating point. Save as `figures/02_pr_curves.png`, with the helper in `src/model_figures.py`.
