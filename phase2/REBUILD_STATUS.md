@@ -1,7 +1,7 @@
 # Simple → complex rebuild: status and handoff
 
 **For:** whoever continues this work if the current session stops.
-**Last updated:** 2026-10-09, after notebook 01 and both RF searches finished. Notebook 02 was still being written by an agent at the time.
+**Last updated:** 2026-10-09, after notebook 02 and the archiving. Notebook 03 was in progress at the time.
 
 ## Goal
 Implement `phase2/PLAN_SIMPLE_TO_COMPLEX.md` (the repo copy is authoritative) on branch `simple-to-complex`. When every acceptance check in plan §9 passes, **merge into `main` and push** (the user approved this). Phase 2 should end up holding only what the new Word report uses. Everything else is moved to `Archive/` so it is easy to restore. After this work, the only remaining job should be writing the report.
@@ -77,10 +77,10 @@ The full brief is `REBUILD_AGENT_BRIEF.md`; give it to every agent.
 | 4 | Packages in `.venv` (statsmodels, nbconvert, pytest, imbalanced-learn) and `requirements.txt` | done |
 | 5 | RF search caches for both tasks | done (committed alongside this file) |
 | 6 | `01_data_features_multicollinearity.ipynb`, executed | done (7021ebf) |
-| 7 | `02_classification.ipynb` (including the resampling experiment and C3d) | **in progress**: see "Resuming step 7" below |
-| 8 | `03_regression.ipynb` | to do |
+| 7 | `02_classification.ipynb` (including the resampling experiment, C3d and PR curves) | done (e7f4a89) |
+| 8 | `03_regression.ipynb` | **in progress** (agent started after 02); if it is missing or incomplete, use the step 8 task below |
 | 9 | `04_summary` → `RESULTS_SUMMARY.md` plus merged `run_metadata.json` | to do |
-| 10 | Clean-up: archive the old notebooks and results, rewrite README | to do |
+| 10 | Clean-up: archive the old notebooks and results, rewrite README | archiving done (a82cb48, 2789736, 34cd201); README rewrite still to do |
 | 11 | Acceptance checks (plan §9) | to do |
 | 12 | Merge into `main` and push | to do |
 
@@ -134,3 +134,15 @@ Also:
 
 ## Step 12 (merge and push)
 `git switch main && git merge --no-ff simple-to-complex && git push origin main`. Pushing the branch too is fine.
+
+## Notebook 02 key results (for the report and the summary)
+- **No resampling adopted.** It never improves CV AP and badly worsens Brier: C1 Brier 0.087 → 0.255–0.275.
+- **Balanced logistic:** CV AP 0.137 vs 0.140 unweighted, and Brier 0.280 vs 0.087.
+- **June AP:** C1 8.2%, C2 6.8%, C2B 8.1%, C3 11.2%, C3d 11.0%; the no-skill rate is 2.2%.
+  - June has only 137 late orders, a 2.2% late rate. The old pipeline's June evaluation had the same late count, and its LightGBM June AP was 15.09%.
+- **RF vs logistic:**
+  - CV AP: RF 0.27 vs logistic 0.14–0.15.
+  - On Validation and June the RF is not clearly better; it fails the "1.10 × logistic top-10% precision" criterion.
+  - The RF drifts worst: August ROC-AUC 0.43.
+- **C2 (CV-stepwise, 1-SE)** keeps 6 features: customer_state, day_of_month, seller_count, day_of_week, promised_lead_days, route_type. BIC keeps 14, AIC 19, Lasso all 24.
+- **Tuning gain** (tuned C3 vs default C3d): +0.017 CV AP, +0.016 Validation AP, +0.003 June AP. The default forest's overfitting gap is huge: Train AP 100%.
