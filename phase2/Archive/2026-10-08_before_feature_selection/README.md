@@ -23,10 +23,6 @@ Dual framing of one delivery-performance problem:
 
 Both tracks use a 365-day historical window, a 30-day development holdout preceded by a 45-day gap, and five expanding CV folds with 30-calendar-day validation blocks and 45-day gaps. Training outcomes must be known at each validation boundary. The final refit uses the full eligible historical window. Default and tuned candidates use identical rows within each comparison.
 
-## Shared predictor set
-
-Both tasks use 27 predictors (25 numeric and two categorical), defined by `SELECTED_NUM_COLS` and `CAT_COLS` in `src/features.py`. The original 41 candidate columns remain in the feature table for audit purposes. The fixed reduction removes duplicate monetary totals/payment amounts, three distance summaries, week-of-year, postcode/city seller counts and two constant payment columns. Price, freight, payment-type counts, instalments, mean distance, calendar context and seller complexity are retained. This domain-based reduction was informed by development-training correlation/VIF diagnostics; it does not claim complete independence of the retained predictors.
-
 ## June development and frozen-model evaluation
 
 Both main notebooks use **2 June 2018** as the historical run date. The 365-day historical window spans **18 April 2017–17 April 2018**, with **19 March–17 April 2018** reserved as the 30-day development holdout. A 45-day gap precedes that holdout. Five expanding CV folds each validate on 30 calendar days after a 45-day gap; training outcomes must be known at each validation boundary. `results/figures/09_validation_timelines.png` shows the dates and eligible order counts for both tasks.

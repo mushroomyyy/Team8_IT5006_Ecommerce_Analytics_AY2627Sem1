@@ -1,0 +1,3 @@
+task,rows,encoded_columns,centered_rank,full_rank_with_intercept,max_encoded_vif
+classification,45972,53,53,True,6.039545103842162
+regression,45371,53,53,True,6.218330153415469

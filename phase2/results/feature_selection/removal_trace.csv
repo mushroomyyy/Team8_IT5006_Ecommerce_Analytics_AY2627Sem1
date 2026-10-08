@@ -1,0 +1,19 @@
+step,stage,removed,reason,classification_vif_at_removal,regression_vif_at_removal
+1,constant,payment_type_value_not_defined,constant in at least one development-training task,inf,inf
+2,constant,payment_type_count_not_defined,constant in at least one development-training task,inf,inf
+3,domain representative,order_approved_week_of_year,month and day represent calendar timing,33163.46800589636,33258.615281276805
+4,domain representative,order_revenue_sum,exact sum of price and freight; retain component candidates for VIF stage,1079750.7034255434,inf
+5,domain representative,seller_dist_km_max,mean represents seller distance,5622816.236960828,5664307.820733152
+6,domain representative,seller_dist_km_min,mean represents seller distance,2387.600446376324,2377.391276025859
+7,domain representative,seller_dist_km_median,mean represents seller distance,109360.42562874369,109111.57935715931
+8,domain representative,payment_type_value_boleto,payment total and categorical payment combination represent payment,inf,inf
+9,domain representative,payment_type_value_credit_card,payment total and categorical payment combination represent payment,5.787333378109074,5.753617789452738
+10,domain representative,payment_type_value_debit_card,payment total and categorical payment combination represent payment,2.7320827888738703,2.735851941093782
+11,domain representative,payment_type_value_voucher,payment total and categorical payment combination represent payment,1.404940244807841,1.411407495462597
+12,domain representative,payment_type_count_boleto,payment total and categorical payment combination represent payment,11.38600800886023,11.411362740417053
+13,domain representative,payment_type_count_credit_card,payment total and categorical payment combination represent payment,1.7305237709254997,1.7503395097812933
+14,domain representative,payment_type_count_debit_card,payment total and categorical payment combination represent payment,1.0071223953865562,1.007520160518516
+15,domain representative,payment_type_count_voucher,payment total and categorical payment combination represent payment,1.007977295582454,1.0079564670319279
+16,iterative VIF,order_pdt_price_sum,greatest eligible VIF across tasks; payment representation retained,65.93342847026943,23818.87027603129
+17,iterative VIF,seller_zip_code_prefix_count,greatest eligible VIF across tasks; payment representation retained,18.114834420370293,18.11277768568507
+18,iterative VIF,seller_city_count,greatest eligible VIF across tasks; payment representation retained,5.910711847618375,5.9100237600133045

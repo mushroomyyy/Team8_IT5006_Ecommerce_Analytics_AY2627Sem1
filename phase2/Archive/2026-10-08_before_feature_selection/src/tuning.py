@@ -88,13 +88,10 @@ class FoldWeightedPipeline(Pipeline):
         return super().fit(X, y, **params)
 
 
-def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE,
-                      reference_categories=False):
+def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE):
     """Return default pipelines, with boosting weights computed on every fit."""
-    plain = make_preprocessor(num_cols, cat_cols,
-                              reference_categories=reference_categories)
-    scaled = make_preprocessor(num_cols, cat_cols, scale=True,
-                               reference_categories=reference_categories)
+    plain = make_preprocessor(num_cols, cat_cols)
+    scaled = make_preprocessor(num_cols, cat_cols, scale=True)
     return {
         'Logistic Regression': Pipeline(
             [('preprocessor', scaled), 

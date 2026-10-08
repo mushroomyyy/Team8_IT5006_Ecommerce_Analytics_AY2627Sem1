@@ -40,7 +40,6 @@ NUM_COLS = [
     'payment_type_count_voucher',
 ]
 CAT_COLS = ['customer_state', 'route_type']
-SELECTED_CAT_COLS = CAT_COLS + ['payment_combination']
 
 # Classification history features: only outcomes known before each approval day.
 HISTORY_NUM_COLS = [
@@ -62,34 +61,6 @@ EXTRA_NUM_COLS = [
     'is_black_friday_period',        # 2017-11-20 to 2017-11-30 order spike (Phase 1 EDA)
     'is_december_peak',
     'orders_approved_prev_7d',       # Platform load over the 7 completed days before approval
-]
-
-# A fixed, shared reduction of the original 41 approval-time predictors.
-# Payment combination is a separate categorical predictor. See the full audit
-# and the reference-coded categorical caveats in MULTICOLLINEARITY_NOTES.md.
-COLLINEARITY_EXCLUDED_COLS = [
-    'order_approved_week_of_year',
-    'order_revenue_sum',
-    'seller_dist_km_min',
-    'seller_dist_km_max',
-    'seller_dist_km_median',
-    'payment_type_value_boleto',
-    'payment_type_value_credit_card',
-    'payment_type_value_debit_card',
-    'payment_type_value_not_defined',
-    'payment_type_value_voucher',
-    'payment_type_count_boleto',
-    'payment_type_count_credit_card',
-    'payment_type_count_debit_card',
-    'payment_type_count_not_defined',
-    'payment_type_count_voucher',
-    'order_pdt_price_sum',
-    'seller_zip_code_prefix_count',
-    'seller_city_count',
-]
-SELECTED_NUM_COLS = [
-    column for column in NUM_COLS + EXTRA_NUM_COLS
-    if column not in COLLINEARITY_EXCLUDED_COLS
 ]
 
 # Columns that define the outcome and must never be used as predictors
@@ -345,10 +316,6 @@ def add_extra_features(final_df, olist):
     installments = olist['payments'].groupby('order_id')['payment_installments'].max()
     df = df.join(item_agg, on='order_id')
     df['payment_installments_max'] = df['order_id'].map(installments)
-    payment_types = olist['payments'][['order_id', 'payment_type']].drop_duplicates()
-    combinations = payment_types.dropna(subset=['payment_type']).groupby('order_id')['payment_type'].agg(
-        lambda types: '+'.join(sorted(set(types.astype(str)))))
-    df['payment_combination'] = df['order_id'].map(combinations).fillna('no_payment')
     df['freight_to_price_ratio'] = (df['order_frieght_value_sum']
                                     / df['order_pdt_price_sum'].replace(0, np.nan))
 

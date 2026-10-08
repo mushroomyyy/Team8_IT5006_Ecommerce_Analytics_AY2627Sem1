@@ -1,0 +1,9 @@
+task,comparison,rows,equal_fraction_1e_8,max_absolute_difference
+classification,revenue_minus_price_and_freight,45560,1.0,3.979039320256561e-13
+classification,payment_total_minus_type_values,45972,1.0,2.2737367544323206e-13
+classification,distance_max_minus_mean,45308,0.9896265560165975,1127.4794014429012
+classification,distance_mean_minus_min,45308,0.9896265560165975,1127.4794014429012
+regression,revenue_minus_price_and_freight,45371,1.0,3.979039320256561e-13
+regression,payment_total_minus_type_values,45371,1.0,2.2737367544323206e-13
+regression,distance_max_minus_mean,45121,0.989583564194056,1127.4794014429012
+regression,distance_mean_minus_min,45121,0.989583564194056,1127.4794014429012
