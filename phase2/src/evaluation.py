@@ -1,11 +1,15 @@
 """Metrics and coverage tables for the classification and regression tracks."""
+import hashlib
+
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator
 from sklearn.metrics import (
-    accuracy_score, average_precision_score, f1_score,
+    accuracy_score, average_precision_score, brier_score_loss, f1_score,
     mean_absolute_error, mean_squared_error, median_absolute_error, precision_score,
     r2_score, recall_score, roc_auc_score,
 )
+from sklearn.model_selection import cross_validate
 
 
 def classification_metrics(y_true, y_pred, y_prob=None):
@@ -107,3 +111,143 @@ def risk_decile_coverage(predictions):
         start = stop
 
     return pd.DataFrame(rows)
+
+
+def cv_summary(model, X, y, folds, scoring, n_jobs=-1):
+    """Mean and sample SD (ddof=1) of each CV score across the folds.
+
+    `scoring` maps metric name to a scikit-learn scorer. Scorers named `neg_*`
+    are flipped back to natural units (e.g. RMSE in days).
+    """
+    scores = cross_validate(model, X, y, cv=folds, scoring=scoring, n_jobs=n_jobs,
+                            error_score='raise')
+    row = {}
+    for metric, scorer in scoring.items():
+        values = scores[f'test_{metric}']
+        if isinstance(scorer, str) and scorer.startswith('neg_'):
+            values = -values
+        row[f'cv_{metric}_mean'], row[f'cv_{metric}_std'] = values.mean(), values.std(ddof=1)
+    return row
+
+
+def classification_eval_metrics(y_true, y_prob, top_frac=0.10, order_ids=None):
+    """AP, ROC-AUC, Brier, and precision/recall/F1 at the top-10% cut-off and at 0.5.
+
+    The top-`top_frac` group is the highest-scored share of ALL scored orders
+    (operational capacity); unknown outcomes (NA) stay in it but never count as late.
+    Capture is the share of known late orders in the group; lift is capture divided by
+    the group's share of scored orders. Ties are broken by order_id when supplied.
+    """
+    y = pd.Series(y_true).reset_index(drop=True)
+    prob = np.asarray(y_prob, dtype=float)
+    known = y.notna().to_numpy()
+    late = y.fillna(0).astype(int).to_numpy()
+    n = len(prob)
+    ids = np.arange(n) if order_ids is None else np.asarray(order_ids)
+    order = np.lexsort((ids, -prob))
+    top_count = max(1, int(np.ceil(n * top_frac)))
+    in_top = np.zeros(n, dtype=bool)
+    in_top[order[:top_count]] = True
+    total_late = int(late[known].sum())
+    top_late = int(late[in_top & known].sum())
+    precision_top = top_late / top_count
+    recall_top = top_late / total_late if total_late else np.nan
+    f1_top = (2 * precision_top * recall_top / (precision_top + recall_top)
+              if total_late and (precision_top + recall_top) else 0.0)
+    yk, pk = late[known], prob[known]
+    two_classes = len(np.unique(yk)) == 2
+    flag = pk >= 0.5
+    return {
+        'avg_precision': average_precision_score(yk, pk) if two_classes else np.nan,
+        'roc_auc': roc_auc_score(yk, pk) if two_classes else np.nan,
+        'brier': brier_score_loss(yk, pk),
+        'precision_top10': precision_top, 'recall_top10': recall_top, 'f1_top10': f1_top,
+        'precision_at_0_5': precision_score(yk, flag, zero_division=0),
+        'recall_at_0_5': recall_score(yk, flag, zero_division=0),
+        'f1_at_0_5': f1_score(yk, flag, zero_division=0),
+        'top10_capture': recall_top,
+        'top10_lift': recall_top / (top_count / n) if total_late else np.nan,
+        'late_rate': total_late / known.sum(), 'n_scored': n, 'n_known': int(known.sum()),
+    }
+
+
+def regression_eval_metrics(y_true, y_pred, late_label=None):
+    """RMSE, MAE, R², median AE, bias, errors split by actual late/on-time, and the late flag.
+
+    The derived late flag is prediction > 0 days. Actual late is `late_label` when
+    given (NA rows skipped), else target > 0.
+    """
+    y_true, y_pred = np.asarray(y_true, dtype=float), np.asarray(y_pred, dtype=float)
+    metrics = regression_metrics(y_true, y_pred)
+    if late_label is None:
+        actual, usable = y_true > 0, np.ones(len(y_true), dtype=bool)
+    else:
+        label = pd.Series(late_label).reset_index(drop=True)
+        usable, actual = label.notna().to_numpy(), label.fillna(0).astype(int).to_numpy().astype(bool)
+    for name, mask in [('late', actual), ('on_time', ~actual)]:
+        mask = mask & usable
+        error = y_pred[mask] - y_true[mask]
+        metrics[f'rmse_{name}'] = float(np.sqrt(np.mean(error ** 2))) if mask.any() else np.nan
+        metrics[f'mae_{name}'] = float(np.mean(np.abs(error))) if mask.any() else np.nan
+    flag = (y_pred > 0)[usable]
+    metrics.update({
+        'late_flag_precision': precision_score(actual[usable], flag, zero_division=0),
+        'late_flag_recall': recall_score(actual[usable], flag, zero_division=0),
+        'late_flag_f1': f1_score(actual[usable], flag, zero_division=0),
+        'n_scored': len(y_true), 'n_actual_late': int((actual & usable).sum()),
+    })
+    return metrics
+
+
+def _hash_state(digest, obj, seen):
+    """Feed a stable description of a fitted estimator's state into `digest`."""
+    if isinstance(obj, (type(None), bool, int, float, str, bytes, complex)):
+        digest.update(repr((type(obj).__name__, obj)).encode())
+    elif isinstance(obj, np.generic):
+        _hash_state(digest, obj.item(), seen)
+    elif isinstance(obj, np.ndarray):
+        digest.update(f'nd{obj.dtype}{obj.shape}'.encode())
+        if obj.dtype.names:  # Structured arrays (tree nodes): skip padding bytes
+            for name in obj.dtype.names:
+                _hash_state(digest, obj[name], seen)
+        elif obj.dtype == object:
+            _hash_state(digest, obj.tolist(), seen)
+        else:
+            digest.update(np.ascontiguousarray(obj).tobytes())
+    elif isinstance(obj, (list, tuple)):
+        digest.update(f'{type(obj).__name__}{len(obj)}'.encode())
+        for item in obj:
+            _hash_state(digest, item, seen)
+    elif isinstance(obj, dict):
+        digest.update(f'dict{len(obj)}'.encode())
+        for key in sorted(obj, key=repr):
+            _hash_state(digest, key, seen)
+            _hash_state(digest, obj[key], seen)
+    elif isinstance(obj, (set, frozenset)):
+        _hash_state(digest, sorted(obj, key=repr), seen)
+    elif isinstance(obj, (pd.Series, pd.Index)):
+        _hash_state(digest, obj.to_numpy(), seen)
+    elif callable(obj) and not isinstance(obj, BaseEstimator) and hasattr(obj, '__qualname__'):
+        digest.update(f'{obj.__module__}.{obj.__qualname__}'.encode())
+    elif id(obj) in seen:
+        digest.update(b'<cycle>')
+    else:
+        seen = seen | {id(obj)}
+        digest.update(type(obj).__qualname__.encode())
+        if hasattr(obj, '__dict__'):
+            state = vars(obj)
+        elif hasattr(obj, '__getstate__'):  # Cython objects such as tree_.Tree
+            state = obj.__getstate__()
+        else:
+            state = repr(obj)
+        _hash_state(digest, state, seen)
+
+
+def fingerprint(fitted):
+    """Stable SHA-256 of a fitted model's parameters and learned state (pipelines included).
+
+    Equal fingerprints before and after scoring show the model was not refitted.
+    """
+    digest = hashlib.sha256()
+    _hash_state(digest, fitted, frozenset())
+    return digest.hexdigest()

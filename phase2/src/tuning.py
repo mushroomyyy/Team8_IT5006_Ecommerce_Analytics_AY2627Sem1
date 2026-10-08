@@ -1,161 +1,69 @@
-"""Hyperparameter tuning, time-series cross-validation and threshold selection.
+"""Classifier builders (Dummy, plain Logistic, Random Forest) and chronological-CV helpers."""
+import warnings
 
-The default pipelines match the individual model definitions in
-`model_classification_dev.ipynb`, including their estimator CPU settings.
-"""
 import numpy as np
-import pandas as pd
-from lightgbm import LGBMClassifier
+import sklearn
 from sklearn.base import clone
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_curve
-from sklearn.model_selection import RandomizedSearchCV, cross_validate
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
-from sklearn.tree import DecisionTreeClassifier
-from xgboost import XGBClassifier
 
 from . import RANDOM_STATE
+from .linear_transforms import make_linear_preprocessor
 from .preprocessing import make_preprocessor
 
-CV_SCORING = {'roc_auc': 'roc_auc', 
-              'avg_precision': 'average_precision', 
-              'f1_at_0.5': 'f1'
-              }
 
-# Model family for each classifier (the brief allows 2-3 families in total)
-MODEL_FAMILY = {
-    'Logistic Regression': 'Linear',
-    'Decision Tree': 'Tree-based',
-    'Random Forest': 'Tree-based',
-    'XGBoost': 'Tree-based',
-    'LightGBM': 'Tree-based',
-}
+def plain_logistic(random_state=RANDOM_STATE, ridge_fallback=False):
+    """Unpenalised, unweighted logistic regression (lbfgs, max_iter=5000, tol=1e-8).
 
-# Small random-search spaces; widen them once the feature set is frozen
-CLASSIFIER_SEARCH_SPACES = {
-    'Logistic Regression': {
-        'classifier__C': np.logspace(-3, 4, 15),
-    },
-    'Decision Tree': {
-        'classifier__max_depth': [4, 6, 8, 10, 12],
-        'classifier__min_samples_leaf': [20, 35, 50, 75, 100],
-        'classifier__criterion': ['gini', 'entropy'],
-    },
-    'Random Forest': {
-        'classifier__n_estimators': [100, 200],
-        'classifier__max_depth': [4, 6, 8, 10, 12],
-        'classifier__min_samples_leaf': [1, 5, 10, 20, 50, 100],
-        'classifier__max_features': ['sqrt', 0.3, 0.5],
-    },
-    'XGBoost': {
-        'classifier__n_estimators': [200, 400, 600, 800],
-        'classifier__max_depth': [2, 4, 6, 8],
-        'classifier__learning_rate': [0.01, 0.03, 0.05, 0.1],
-        'classifier__subsample': [0.7, 1.0],
-        'classifier__colsample_bytree': [0.6, 0.8, 1.0],
-        'classifier__min_child_weight': [1, 5, 10, 20],
-    },
-    'LightGBM': {
-        'classifier__n_estimators': [100, 200, 400],
-        'classifier__learning_rate': [0.01, 0.03, 0.05, 0.1],
-        'classifier__num_leaves': [7, 15, 31, 63],
-        'classifier__min_child_samples': [20, 35, 50, 75, 100],
-        'classifier__subsample': [0.7, 1.0],
-        'classifier__subsample_freq': [1],
-        'classifier__colsample_bytree': [0.6, 0.8, 1.0],
-        'classifier__reg_lambda': [0.0, 1.0, 5.0],
-    },
-}
+    The tight tolerance lets scikit-learn and statsmodels agree on identified coefficients.
 
-
-class FoldWeightedPipeline(Pipeline):
-    """Recompute boosting class weight using only the labels passed to each fit.
-
-    Inheriting Pipeline preserves cloning, classifier__ parameter search and
-    named_steps access for feature importance and inference.
+    `ridge_fallback=True` uses a negligible L2 penalty (C=1e6), only for use if
+    the plain fit fails to converge. scikit-learn 1.8+ replaced penalty=None by C=inf.
     """
-
-    def fit(self, X, y=None, **params):
-        labels = np.asarray(y)
-        if labels.ndim != 1 or not np.isin(labels, [0, 1]).all():
-            raise ValueError('Boosting class weights require one-dimensional binary 0/1 labels.')
-        negatives = np.count_nonzero(labels == 0)
-        positives = np.count_nonzero(labels == 1)
-        if not negatives or not positives:
-            raise ValueError('Boosting training labels must contain both classes 0 and 1.')
-        self.set_params(classifier__scale_pos_weight=float(negatives / positives))
-        return super().fit(X, y, **params)
+    kwargs = dict(solver='lbfgs', max_iter=5000, tol=1e-8, random_state=random_state)
+    if ridge_fallback:
+        return LogisticRegression(C=1e6, **kwargs)
+    if tuple(int(v) for v in sklearn.__version__.split('.')[:2]) >= (1, 8):
+        return LogisticRegression(C=np.inf, **kwargs)
+    return LogisticRegression(penalty=None, **kwargs)
 
 
-def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE,
-                      reference_categories=False):
-    """Return default pipelines, with boosting weights computed on every fit."""
-    plain = make_preprocessor(num_cols, cat_cols,
-                              reference_categories=reference_categories)
-    scaled = make_preprocessor(num_cols, cat_cols, scale=True,
-                               reference_categories=reference_categories)
+def fit_logistic_checked(pipeline, X, y):
+    """Fit a pipeline ending in 'classifier'; on a convergence warning refit with C=1e6 L2.
+
+    Returns (fitted pipeline, info) where info records whether the fallback was used.
+    """
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
+        fitted = clone(pipeline).fit(X, y)
+    if not any(issubclass(w.category, ConvergenceWarning) for w in caught):
+        return fitted, {'converged': True, 'fallback': None}
+    fallback = clone(pipeline).set_params(classifier=plain_logistic(ridge_fallback=True))
+    return fallback.fit(X, y), {'converged': False, 'fallback': 'L2 penalty with C=1e6'}
+
+
+def build_classifiers(num_cols, cat_cols, random_state=RANDOM_STATE, linear_kwargs=None):
+    """Return the Dummy (prior), plain Logistic and default Random Forest pipelines.
+
+    The logistic preprocessing is the linear one (`linear_kwargs` turns on log1p,
+    cyclic and squared terms); Random Forest uses the raw features.
+    """
+    linear = make_linear_preprocessor(num_cols, cat_cols, **(linear_kwargs or {}))
+    raw = make_preprocessor(num_cols, cat_cols, reference_categories=True)
     return {
-        'Logistic Regression': Pipeline(
-            [('preprocessor', scaled), 
-             ('classifier', LogisticRegression(
-                class_weight='balanced', 
-                max_iter=1000, 
-                random_state=random_state
-                ))
-                ]
-            ),
-        'Decision Tree': Pipeline(
-            [('preprocessor', clone(plain)), 
-             ('classifier', DecisionTreeClassifier(
-                max_depth=10, 
-                class_weight='balanced', 
-                random_state=random_state
-                ))
-                ]
-            ),
-        'Random Forest': Pipeline(
-            [('preprocessor', clone(plain)), 
-             ('classifier', RandomForestClassifier(
-                n_estimators=100, 
-                max_depth=10, 
-                class_weight='balanced',
-                random_state=random_state, 
-                n_jobs=-1
-                ))
-                ]
-            ),
-        'XGBoost': FoldWeightedPipeline(
-            [('preprocessor', clone(plain)), 
-             ('classifier', XGBClassifier(
-                n_estimators=100, 
-                max_depth=6, 
-                learning_rate=0.1, 
-                random_state=random_state, 
-                use_label_encoder=False,
-                eval_metric='logloss'
-                ))
-                ]
-            ),
-        'LightGBM': FoldWeightedPipeline(
-            [('preprocessor', clone(plain)), 
-             ('classifier', LGBMClassifier(
-                random_state=random_state,
-                verbosity=-1, 
-                n_jobs=-1))
-                ]
-            ),
+        'Dummy (prior)': DummyClassifier(strategy='prior'),
+        'Logistic Regression': Pipeline([
+            ('preprocessor', linear), ('classifier', plain_logistic(random_state))]),
+        'Random Forest': Pipeline([
+            ('preprocessor', raw),
+            ('classifier', RandomForestClassifier(n_estimators=200, random_state=random_state,
+                                                  n_jobs=-1))]),
     }
-
-
-def cv_summary(model, X, y, folds, scoring=CV_SCORING, n_jobs=-1):
-    """Mean of each CV score across the given folds."""
-    scores = cross_validate(model, X, y, cv=folds, scoring=scoring, n_jobs=n_jobs)
-    row = {}
-    for metric in scoring:
-        values = scores[f'test_{metric}']
-        row[f'cv_{metric}_mean'] = values.mean()
-    return row
 
 
 def tune_classifier(model, search_space, X, y, folds, n_iter, scoring='average_precision',

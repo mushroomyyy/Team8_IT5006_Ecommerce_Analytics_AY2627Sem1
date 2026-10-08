@@ -3,49 +3,55 @@ import unittest
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.base import clone
-from sklearn.model_selection import cross_validate
 
 from src.splits import (day_blocked_time_series_folds, available_outcome_folds,
                         chronological_split, available_training_rows)
 from src.labels import labels_as_of, regression_targets_as_of
-from src.tuning import best_f1_threshold, out_of_fold_scores, build_classifiers, tune_classifier
+from src.evaluation import cv_summary
+from src.tuning import (best_f1_threshold, out_of_fold_scores, build_classifiers, tune_classifier,
+                        plain_logistic, fit_logistic_checked)
 
 
-class BoostingWeightTests(unittest.TestCase):
-    def test_refit_recomputes_weight_and_rejects_single_class(self):
-        X = pd.DataFrame({'x': np.arange(6, dtype=float)})
+class ClassifierBuilderTests(unittest.TestCase):
+    def setUp(self):
+        rng = np.random.default_rng(0)
+        self.X = pd.DataFrame({'x': rng.normal(size=120)})
+        self.y = pd.Series((self.X['x'] + rng.normal(size=120) > 0.8).astype(int))
+        self.folds = [(np.arange(60), np.arange(60, 90)), (np.arange(90), np.arange(90, 120))]
+
+    def test_builders_return_dummy_plain_logistic_and_forest(self):
         models = build_classifiers(['x'], [])
-        for name in ['XGBoost', 'LightGBM']:
-            with self.subTest(model=name):
-                model = models[name].set_params(classifier__n_estimators=2)
-                model.fit(X, pd.Series([0, 0, 0, 0, 0, 1]))
-                self.assertEqual(model.named_steps['classifier'].get_params()['scale_pos_weight'], 5.0)
-                model.fit(X, pd.Series([0, 0, 0, 1, 1, 1]))
-                self.assertEqual(model.named_steps['classifier'].get_params()['scale_pos_weight'], 1.0)
-                with self.assertRaisesRegex(ValueError, 'both classes'):
-                    model.fit(X, pd.Series([0] * 6))
+        self.assertEqual(list(models), ['Dummy (prior)', 'Logistic Regression', 'Random Forest'])
+        logistic = models['Logistic Regression'].named_steps['classifier']
+        self.assertIsNone(logistic.class_weight)
+        self.assertEqual((logistic.solver, logistic.max_iter), ('lbfgs', 5000))
+        self.assertTrue(np.isinf(logistic.C) or logistic.penalty is None)
 
-    def test_cv_and_search_use_only_each_training_folds_labels(self):
-        X = pd.DataFrame({'x': np.arange(18, dtype=float)})
-        y = pd.Series([0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0])
-        folds = [(np.arange(6), np.arange(6, 12)),
-                 (np.arange(12), np.arange(12, 18))]
-        models = build_classifiers(['x'], [])
-        for name in ['XGBoost', 'LightGBM']:
-            with self.subTest(model=name):
-                model = models[name].set_params(classifier__n_estimators=2)
-                result = cross_validate(model, X, y, cv=folds, scoring='average_precision',
-                                        return_estimator=True, error_score='raise', n_jobs=1)
-                for fitted, (tr, _) in zip(result['estimator'], folds):
-                    expected = (y.iloc[tr] == 0).sum() / (y.iloc[tr] == 1).sum()
-                    self.assertEqual(fitted.named_steps['classifier'].get_params()['scale_pos_weight'], expected)
-                tuned, _, _ = tune_classifier(model, {'classifier__n_estimators': [2]},
-                                               X, y, folds, n_iter=1, n_jobs=1)
-                refitted = clone(tuned).fit(X, y)
-                self.assertEqual(refitted.named_steps['classifier'].get_params()['scale_pos_weight'],
-                                 (y == 0).sum() / (y == 1).sum())
-                self.assertTrue(np.isfinite(out_of_fold_scores(tuned, X, y, folds)[6:]).all())
+    def test_plain_logistic_matches_unpenalised_fit_and_fallback_is_l2(self):
+        fitted = plain_logistic().fit(self.X, self.y)
+        ridge = plain_logistic(ridge_fallback=True)
+        self.assertEqual(ridge.C, 1e6)
+        np.testing.assert_allclose(ridge.fit(self.X, self.y).coef_, fitted.coef_, rtol=1e-2)
+
+    def test_logistic_checked_reports_converged_fit(self):
+        pipeline = build_classifiers(['x'], [])['Logistic Regression']
+        fitted, info = fit_logistic_checked(pipeline, self.X, self.y)
+        self.assertTrue(info['converged'])
+        self.assertEqual(len(fitted.predict_proba(self.X)), 120)
+
+    def test_cv_summary_returns_mean_and_sd_in_natural_units(self):
+        model = build_classifiers(['x'], [])['Logistic Regression']
+        row = cv_summary(model, self.X, self.y, self.folds,
+                         {'ap': 'average_precision', 'brier': 'neg_brier_score'}, n_jobs=1)
+        self.assertEqual(sorted(row), ['cv_ap_mean', 'cv_ap_std', 'cv_brier_mean', 'cv_brier_std'])
+        self.assertGreater(row['cv_brier_mean'], 0)  # Sign flipped back from neg_brier_score
+
+    def test_tune_classifier_returns_params_from_the_space(self):
+        model = build_classifiers(['x'], [])['Random Forest']
+        _, params, _ = tune_classifier(
+            model, {'classifier__n_estimators': [5, 10]}, self.X, self.y, self.folds,
+            n_iter=1, n_jobs=1)
+        self.assertIn(params['classifier__n_estimators'], (5, 10))
 
 
 class TimeSeriesFoldTests(unittest.TestCase):
