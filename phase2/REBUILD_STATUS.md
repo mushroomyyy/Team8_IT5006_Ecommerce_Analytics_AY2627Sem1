@@ -204,3 +204,8 @@ Target layout of `phase2/`:
 - `README.md`
 - `requirements.txt`
 - `Archive/`
+
+## Report handoff
+`REPORT_HANDOFF.md` tells the report agent which files back each report section and what is still changing.
+- **Keep its "Still changing" table current:** when an item lands (03 committed, ROC figure, `RESULTS_SUMMARY.md`, review), update its row.
+- At the very end, archive it together with this file.
