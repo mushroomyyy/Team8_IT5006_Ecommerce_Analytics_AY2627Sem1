@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from .labels import attach_prediction_labels, attach_regression_actuals
-from .report_figures import AQUA, BLUE, INK, INK2, ORANGE, PURPLE, SLATE, STYLE, UNUSED, _style
+from .report_figures import AQUA, BLUE, INK, INK2, ORANGE, PURPLE, SLATE, STYLE, UNUSED
 
 COLORS = {'train': BLUE, 'buffer': UNUSED, 'cv': ORANGE, 'validation': AQUA,
           'test': PURPLE, 'monitoring': SLATE}

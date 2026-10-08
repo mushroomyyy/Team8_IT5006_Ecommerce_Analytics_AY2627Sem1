@@ -3,11 +3,9 @@ import numpy as np
 import pandas as pd
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
 
 from . import LOOKBACK, RANDOM_STATE
-from .linear_transforms import make_linear_preprocessor
 from .preprocessing import make_preprocessor
 
 WAITING_PERIOD = LOOKBACK
@@ -27,25 +25,6 @@ class PromiseBaseline(DummyRegressor):
 
     def predict(self, X):
         return clip_to_waiting_period(np.zeros(len(X)), X['promised_lead_days'])
-
-
-def build_regressors(num_cols, cat_cols, random_state=RANDOM_STATE, linear_kwargs=None):
-    """Return the Dummy (median), Olist promise, OLS and default Random Forest models.
-
-    OLS uses the linear preprocessor (`linear_kwargs` turns on log1p, cyclic and
-    squared terms); Random Forest uses the raw features. RF n_jobs=1 so parallelism
-    happens across CV folds and search candidates.
-    """
-    linear = make_linear_preprocessor(num_cols, cat_cols, **(linear_kwargs or {}))
-    raw = make_preprocessor(num_cols, cat_cols, reference_categories=True)
-    return {
-        'Dummy (median)': DummyRegressor(strategy='median'),
-        'Olist promise': PromiseBaseline(),
-        'OLS': Pipeline([('preprocessor', linear), ('model', LinearRegression())]),
-        'Random Forest': Pipeline([
-            ('preprocessor', raw),
-            ('model', RandomForestRegressor(n_estimators=200, random_state=random_state, n_jobs=1))]),
-    }
 
 
 def score_cohort(fitted, cohort, feature_cols):

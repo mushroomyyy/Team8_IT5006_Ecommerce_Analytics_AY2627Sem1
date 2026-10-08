@@ -363,10 +363,6 @@
       "late_rate": 0.10378457059679767
     }
   },
-  "previous_pipeline": {
-    "model": "LightGBM",
-    "june_average_precision": 0.1509
-  },
   "versions": {
     "python": "3.13.5",
     "scikit-learn": "1.9.1",

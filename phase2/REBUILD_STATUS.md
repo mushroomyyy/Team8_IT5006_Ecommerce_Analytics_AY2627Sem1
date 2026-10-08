@@ -80,7 +80,7 @@ The full brief is `REBUILD_AGENT_BRIEF.md`; give it to every agent.
 | 7 | `02_classification.ipynb` (including the resampling experiment, C3d and PR curves) | done (e7f4a89) |
 | 8 | `03_regression.ipynb` | done (see git log: "Add notebook 03"). 02 has not been re-run since 03 changed shared helpers additively; re-run it during the ROC/LightGBM pass |
 | 9 | `04_summary` → `RESULTS_SUMMARY.md` plus merged `run_metadata.json` | to do |
-| 10 | Clean-up: archive the old notebooks and results, rewrite README | archiving done (a82cb48, 2789736, 34cd201); README rewrite still to do |
+| 10 | Clean-up: archiving and dead-code removal done; finishing pass (ROC curves, LightGBM removal, re-run of 01–03) done. README rewrite still to do |
 | 11 | Acceptance checks (plan §9) | to do |
 | 12 | Merge into `main` and push | to do |
 

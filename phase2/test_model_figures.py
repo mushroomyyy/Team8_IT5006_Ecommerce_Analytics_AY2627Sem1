@@ -44,7 +44,6 @@ class TableTests(unittest.TestCase):
         self.assertEqual(len(drift), 3)
 
     def test_greedy_transform_cv_keeps_only_improving_group(self):
-        from sklearn.dummy import DummyRegressor
         from sklearn.linear_model import LinearRegression
         rng = np.random.default_rng(0)
         X = pd.DataFrame({'x': rng.normal(size=300)})
@@ -76,7 +75,8 @@ class FigureTests(unittest.TestCase):
             mf.plot_calibration({'Validation': {'C1': (y, rng.random(200))}}, out / 'c.png')
             mf.plot_model_comparison(pd.DataFrame({'Train': [.3], 'June': [.2]}, index=['C1']), 'AP', save_path=out / 'd.png')
             mf.plot_pr_curves({'Validation': {'C1': (y, rng.random(200))}}, out / 'e.png')
-            self.assertEqual(len(list(out.glob('*.png'))), 5)
+            mf.plot_roc_curves({'Validation': {'C1': (y, rng.random(200))}}, out / 'f.png')
+            self.assertEqual(len(list(out.glob('*.png'))), 6)
 
 
 if __name__ == '__main__':

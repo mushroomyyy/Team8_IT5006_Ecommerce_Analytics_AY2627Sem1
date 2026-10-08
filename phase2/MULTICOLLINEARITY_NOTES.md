@@ -16,7 +16,7 @@ Each row is one approved order. The prediction point is the order's approval, so
 | Seasonality and load (extra) | approval date, all orders | weekend flag, Black Friday period flag (20–30 Nov 2017), December flag; orders approved platform-wide in the 7 completed days before approval (4) |
 | Categorical | customers, items + sellers | customer state; route type: all interstate / all same-state / mixed, from customer vs seller states (2) |
 
-Total: 29 base numeric + 10 extra numeric + 2 categorical = **41 candidates**. One categorical, `payment_combination`, is derived during selection below to replace the per-method payment columns. The seller and product late-history features (`HISTORY_NUM_COLS`, no longer used) are not part of this set and are not covered by this audit.
+Total: 29 base numeric + 10 extra numeric + 2 categorical = **41 candidates**. One categorical, `payment_combination`, is derived during selection below to replace the per-method payment columns. Seller and product late-history features were explored in Phase 2 drafts and are not part of this set (see the Archive).
 
 Many of these candidates describe the same quantity in different ways (revenue and its components; four summaries of the same distance; payment totals and their per-method breakdowns). That redundancy motivates the multicollinearity treatment below.
 

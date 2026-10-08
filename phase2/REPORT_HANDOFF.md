@@ -20,7 +20,7 @@ Draft freely, but re-check the items below before finalising. Run `git log --one
 | Item | What may change | Watch for |
 |---|---|---|
 | **Regression results** (`results/simple_to_complex/regression/*`, `figures/03_*`) | Committed. Only the pre-merge review could still change them | The review commit |
-| **ROC curves** (`figures/02_roc_curves.png`) | Not created yet | The file appears |
+| **ROC curves** (`figures/02_roc_curves.png`) | Done | – |
 | **LightGBM comparison** | It moves out of notebooks 02/03 and their `run_metadata.json` into `RESULTS_SUMMARY.md` | Take it from `RESULTS_SUMMARY.md` only |
 | **`RESULTS_SUMMARY.md`** (`results/simple_to_complex/`) | Not created yet. It will be the single cross-task summary, with the "simple → complex ladder" figures `figures/04_*.png` | The file appears; then re-check every number against it |
 | **Pre-merge review** | It may fix bugs, which means notebooks are re-run and tables can shift | The review commit in `git log` |

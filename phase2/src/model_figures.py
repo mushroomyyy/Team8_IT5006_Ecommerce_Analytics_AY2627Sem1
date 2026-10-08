@@ -247,6 +247,12 @@ def plot_partial_residuals(result, design, y, terms, save_path=None,
         return _finish(fig, title, save_path)
 
 
+def _top_flagged(prob, top_frac):
+    """Boolean mask of the highest-scored `top_frac` of orders (the capacity cut-off)."""
+    cutoff = np.sort(prob)[::-1][max(1, int(np.ceil(len(prob) * top_frac))) - 1]
+    return prob >= cutoff
+
+
 def plot_pr_curves(panels, save_path=None, top_frac=0.10, title='Precision-recall curves'):
     """Precision-recall curves per panel with AP in the legend, a no-skill line and the top-10% point.
 
@@ -264,8 +270,7 @@ def plot_pr_curves(panels, save_path=None, top_frac=0.10, title='Precision-recal
                 precision, recall, _ = precision_recall_curve(y, p)
                 ax.plot(recall, precision, color=_color(label), lw=1.6,
                         label=f'{label} (AP {average_precision_score(y, p):.3f})')
-                cutoff = np.sort(p)[::-1][max(1, int(np.ceil(len(p) * top_frac))) - 1]
-                flagged = p >= cutoff
+                flagged = _top_flagged(p, top_frac)
                 ax.scatter([y[flagged].sum() / y.sum()], [y[flagged].mean()], s=60, color=_color(label),
                            edgecolor='black', zorder=4)
                 late_rate = y.mean()
@@ -274,6 +279,34 @@ def plot_pr_curves(panels, save_path=None, top_frac=0.10, title='Precision-recal
             ax.set(title=name, xlabel='Recall (share of late orders found)', ylabel='Precision', xlim=(0, 1))
             figs._style(ax, 'both')
             ax.legend(loc='upper right')
+        return _finish(fig, title, save_path)
+
+
+def plot_roc_curves(panels, save_path=None, top_frac=0.10, title='ROC curves'):
+    """ROC curves per panel with ROC-AUC in the legend, the chance diagonal and the top-10% point.
+
+    `panels` maps a panel title to {label: (y_true, probability)}. The top-left corner is
+    best. The marker on each curve is the operating point that flags the highest-scored
+    `top_frac` of orders (the operational capacity cut-off).
+    """
+    from sklearn.metrics import roc_auc_score, roc_curve
+
+    with plt.rc_context(figs.STYLE):
+        fig, axes = plt.subplots(1, len(panels), figsize=(5.8 * len(panels), 4.8), squeeze=False)
+        for ax, (name, curves) in zip(axes[0], panels.items()):
+            for label, (y_true, prob) in curves.items():
+                y, p = np.asarray(y_true, dtype=int), np.asarray(prob, dtype=float)
+                fpr, tpr, _ = roc_curve(y, p)
+                ax.plot(fpr, tpr, color=_color(label), lw=1.6, label=f'{label} (ROC-AUC {roc_auc_score(y, p):.3f})')
+                flagged = _top_flagged(p, top_frac)
+                ax.scatter([(flagged & (y == 0)).sum() / (y == 0).sum()], [(flagged & (y == 1)).sum() / y.sum()],
+                           s=60, color=_color(label), edgecolor='black', zorder=4)
+            ax.plot([0, 1], [0, 1], color=figs.GRAY, ls='--', lw=1, label='Chance (ROC-AUC 0.500)')
+            ax.scatter([], [], s=60, color='white', edgecolor='black', label=f'Top {top_frac:.0%} operating point')
+            ax.set(title=name, xlabel='False positive rate (share of on-time orders flagged)',
+                   ylabel='True positive rate (share of late orders found)', xlim=(0, 1), ylim=(0, 1.02))
+            figs._style(ax, 'both')
+            ax.legend(loc='lower right')
         return _finish(fig, title, save_path)
 
 

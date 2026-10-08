@@ -3,13 +3,12 @@ from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
-import statsmodels.api as sm
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
 
 from src.interpretation import (agreement_table, assert_coefficients_match, coefficient_table,
                                 fit_statsmodels, hypothesis_check_table)
-from src.linear_transforms import linear_design, make_linear_preprocessor
+from src.linear_transforms import linear_design
 from src.regression_models import PromiseBaseline, clip_to_waiting_period
 from src.rf_search import _pick_best, search_space, stage_b_grid, tuned_rf_pipeline
 from src.tuning import plain_logistic

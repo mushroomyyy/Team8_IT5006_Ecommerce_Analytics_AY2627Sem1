@@ -2,27 +2,24 @@ import unittest
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
 
 from src.splits import (day_blocked_time_series_folds, available_outcome_folds,
                         chronological_split, available_training_rows)
 from src.labels import labels_as_of, regression_targets_as_of
-from src.evaluation import cv_summary
-from src.tuning import (best_f1_threshold, out_of_fold_scores, build_classifiers, tune_classifier,
-                        plain_logistic, fit_logistic_checked)
+from src.linear_transforms import make_linear_preprocessor
+from src.tuning import plain_logistic, fit_logistic_checked
 
 
-class ClassifierBuilderTests(unittest.TestCase):
+class PlainLogisticTests(unittest.TestCase):
     def setUp(self):
         rng = np.random.default_rng(0)
         self.X = pd.DataFrame({'x': rng.normal(size=120)})
         self.y = pd.Series((self.X['x'] + rng.normal(size=120) > 0.8).astype(int))
         self.folds = [(np.arange(60), np.arange(60, 90)), (np.arange(90), np.arange(90, 120))]
 
-    def test_builders_return_dummy_plain_logistic_and_forest(self):
-        models = build_classifiers(['x'], [])
-        self.assertEqual(list(models), ['Dummy (prior)', 'Logistic Regression', 'Random Forest'])
-        logistic = models['Logistic Regression'].named_steps['classifier']
+    def test_plain_logistic_is_unweighted_and_unpenalised(self):
+        logistic = plain_logistic()
         self.assertIsNone(logistic.class_weight)
         self.assertEqual((logistic.solver, logistic.max_iter), ('lbfgs', 5000))
         self.assertTrue(np.isinf(logistic.C) or logistic.penalty is None)
@@ -34,24 +31,11 @@ class ClassifierBuilderTests(unittest.TestCase):
         np.testing.assert_allclose(ridge.fit(self.X, self.y).coef_, fitted.coef_, rtol=1e-2)
 
     def test_logistic_checked_reports_converged_fit(self):
-        pipeline = build_classifiers(['x'], [])['Logistic Regression']
+        pipeline = Pipeline([('preprocessor', make_linear_preprocessor(['x'], [])),
+                             ('classifier', plain_logistic())])
         fitted, info = fit_logistic_checked(pipeline, self.X, self.y)
         self.assertTrue(info['converged'])
         self.assertEqual(len(fitted.predict_proba(self.X)), 120)
-
-    def test_cv_summary_returns_mean_and_sd_in_natural_units(self):
-        model = build_classifiers(['x'], [])['Logistic Regression']
-        row = cv_summary(model, self.X, self.y, self.folds,
-                         {'ap': 'average_precision', 'brier': 'neg_brier_score'}, n_jobs=1)
-        self.assertEqual(sorted(row), ['cv_ap_mean', 'cv_ap_std', 'cv_brier_mean', 'cv_brier_std'])
-        self.assertGreater(row['cv_brier_mean'], 0)  # Sign flipped back from neg_brier_score
-
-    def test_tune_classifier_returns_params_from_the_space(self):
-        model = build_classifiers(['x'], [])['Random Forest']
-        _, params, _ = tune_classifier(
-            model, {'classifier__n_estimators': [5, 10]}, self.X, self.y, self.folds,
-            n_iter=1, n_jobs=1)
-        self.assertIn(params['classifier__n_estimators'], (5, 10))
 
 
 class TimeSeriesFoldTests(unittest.TestCase):
@@ -156,32 +140,6 @@ class TimeSeriesFoldTests(unittest.TestCase):
         np.testing.assert_array_equal(folds[0][0], [0])
         self.assertEqual(regression_targets_as_of(rows.iloc[[0]], '2018-03-01', 45)
                          ['target_as_of_run'].iloc[0], 45 - 20)  # Capped lead time minus the promise
-
-
-class ThresholdTests(unittest.TestCase):
-    def test_best_f1_threshold_separates_perfectly_ranked_scores(self):
-        y = np.array([0, 0, 0, 1, 1])
-        scores = np.array([0.1, 0.2, 0.3, 0.7, 0.9])
-        threshold, f1 = best_f1_threshold(y, scores)
-        self.assertEqual(threshold, 0.7)
-        self.assertEqual(f1, 1.0)
-
-    def test_best_f1_threshold_ignores_missing_scores(self):
-        threshold, f1 = best_f1_threshold([0, 1, 1], [np.nan, 0.4, 0.8])
-        self.assertEqual(threshold, 0.4)
-        self.assertEqual(f1, 1.0)
-
-
-class OutOfFoldTests(unittest.TestCase):
-    def test_rows_outside_validation_folds_stay_missing(self):
-        dates = pd.Series(pd.date_range('2018-01-01', periods=40))
-        X = pd.DataFrame({'x': np.arange(40, dtype=float)})
-        y = pd.Series(np.arange(40) % 2)
-        folds = day_blocked_time_series_folds(dates, n_splits=3)
-        scores = out_of_fold_scores(LogisticRegression(), X, y, folds)
-        validated = np.concatenate([valid for _, valid in folds])
-        self.assertTrue(np.isnan(np.delete(scores, validated)).all())
-        self.assertFalse(np.isnan(scores[validated]).any())
 
 
 if __name__ == '__main__':

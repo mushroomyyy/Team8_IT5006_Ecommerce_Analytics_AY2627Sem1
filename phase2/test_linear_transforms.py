@@ -3,12 +3,14 @@ import unittest
 import numpy as np
 import pandas as pd
 from sklearn.base import clone
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
 
-from src.evaluation import (classification_eval_metrics, cv_summary, fingerprint,
+from src.evaluation import (classification_eval_metrics, fingerprint,
                             regression_eval_metrics)
 from src.linear_transforms import (linear_design, make_linear_preprocessor, readable_names,
                                    skewness_table, unit_columns)
-from src.tuning import build_classifiers
+from src.tuning import plain_logistic
 
 
 def toy_frame(n=60, seed=0):
@@ -98,9 +100,12 @@ class FingerprintTests(unittest.TestCase):
         self.y = pd.Series((self.X['x'] + rng.normal(size=300) > 0.5).astype(int))
 
     def test_fingerprint_is_stable_for_identical_fits_and_scoring_but_changes_with_data(self):
-        for name in ['Logistic Regression', 'Random Forest']:
+        classifiers = {'Logistic Regression': plain_logistic(),
+                       'Random Forest': RandomForestClassifier(n_estimators=20, random_state=0)}
+        for name, classifier in classifiers.items():
             with self.subTest(model=name):
-                model = build_classifiers(['x', 'z'], [])[name]
+                model = Pipeline([('preprocessor', make_linear_preprocessor(['x', 'z'], [])),
+                                  ('classifier', classifier)])
                 first = clone(model).fit(self.X, self.y)
                 second = clone(model).fit(self.X, self.y)
                 before = fingerprint(first)
@@ -139,14 +144,6 @@ class EvaluationMetricTests(unittest.TestCase):
         self.assertEqual(metrics['late_flag_precision'], 0.5)
         self.assertEqual(metrics['late_flag_recall'], 0.5)
         self.assertEqual(metrics['n_actual_late'], 2)
-
-    def test_cv_summary_flips_negative_scorers(self):
-        X = pd.DataFrame({'x': np.arange(60.)})
-        y = pd.Series(2 * np.arange(60.))
-        folds = [(np.arange(30), np.arange(30, 45)), (np.arange(45), np.arange(45, 60))]
-        from sklearn.linear_model import LinearRegression
-        row = cv_summary(LinearRegression(), X, y, folds, {'rmse': 'neg_root_mean_squared_error'}, n_jobs=1)
-        self.assertAlmostEqual(row['cv_rmse_mean'], 0.0, places=6)
 
 
 if __name__ == '__main__':

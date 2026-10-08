@@ -9,13 +9,11 @@ import argparse
 import json
 import platform
 import time
-from itertools import product
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import sklearn
-from sklearn.base import clone
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.pipeline import Pipeline

@@ -5,33 +5,13 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.metrics import (
-    accuracy_score, average_precision_score, brier_score_loss, f1_score,
+    average_precision_score, brier_score_loss, f1_score,
     mean_absolute_error, mean_squared_error, median_absolute_error, precision_score,
     r2_score, recall_score, roc_auc_score,
 )
 from sklearn.model_selection import cross_validate
 
 from .inference import run_inference
-
-
-def classification_metrics(y_true, y_pred, y_prob=None):
-    """Imbalance-aware classification metrics; the late class (1) is positive."""
-    two_classes = pd.Series(y_true).nunique() == 2
-    return {
-        'roc_auc': roc_auc_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
-        'avg_precision': average_precision_score(y_true, y_prob) if y_prob is not None and two_classes else np.nan,
-        'accuracy': accuracy_score(y_true, y_pred),
-        'precision': precision_score(y_true, y_pred, zero_division=0),
-        'recall': recall_score(y_true, y_pred, zero_division=0),
-        'f1_score': f1_score(y_true, y_pred, zero_division=0),
-    }
-
-
-def evaluate_pipeline(pipeline, X_test, y_test, threshold=0.5):
-    """Return (metrics, y_pred, y_prob) for a fitted classification pipeline on raw features."""
-    y_prob = pipeline.predict_proba(X_test)[:, list(pipeline.classes_).index(1)]
-    y_pred = (y_prob >= threshold).astype(int)
-    return classification_metrics(y_test, y_pred, y_prob), y_pred, y_prob
 
 
 def regression_metrics(y_true, y_pred):
@@ -44,29 +24,6 @@ def regression_metrics(y_true, y_pred):
         'median_ae': median_absolute_error(y_true, y_pred),
         'bias': float(np.mean(y_pred - y_true)),
     }
-
-
-def get_coverage(prob, y_true):
-    """Precision and recall (coverage) by predicted-risk decile; decile 1 is riskiest."""
-    predictions_df = pd.DataFrame({'actual_late_delivery': y_true,
-                                   'prob_late_delivery': prob}, index=y_true.index)
-    bins = pd.qcut(predictions_df['prob_late_delivery'], q=10, labels=False, duplicates='drop')
-    # Identical scores form one group rather than silently dropping all rows
-    predictions_df['decile'] = (pd.Series(1, index=predictions_df.index, dtype='Int64')
-                                if bins.isna().all() else (bins.max() - bins + 1).astype('Int64'))
-    summary = predictions_df.groupby('decile').agg(
-        number_of_orders=('actual_late_delivery', 'size'),
-        positive_labels=('actual_late_delivery', 'sum'),
-    ).sort_index()
-    summary['cumulative_orders'] = summary['number_of_orders'].cumsum()
-    summary['cumulative_positive_labels'] = summary['positive_labels'].cumsum()
-    summary['late_delivery_rate'] = summary['positive_labels'] / summary['number_of_orders']
-    summary['cumulative_late_delivery_rate'] = (summary['cumulative_positive_labels']
-                                                / summary['cumulative_orders'])
-    total_positive = summary['positive_labels'].sum()
-    summary['coverage'] = (summary['cumulative_positive_labels'] / total_positive
-                           if total_positive > 0 else float('nan'))
-    return summary.reset_index()
 
 
 def risk_decile_coverage(predictions):
@@ -113,23 +70,6 @@ def risk_decile_coverage(predictions):
         start = stop
 
     return pd.DataFrame(rows)
-
-
-def cv_summary(model, X, y, folds, scoring, n_jobs=-1):
-    """Mean and sample SD (ddof=1) of each CV score across the folds.
-
-    `scoring` maps metric name to a scikit-learn scorer. Scorers named `neg_*`
-    are flipped back to natural units (e.g. RMSE in days).
-    """
-    scores = cross_validate(model, X, y, cv=folds, scoring=scoring, n_jobs=n_jobs,
-                            error_score='raise')
-    row = {}
-    for metric, scorer in scoring.items():
-        values = scores[f'test_{metric}']
-        if isinstance(scorer, str) and scorer.startswith('neg_'):
-            values = -values
-        row[f'cv_{metric}_mean'], row[f'cv_{metric}_std'] = values.mean(), values.std(ddof=1)
-    return row
 
 
 def classification_eval_metrics(y_true, y_prob, top_frac=0.10, order_ids=None):
@@ -322,10 +262,6 @@ def greedy_transform_cv(build_model, groups, X, y, folds, scoring, higher_is_bet
         if improved:
             kept, best = kept + [group], mean
     return pd.DataFrame(rows), kept
-
-
-def _tidy_split(split):
-    return 'CV' if split.startswith('CV') else split
 
 
 def comparison_table(results, cv_folds, metric, percent=False, splits=None):
