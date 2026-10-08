@@ -168,3 +168,33 @@ Also:
   - Olist pads its estimates, and the estimates already encode distance and region (correlation with distance 0.69).
   - Interpret its effect as *how much slack the promise gives*, not as a cause of delay. The R0b "Olist promise" baseline is the matching benchmark.
 - **June (Test)** has only 137 late orders (a 2.2% late rate vs 8.8% in Train), so June classification metrics are noisy. The old pipeline's June evaluation had the same late count.
+
+## Repo clean-up still to do (user request: archive anything unused so phase2 isn't confusing)
+Already done: the old notebooks, old `results/` folders and boosting dependencies are archived or removed.
+
+After 03 is committed, remove the dead code below. The full pre-rebuild `src/` is already in `Archive/2026-10-09_before_simple_to_complex/src/`, so deleting from live `src/` loses nothing.
+- `src/features.py`: `add_historical_performance` and `HISTORY_NUM_COLS` (seller and product late-history features, not used in the report). Also delete `test_historical_features.py`, and update the sentence about them in `MULTICOLLINEARITY_NOTES.md` ("not part of this set" → "were explored in Phase 2 drafts; see the Archive").
+- `src/tuning.py`: `tune_classifier`, `out_of_fold_scores`, `best_f1_threshold`, `params_to_json`; also `build_classifiers` if only tests use it.
+- `src/evaluation.py`: `evaluate_pipeline`, `get_coverage`; also `cv_summary` if no notebook uses it (plan §7 wanted one shared `cv_summary`, so prefer keeping it and making 02/03 use it, or keep whichever per-fold helper the notebooks actually call).
+- `src/regression_models.py`: `build_regressors` if unused.
+- `src/report_figures.py`: `plot_cv_mae`, `plot_mae_across_evaluations`, `plot_backtest_by_month`, `plot_feature_importance`, `plot_residuals_by_state`.
+
+Re-check before deleting with:
+`grep -rnw <name> src 0*.ipynb test_*.py`
+
+Then:
+- update or remove the tests that covered them;
+- make sure `../.venv/bin/python -m unittest` is green;
+- re-execute 01–03, since an import may break.
+
+At the very end, also move `PLAN_SIMPLE_TO_COMPLEX.md`, `REBUILD_STATUS.md` and `REBUILD_AGENT_BRIEF.md` into the archive folder. `__pycache__/` is git-ignored.
+
+Target layout of `phase2/`:
+- `01`–`04` notebooks
+- `src/`
+- `test_*.py`
+- `results/feature_selection/` and `results/simple_to_complex/`
+- `MULTICOLLINEARITY_NOTES.md`
+- `README.md`
+- `requirements.txt`
+- `Archive/`
