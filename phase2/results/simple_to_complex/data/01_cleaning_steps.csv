@@ -1,0 +1,8 @@
+step,orders
+Orders in the raw orders table,99441
+Without an approval timestamp (dropped: no prediction point),160
+Approved orders,99281
+Approved before January 2017 (dropped: sparse early months),322
+Order-level feature table (one row per order),98959
+  of which delivered before approval (kept; label rules mark them invalid),38
+  of which canceled or unavailable (dropped from regression only),1067

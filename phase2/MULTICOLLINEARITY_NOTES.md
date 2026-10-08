@@ -16,7 +16,7 @@ Each row is one approved order. The prediction point is the order's approval, so
 | Seasonality and load (extra) | approval date, all orders | weekend flag, Black Friday period flag (20–30 Nov 2017), December flag; orders approved platform-wide in the 7 completed days before approval (4) |
 | Categorical | customers, items + sellers | customer state; route type: all interstate / all same-state / mixed, from customer vs seller states (2) |
 
-Total: 29 base numeric + 10 extra numeric + 2 categorical = **41 candidates**. One categorical, `payment_combination`, is derived during selection below to replace the per-method payment columns. The seller and product late-history features (`HISTORY_NUM_COLS`, used only in `classification_evaluation.ipynb`) are not part of this set and are not covered by this audit.
+Total: 29 base numeric + 10 extra numeric + 2 categorical = **41 candidates**. One categorical, `payment_combination`, is derived during selection below to replace the per-method payment columns. The seller and product late-history features (`HISTORY_NUM_COLS`, no longer used) are not part of this set and are not covered by this audit.
 
 Many of these candidates describe the same quantity in different ways (revenue and its components; four summaries of the same distance; payment totals and their per-method breakdowns). That redundancy motivates the multicollinearity treatment below.
 
@@ -24,11 +24,11 @@ Many of these candidates describe the same quantity in different ways (revenue a
 
 One frozen feature set is used by both tasks (late-delivery classification and days-from-promise regression), every cross-validation fold, every monthly evaluation and every model family. It reduces the **41 approval-time predictors** (39 numeric + 2 categorical) to **24 raw features** (21 numeric + 3 categorical), which reference coding expands to **53 encoded model columns**. Selection is done once, before modelling; it does not run inside model fitting.
 
-All numbers below come from `results/feature_selection/` (written by `python -m src.feature_selection`, run from `phase2`). The same audit is reproduced in the **Handling multicollinearity** section of `model_classification_feature_selection.ipynb` and `model_regression_feature_selection.ipynb`, whose rerun writes byte-identical CSVs to `results/feature_selection_run/multicollinearity/`.
+All numbers below come from `results/feature_selection/` (written by `python -m src.feature_selection`, run from `phase2`). The same audit is run in section 4 of `01_data_features_multicollinearity.ipynb`, which writes these CSVs to `results/feature_selection/` and asserts that the result equals `SELECTED_NUM_COLS`.
 
 ## Why multicollinearity matters here
 
-- **Linear and logistic models** (Linear Regression, Ridge, Logistic Regression): strongly correlated predictors give unstable coefficients (high variance, sign changes between folds) that cannot be read as the effect of one predictor with the others held fixed. An exact linear identity makes the design matrix singular, so coefficients are not unique.
+- **Linear and logistic models** (OLS and plain logistic regression): strongly correlated predictors give unstable coefficients (high variance, sign changes between folds) that cannot be read as the effect of one predictor with the others held fixed. An exact linear identity makes the design matrix singular, so coefficients are not unique.
 - **Tree models** (Decision Tree, Random Forest, XGBoost, LightGBM): prediction is largely unaffected, but split-based importance is shared arbitrarily between near-duplicates, so importance rankings understate each of them.
 
 ## Data used for the audit
@@ -126,6 +126,15 @@ Each row has exactly one level of each categorical, so a complete set of dummies
 | **Total** | | | **53** |
 
 Without reference coding the design would have 55 columns. With reference coding (`encoded_design_rank.csv`), the centred 53-column matrix has rank 53 in both tasks (full rank with an intercept). The largest encoded VIF is 6.04 (classification) / 6.22 (regression), for `seller_dist_km_mean` (decision 2). Next are `order_frieght_value_sum` (3.87 / 3.91), `order_product_weight_g_sum` (3.41 / 3.42), `order_product_volume_cm3_sum` (3.37 / 3.38) and `route_type_2. All same-state` (2.86 / 2.94). Every `customer_state` dummy is ≤ 1.74, and every `payment_combination` dummy is ≤ 1.79 (`reference_coded_vif.csv`).
+
+## Transformations for linear models
+
+Applied only to the OLS and logistic models (trees are invariant to monotone transforms; the Random Forest uses the 24 raw features). Decided on Train in `01_data_features_multicollinearity.ipynb`, section 5; tables in `results/simple_to_complex/data/` (`01_skewness.csv`, `01_log1p_columns.csv`, `linear_design_vif.csv`).
+
+- **log1p** when raw |skew| > 1 on Train, for the eight candidates of the plan. All eight qualify in both tasks (raw skew, classification): `payment_value_sum` 11.16, `order_frieght_value_sum` 8.99, `order_product_volume_cm3_sum` 8.22, `order_product_weight_g_sum` 6.70, `freight_to_price_ratio` 5.01, `approval_lag_hours` 4.61, `orders_approved_prev_7d` 1.73, `seller_dist_km_mean` 1.69. After log1p: 0.56, 1.19, -0.04, 0.38, 1.93, 0.97, 0.68, -1.10. Whether the log group is kept is decided by CV in notebooks 02 and 03.
+- **Cyclic calendar:** month and day of week become sine/cosine pairs; day of month stays numeric; the weekend, Black Friday and December flags are kept.
+- **Mixed route merged** into `1. All interstate` for all linear models: in Train, the 118 `3. Mixed` orders and the 227 orders with `seller_state_count >= 2` have zero late orders, so a plain logistic coefficient for them is not identified (quasi-separation).
+- **VIF of the final linear design** (54 encoded columns, no aliased column): maximum 6.40 (classification) / 6.62 (regression), for `log_order_frieght_value_sum`; `log_payment_value_sum` 5.89 / 6.25 and `log_freight_to_price_ratio` 4.02 / 4.23. The logged money columns are nearly linearly related (log ratio is about log freight minus log price). The distance VIF falls to about 3 after logging and merging the route.
 
 ## Limitations
 

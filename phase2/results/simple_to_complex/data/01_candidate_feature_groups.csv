@@ -1,0 +1,10 @@
+group,built_from,count,columns
+Approval calendar,order_approved_at,4,"order_approved_day_of_week, order_approved_day_of_month, order_approved_month, order_approved_week_of_year"
+Basket contents,order items + products,7,"order_item_count, order_seller_count, order_product_category_count, order_pdt_price_sum, order_frieght_value_sum, order_revenue_sum, order_product_weight_g_sum"
+Seller location,sellers + geolocation,7,"seller_dist_km_max, seller_dist_km_min, seller_dist_km_median, seller_dist_km_mean, seller_zip_code_prefix_count, seller_city_count, seller_state_count"
+Payment,payments,11,"payment_value_sum, payment_type_value_boleto, payment_type_value_credit_card, payment_type_value_debit_card, payment_type_value_not_defined, payment_type_value_voucher, payment_type_count_boleto, payment_type_count_credit_card, payment_type_count_debit_card, payment_type_count_not_defined, payment_type_count_voucher"
+Promise and approval,orders,2,"promised_lead_days, approval_lag_hours"
+Product catalogue,products,2,"order_product_volume_cm3_sum, order_product_photos_mean"
+Price structure,"items, payments",2,"freight_to_price_ratio, payment_installments_max"
+Seasonality and load,"approval date, all orders",4,"is_weekend_approval, is_black_friday_period, is_december_peak, orders_approved_prev_7d"
+Categorical,"customers, items + sellers",2,"customer_state, route_type"

@@ -1,0 +1,42 @@
+group,feature,kept
+Approval calendar,order_approved_day_of_week,True
+Approval calendar,order_approved_day_of_month,True
+Approval calendar,order_approved_month,True
+Approval calendar,order_approved_week_of_year,False
+Basket contents,order_item_count,True
+Basket contents,order_seller_count,True
+Basket contents,order_product_category_count,True
+Basket contents,order_pdt_price_sum,False
+Basket contents,order_frieght_value_sum,True
+Basket contents,order_revenue_sum,False
+Basket contents,order_product_weight_g_sum,True
+Seller location,seller_dist_km_max,False
+Seller location,seller_dist_km_min,False
+Seller location,seller_dist_km_median,False
+Seller location,seller_dist_km_mean,True
+Seller location,seller_zip_code_prefix_count,False
+Seller location,seller_city_count,False
+Seller location,seller_state_count,True
+Payment,payment_value_sum,True
+Payment,payment_type_value_boleto,False
+Payment,payment_type_value_credit_card,False
+Payment,payment_type_value_debit_card,False
+Payment,payment_type_value_not_defined,False
+Payment,payment_type_value_voucher,False
+Payment,payment_type_count_boleto,False
+Payment,payment_type_count_credit_card,False
+Payment,payment_type_count_debit_card,False
+Payment,payment_type_count_not_defined,False
+Payment,payment_type_count_voucher,False
+Promise and approval,promised_lead_days,True
+Promise and approval,approval_lag_hours,True
+Product catalogue,order_product_volume_cm3_sum,True
+Product catalogue,order_product_photos_mean,True
+Price structure,freight_to_price_ratio,True
+Price structure,payment_installments_max,True
+Seasonality and load,is_weekend_approval,True
+Seasonality and load,is_black_friday_period,True
+Seasonality and load,is_december_peak,True
+Seasonality and load,orders_approved_prev_7d,True
+Categorical,customer_state,True
+Categorical,route_type,True

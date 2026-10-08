@@ -1,0 +1,12 @@
+step,orders,task
+Approved orders in the 365-day window,63605,classification
+Outcome known on the run date (history),63592,classification
+Validation (newest 30 approval days),6870,classification
+Excluded: 45-day gap and outcomes not yet known,10750,classification
+Train,45972,classification
+Approved orders in the 365-day window,63605,regression
+After dropping canceled and unavailable orders,62852,regression
+Outcome known on the run date (history),62841,regression
+Validation (newest 30 approval days),6847,regression
+Excluded: 45-day gap and outcomes not yet known,10623,regression
+Train,45371,regression

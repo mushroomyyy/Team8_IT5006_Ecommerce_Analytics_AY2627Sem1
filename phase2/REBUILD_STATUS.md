@@ -30,12 +30,12 @@ Notebooks are executed with:
 | Archive notebooks and `src/` to `Archive/2026-10-09_before_simple_to_complex/` | done | 05af09e |
 | Stage 1 `src/` library (datasets, linear_transforms, variable_selection, rf_search, regression_models, interpretation, inference, slimmed tuning, evaluation) plus unittest suite (57 tests) | done | a84a80f |
 | Install statsmodels, nbconvert, pytest and imbalanced-learn in `.venv`; update `requirements.txt` | done | a84a80f |
-| RF search cache (`python -m src.rf_search --task classification`, then `regression`) → `results/simple_to_complex/{task}/rf_best_params.json` | running in background | – |
-| `01_data_features_multicollinearity.ipynb` | agent working | – |
+| RF search cache → `results/simple_to_complex/{task}/rf_best_params.json` | classification done (CV AP 0.2691 ± 0.0331); regression running | – |
+| `01_data_features_multicollinearity.ipynb` (executed; log1p all 8 candidates; linear design 54 cols, max VIF 6.4 for log freight, kept pending CV in 02/03) | done | see git log |
 | `02_classification.ipynb` (including the resampling experiment) | agent working | – |
 | `03_regression.ipynb` | not started; begins after 02, to reuse `src/model_figures.py` | – |
 | `04_summary`, `RESULTS_SUMMARY.md` and merged `run_metadata.json` | not started | – |
-| Archive the remaining old notebooks and results; README rewrite | not started | – |
+| Archive the remaining old notebooks and results; README rewrite. Remove from `phase2/` (copies are already in `Archive/2026-10-09_before_simple_to_complex/`): `classification_evaluation.ipynb`, `model_*_dev.ipynb`, `model_*_feature_selection.ipynb`, `model_validation_timelines.ipynb`, old `results/` runs | not started | – |
 | Acceptance checks (plan §9): unittest, nbconvert execution of 01–04, assertions | not started | – |
 | Merge into main and push | not started | – |
 

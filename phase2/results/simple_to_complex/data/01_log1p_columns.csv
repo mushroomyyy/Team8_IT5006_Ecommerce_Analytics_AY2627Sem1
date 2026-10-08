@@ -1,0 +1,9 @@
+log1p_columns
+order_frieght_value_sum
+order_product_weight_g_sum
+seller_dist_km_mean
+payment_value_sum
+approval_lag_hours
+order_product_volume_cm3_sum
+freight_to_price_ratio
+orders_approved_prev_7d

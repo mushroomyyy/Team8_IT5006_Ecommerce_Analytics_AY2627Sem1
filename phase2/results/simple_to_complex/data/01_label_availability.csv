@@ -1,0 +1,6 @@
+label_status,orders,share_pct
+on_time_delivered,56629,89.03230878075622
+late_delivered,5015,7.884600267274585
+late_undelivered,1948,3.0626523072085527
+invalid_or_missing_dates,11,0.017294237874380947
+unresolved,2,0.003144406886251081

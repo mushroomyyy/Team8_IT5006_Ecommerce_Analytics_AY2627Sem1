@@ -38,6 +38,47 @@ REPRESENTATIVE_REMOVALS = {
 }
 
 
+PAYMENT_TYPES = ['boleto', 'credit_card', 'debit_card', 'not_defined', 'voucher']
+# Group -> (built from, candidate columns). Mirrors the feature table in MULTICOLLINEARITY_NOTES.md.
+CANDIDATE_GROUPS = {
+    'Approval calendar': ('order_approved_at', [
+        'order_approved_day_of_week', 'order_approved_day_of_month', 'order_approved_month',
+        'order_approved_week_of_year']),
+    'Basket contents': ('order items + products', [
+        'order_item_count', 'order_seller_count', 'order_product_category_count',
+        'order_pdt_price_sum', 'order_frieght_value_sum', 'order_revenue_sum',
+        'order_product_weight_g_sum']),
+    'Seller location': ('sellers + geolocation', [
+        'seller_dist_km_max', 'seller_dist_km_min', 'seller_dist_km_median', 'seller_dist_km_mean',
+        'seller_zip_code_prefix_count', 'seller_city_count', 'seller_state_count']),
+    'Payment': ('payments', ['payment_value_sum']
+                + [f'payment_type_{kind}_{name}' for kind in ('value', 'count') for name in PAYMENT_TYPES]),
+    'Promise and approval': ('orders', ['promised_lead_days', 'approval_lag_hours']),
+    'Product catalogue': ('products', ['order_product_volume_cm3_sum', 'order_product_photos_mean']),
+    'Price structure': ('items, payments', ['freight_to_price_ratio', 'payment_installments_max']),
+    'Seasonality and load': ('approval date, all orders', [
+        'is_weekend_approval', 'is_black_friday_period', 'is_december_peak', 'orders_approved_prev_7d']),
+    'Categorical': ('customers, items + sellers', ['customer_state', 'route_type']),
+}
+
+
+def candidate_feature_table():
+    """One row per feature group (built from, count, columns), checked against `src.features`."""
+    listed = [column for _, columns in CANDIDATE_GROUPS.values() for column in columns]
+    assert sorted(listed) == sorted(NUM_COLS + EXTRA_NUM_COLS + CAT_COLS), \
+        'Candidate groups differ from the feature lists in src.features'
+    return pd.DataFrame([{'group': group, 'built_from': built_from, 'count': len(columns),
+                          'columns': ', '.join(columns)}
+                         for group, (built_from, columns) in CANDIDATE_GROUPS.items()])
+
+
+def candidate_feature_status():
+    """One row per candidate: its group and whether it is in the final 24 raw features."""
+    final = set(SELECTED_NUM_COLS + SELECTED_CAT_COLS)
+    return pd.DataFrame([{'group': group, 'feature': column, 'kept': column in final}
+                         for group, (_, columns) in CANDIDATE_GROUPS.items() for column in columns])
+
+
 def numeric_vif(frame):
     """Return per-column VIF; constants and exact linear dependencies are infinite."""
     values = frame.to_numpy(dtype=float)
@@ -74,6 +115,13 @@ def training_rows(features):
         lambda rows, date: regression_targets_as_of(rows, date, 45), 'target_as_of_run')
     assert (len(classification), len(regression)) == (45972, 45371)
     return {'classification': classification, 'regression': regression}
+
+
+def exact_overlap_table(rows_by_task):
+    """Exact-identity audit for each task, as one DataFrame."""
+    return pd.DataFrame([{'task': task, **record}
+                         for task, rows in rows_by_task.items()
+                         for record in exact_overlap_audit(rows)])
 
 
 def imputed_numeric(rows):
@@ -218,10 +266,7 @@ if __name__ == '__main__':
     olist = load_olist_data(verbose=False)
     rows = training_rows(add_extra_features(build_feature_table(olist), olist))
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame([{'task': task, **record}
-                  for task, frame in rows.items()
-                  for record in exact_overlap_audit(frame)]).to_csv(
-                      OUTPUT / 'exact_overlaps.csv', index=False)
+    exact_overlap_table(rows).to_csv(OUTPUT / 'exact_overlaps.csv', index=False)
     selected = audit({task: imputed_numeric(frame) for task, frame in rows.items()}, rows)
     print(f'{len(selected)} selected numeric features: {selected}')
     print(f'Matches src.features.SELECTED_NUM_COLS: {selected == SELECTED_NUM_COLS}')
