@@ -78,7 +78,7 @@ The full brief is `REBUILD_AGENT_BRIEF.md`; give it to every agent.
 | 5 | RF search caches for both tasks | done (committed alongside this file) |
 | 6 | `01_data_features_multicollinearity.ipynb`, executed | done (7021ebf) |
 | 7 | `02_classification.ipynb` (including the resampling experiment, C3d and PR curves) | done (e7f4a89) |
-| 8 | `03_regression.ipynb` | **executed cleanly, not yet committed** (37 code cells, 0 errors; outputs in `results/simple_to_complex/regression/` and `figures/03_*.png`; new `test_regression_models.py`; edits to `src/evaluation.py`, `src/model_figures.py` and `src/regression_models.py`). Next: run `../.venv/bin/python -m unittest`, re-check that 02 still runs with the changed shared helpers, then commit. If the files are missing, use the step 8 task below |
+| 8 | `03_regression.ipynb` | done (see git log: "Add notebook 03"). 02 has not been re-run since 03 changed shared helpers additively; re-run it during the ROC/LightGBM pass |
 | 9 | `04_summary` → `RESULTS_SUMMARY.md` plus merged `run_metadata.json` | to do |
 | 10 | Clean-up: archive the old notebooks and results, rewrite README | archiving done (a82cb48, 2789736, 34cd201); README rewrite still to do |
 | 11 | Acceptance checks (plan §9) | to do |
@@ -209,3 +209,22 @@ Target layout of `phase2/`:
 `REPORT_HANDOFF.md` tells the report agent which files back each report section and what is still changing.
 - **Keep its "Still changing" table current:** when an item lands (03 committed, ROC figure, `RESULTS_SUMMARY.md`, review), update its row.
 - At the very end, archive it together with this file.
+
+## Notebook 03 key results (RMSE in days)
+| Model | Train | CV | Validation | June | July | August |
+|---|---|---|---|---|---|---|
+| R0a median | 9.12 | 9.27 ± 1.02 | 9.86 | 11.69 | 8.16 | 8.42 |
+| R0b promise | 14.43 | 14.26 ± 1.24 | 13.55 | 20.89 | 13.99 | 11.74 |
+| R1 | 7.89 | 8.63 ± 1.32 | 8.21 | 7.39 | 7.29 | 6.47 |
+| R2 | 8.35 | 8.58 ± 1.15 | 8.90 | 9.28 | 7.36 | 6.61 |
+| R2B | 7.90 | 8.61 ± 1.34 | 8.21 | 7.39 | 7.28 | 6.46 |
+| R3 tuned | 6.78 | 8.31 ± 0.93 | 8.40 | 7.95 | 7.45 | 7.50 |
+| R3d default | 2.95 | 8.71 ± 1.01 | 8.56 | 8.39 | 8.28 | 8.29 |
+
+- **R2 has only one variable.** The 1-SE rule stops at step 1: `promised_lead_days` plus its square. The whole possible CV gain (0.24 days) is smaller than 1 SE (0.54). R2 is clearly worse than R1 on June. Discuss this as a limitation of the 1-SE rule with noisy chronological folds.
+  - BIC keeps 17 variables and matches R1. Lasso keeps 12.
+- **RF vs best OLS:** the RF does not beat OLS out of time (relative RMSE gain -2.3% on Validation, -7.7% on June).
+- **Tuning gain (R3 − R3d):** -0.40 CV, -0.16 Validation, -0.44 June.
+- **Dual-framing late flag (prediction > 0):** it almost never fires (recall ≤ 4%), because the regressor predicts toward the conditional mean, which is well before the promise.
+- **June MAE:** R1 5.82 vs the previous pipeline's 4.85. The cohorts and protocol differ, so this is context only.
+- **June regression cohort:** 6,142 orders (116 late), with canceled and unavailable orders excluded.

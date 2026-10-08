@@ -2,7 +2,7 @@
 
 **For:** the agent updating the Word report (e.g. Claude desktop). Read local files only.
 **Repo root:** `/Users/andrew_tjs/github/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/phase2/`, on branch `simple-to-complex` until it is merged into `main`.
-**Status (2026-10-09):** sections 1–8 below can be drafted now. The regression results are final once notebook 03 is committed. `RESULTS_SUMMARY.md` (the one-stop summary) does not exist yet; when it appears in `results/simple_to_complex/`, re-check every number against it.
+**Status (2026-10-09):** sections 1–8 below can be drafted now. Regression results are now committed too. `RESULTS_SUMMARY.md` (the one-stop summary) does not exist yet; when it appears in `results/simple_to_complex/`, re-check every number against it.
 
 ## Ground rules
 - Every number must come from the files listed below. Don't invent or round differently from the tables.
@@ -19,7 +19,7 @@ Draft freely, but re-check the items below before finalising. Run `git log --one
 
 | Item | What may change | Watch for |
 |---|---|---|
-| **Regression results** (`results/simple_to_complex/regression/*`, `figures/03_*`) | The notebook has run but has not been reviewed or committed yet. Numbers could change if the review finds a bug | The commit "Add notebook 03…" |
+| **Regression results** (`results/simple_to_complex/regression/*`, `figures/03_*`) | Committed. Only the pre-merge review could still change them | The review commit |
 | **ROC curves** (`figures/02_roc_curves.png`) | Not created yet | The file appears |
 | **LightGBM comparison** | It moves out of notebooks 02/03 and their `run_metadata.json` into `RESULTS_SUMMARY.md` | Take it from `RESULTS_SUMMARY.md` only |
 | **`RESULTS_SUMMARY.md`** (`results/simple_to_complex/`) | Not created yet. It will be the single cross-task summary, with the "simple → complex ladder" figures `figures/04_*.png` | The file appears; then re-check every number against it |
@@ -105,4 +105,6 @@ Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; 
   - It drifts worst by August.
   Present this honestly: the more complex model is not justified out of time.
 - **C2** keeps only 6 of the 24 features (1-SE rule) and performs about as well as C1 out of time.
+- **R2** keeps only `promised_lead_days` (1-SE rule) and is clearly worse than R1 on June (RMSE 9.28 vs 7.39). BIC (R2B, 17 variables) matches R1. Treat this as a finding about the 1-SE rule with noisy time folds.
+- **Regression RF** does not beat OLS out of time: RMSE 8.40 vs 8.21 on Validation and 7.95 vs 7.39 on June.
 - The old pipeline headline (LightGBM June AP 15.09%, MAE 4.85 days) belongs only in a short "what changed" note.
