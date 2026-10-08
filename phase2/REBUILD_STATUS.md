@@ -1,7 +1,7 @@
 # Simple → complex rebuild: status and handoff
 
 **For:** whoever continues this work if the current session stops.
-**Last updated:** 2026-10-09, after notebook 02 and the archiving. Notebook 03 was in progress at the time.
+**Last updated:** 2026-10-09 ~02:30. Notebook 03 has executed but is not yet committed. A one-shot wake-up prompt is scheduled in the original chat for 04:34 to resume, but only if that chat is still open.
 
 ## Goal
 Implement `phase2/PLAN_SIMPLE_TO_COMPLEX.md` (the repo copy is authoritative) on branch `simple-to-complex`. When every acceptance check in plan §9 passes, **merge into `main` and push** (the user approved this). Phase 2 should end up holding only what the new Word report uses. Everything else is moved to `Archive/` so it is easy to restore. After this work, the only remaining job should be writing the report.
@@ -78,7 +78,7 @@ The full brief is `REBUILD_AGENT_BRIEF.md`; give it to every agent.
 | 5 | RF search caches for both tasks | done (committed alongside this file) |
 | 6 | `01_data_features_multicollinearity.ipynb`, executed | done (7021ebf) |
 | 7 | `02_classification.ipynb` (including the resampling experiment, C3d and PR curves) | done (e7f4a89) |
-| 8 | `03_regression.ipynb` | **in progress** (agent started after 02); if it is missing or incomplete, use the step 8 task below |
+| 8 | `03_regression.ipynb` | **executed cleanly, not yet committed** (37 code cells, 0 errors; outputs in `results/simple_to_complex/regression/` and `figures/03_*.png`; new `test_regression_models.py`; edits to `src/evaluation.py`, `src/model_figures.py` and `src/regression_models.py`). Next: run `../.venv/bin/python -m unittest`, re-check that 02 still runs with the changed shared helpers, then commit. If the files are missing, use the step 8 task below |
 | 9 | `04_summary` → `RESULTS_SUMMARY.md` plus merged `run_metadata.json` | to do |
 | 10 | Clean-up: archive the old notebooks and results, rewrite README | archiving done (a82cb48, 2789736, 34cd201); README rewrite still to do |
 | 11 | Acceptance checks (plan §9) | to do |
@@ -153,3 +153,18 @@ Also:
   - Re-execute 02 (about 5 minutes) and commit.
   - Wait until the 03 agent is finished, because it may also be editing `src/model_figures.py`.
 - **No LightGBM in the modelling notebooks.** Remove the `PREVIOUS_PIPELINE` constant and the "versus previous pipeline (LightGBM)" print from 02 and 03, and from their `run_metadata.json`. Keep the old-pipeline comparison (June AP 15.09%, MAE 4.85 days) only in 04 / `RESULTS_SUMMARY.md`, as the "what changed" note. Do this after 03 is committed, together with the ROC change, then re-execute 02 and 03.
+
+## Recommended order for the remaining work
+1. Validate and commit 03 (see step 8 in the progress table).
+2. Apply the two pending changes in one pass: the ROC curves in 02, and moving the LightGBM comparison out of 02/03. Re-execute 02 and 03, then commit.
+3. Step 9: build `04_summary`, then `RESULTS_SUMMARY.md`.
+4. Step 10: rewrite the README, then archive `PLAN_SIMPLE_TO_COMPLEX.md`, `REBUILD_STATUS.md` and `REBUILD_AGENT_BRIEF.md` into `Archive/2026-10-09_before_simple_to_complex/`.
+5. Step 11: acceptance checks. Step 12: merge into `main` and push.
+
+## Notes for the report writer (from discussions with the user)
+- **`promised_lead_days`** = estimated delivery date shown at checkout − approval date. It is the strongest predictor partly by construction.
+  - The regression target is (actual lead days) − (promised lead days).
+  - "Late" means delivered after the promise.
+  - Olist pads its estimates, and the estimates already encode distance and region (correlation with distance 0.69).
+  - Interpret its effect as *how much slack the promise gives*, not as a cause of delay. The R0b "Olist promise" baseline is the matching benchmark.
+- **June (Test)** has only 137 late orders (a 2.2% late rate vs 8.8% in Train), so June classification metrics are noisy. The old pipeline's June evaluation had the same late count.
