@@ -146,3 +146,9 @@ Also:
   - The RF drifts worst: August ROC-AUC 0.43.
 - **C2 (CV-stepwise, 1-SE)** keeps 6 features: customer_state, day_of_month, seller_count, day_of_week, promised_lead_days, route_type. BIC keeps 14, AIC 19, Lasso all 24.
 - **Tuning gain** (tuned C3 vs default C3d): +0.017 CV AP, +0.016 Validation AP, +0.003 June AP. The default forest's overfitting gap is huge: Train AP 100%.
+
+## Pending user request (do after 03 is committed)
+- **ROC curves in notebook 02.** Add a ROC curve figure (TPR vs FPR; top-left is best; chance diagonal) for C1, C2 and C3 on Validation and June. Put ROC-AUC in the legend and mark the top-10% operating point.
+  - Add the helper to `src/model_figures.py` next to the PR-curve helper, and save the figure as `figures/02_roc_curves.png`.
+  - Re-execute 02 (about 5 minutes) and commit.
+  - Wait until the 03 agent is finished, because it may also be editing `src/model_figures.py`.
