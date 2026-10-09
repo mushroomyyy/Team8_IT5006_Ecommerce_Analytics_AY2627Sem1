@@ -13,6 +13,7 @@ Run it with `python -m src.summary` or from `04_summary.ipynb`.
 import argparse
 import json
 import re
+import textwrap
 from dataclasses import dataclass
 from html import unescape
 from pathlib import Path
@@ -23,6 +24,8 @@ import pandas as pd
 
 from . import model_figures as mf
 from . import report_figures as figs
+from .model_labels import (CLASSIFICATION_CODES, MODEL_LABELS, REGRESSION_CODES, display_name,
+                           model_key_table, short_label)
 
 DEFAULT_ROOT = Path('results/simple_to_complex')
 LADDER_SPLITS = ('CV', 'Validation', 'June')
@@ -125,15 +128,15 @@ def ladder_markdown_table(task):
     sd = frame[frame['split'] == 'CV'].set_index(['rung', 'model'])['sd']
     rows = []
     for rung, model in task.spec.rungs:
-        rows.append([rung, model, f"{wide.loc[(rung, model), 'CV']:.2f} +/- {sd.loc[(rung, model)]:.2f}",
+        rows.append([rung, model, short_label(model), f"{wide.loc[(rung, model), 'CV']:.2f} +/- {sd.loc[(rung, model)]:.2f}",
                      f"{wide.loc[(rung, model), 'Validation']:.2f}", f"{wide.loc[(rung, model), 'June']:.2f}"])
-    return md_table(['Rung', 'Model', 'CV mean +/- SD', 'Validation', 'Test (June)'], rows)
+    return md_table(['Rung', 'Code', 'Model', 'CV mean +/- SD', 'Validation', 'Test (June)'], rows)
 
 
 # ---------------------------------------------------------------- figures
 
 def _rung_ticks(task):
-    return [f'{rung}\n{model}' for rung, model in task.spec.rungs]
+    return [f"{model}\n{textwrap.fill(short_label(model), 14)}" for _, model in task.spec.rungs]
 
 
 def plot_ladder(tasks, save_path=None):
@@ -163,7 +166,7 @@ def plot_overfitting_gaps(tasks, save_path=None):
         fig, axes = plt.subplots(1, len(tasks), figsize=(6.2 * len(tasks), 4.8))
         for ax, task in zip(np.atleast_1d(axes), tasks):
             spec = task.spec
-            gaps = task.table(f'{spec.name}_overfitting_gaps', 'overfitting gap').set_index('model')
+            gaps = task.table(f'{spec.name}_overfitting_gaps', 'overfitting gap').set_index('Code')
             values = [float(gaps.loc[model, spec.metric]) * spec.scale for _, model in spec.rungs]
             ax.bar(range(len(values)), values, color=[mf.MODEL_COLORS[m] for _, m in spec.rungs])
             ax.axhline(0, color=figs.INK2, lw=0.8)
@@ -182,12 +185,12 @@ def plot_drift_summary(tasks, save_path=None):
         for column, task in enumerate(tasks):
             spec = task.spec
             drift = task.table(f'{spec.name}_drift', 'drift')
-            drift = drift[drift['metric'] == spec.metric].set_index('model')
+            drift = drift[drift['metric'] == spec.metric].set_index('Code')
             top, bottom = axes[0, column], axes[1, column]
             for _, model in spec.rungs:
                 row = drift.loc[model]
                 top.plot(list(PERIODS), [float(row[p]) * spec.scale for p in PERIODS], color=mf.MODEL_COLORS[model],
-                         marker=mf.MODEL_MARKERS.get(model, 'o'), label=model)
+                         marker=mf.MODEL_MARKERS.get(model, 'o'), label=display_name(model))
             top.set(xlabel='Month (June = Test, July and August = Monitoring)', ylabel=spec.metric_label,
                     title=spec.title)
             top.legend(ncol=2)
@@ -324,7 +327,24 @@ def _transforms(task):
             '- **No squared terms.** Choosing polynomial terms by looking at the outcome would be another '
             'data-driven selection step. Each coefficient stays a single, interpretable slope, and remaining '
             'nonlinearity is judged by the Random Forest stage. The curvature plots in the notebooks are a '
-            'diagnostic only.', '',
+            'diagnostic only.',
+            '- **Why not other transformations?**',
+            '  - *Exponential and other expanding transforms (squares, powers above 1).* The skewed inputs already '
+            'have long right tails; an expanding transform stretches the tail further and gives a few extreme orders '
+            'even more leverage in a linear fit, the opposite of what is needed. It is also numerically unstable on '
+            'money and volume values (exp of a payment value overflows).',
+            '  - *Quadratic and polynomial terms.* Choosing curvature terms by looking at the outcome is a second '
+            'outcome-driven selection step, which adds optimism (specification search). The curvature diagnostic '
+            'shows no strong curvature remains, and any remaining nonlinearity is tested by the Random Forest stage.',
+            '  - *Box-Cox and Yeo-Johnson.* These estimate a power per feature from the data. log1p is the simplest '
+            'member of that family (Box-Cox lambda = 0, shifted by 1 to handle zeros) and gives readable "per doubling" '
+            'effects. Fitting a lambda per feature adds parameters and makes coefficients harder to interpret, for '
+            'little expected gain once the log has already reduced the skew.',
+            '  - *Splines and binning.* These are flexible, outcome-shaped terms. Flexible nonlinearity is exactly '
+            'what the Random Forest stage is for, so the linear stage stays a simple, interpretable baseline.',
+            '  - *Principle.* Transformations are chosen from each input\'s distribution and for interpretability, '
+            'not by searching over transformation families against the outcome, so variable selection remains the '
+            'only outcome-driven step.', '',
             f"Rule: {meta['rule']}. Variable selection is the only outcome-driven step. "
             'The Random Forest uses the raw features.']
 
@@ -346,7 +366,8 @@ def _stepwise(task):
 def _overlap(task):
     selected = task.metadata['selected_variables']
     counts = md_table(['Method or model', 'Variables selected'],
-                      [[m, len(selected[m])] for m in selected if m != task.spec.linear_models[0]])
+                      [[display_name(m) if m in MODEL_LABELS else m, len(selected[m])]
+                       for m in selected if m != task.spec.linear_models[0]])
     table = task.table(f'{task.spec.name}_selection_overlap', 'overlap')
     table = table.replace({'True': 'yes', 'False': ''})
     return [counts, '', frame_markdown(table)]
@@ -461,6 +482,29 @@ def task_section(task, chapter, root):
     return lines + extras(task, root, number)
 
 
+# ---------------------------------------------------------------- model key
+
+def feature_counts(task):
+    """Raw features used per model code, read from the task's `run_metadata.json`.
+
+    Linear models use their selected lists; the Random Forests use all raw features.
+    """
+    meta = task.metadata
+    counts = {code: len(units) for code, units in meta['selected_variables'].items() if code in MODEL_LABELS}
+    n_raw = len(meta['features']['numeric']) + len(meta['features']['categorical'])
+    return {**counts, task.spec.forest: n_raw, task.spec.forest_default: n_raw}
+
+
+def model_key_markdown(tasks):
+    """One model key table per task (with feature counts from the metadata), as markdown lines."""
+    codes = {'classification': CLASSIFICATION_CODES, 'regression': REGRESSION_CODES}
+    lines = []
+    for task in tasks:
+        key = model_key_table(codes[task.spec.name], feature_counts(task))
+        lines += [f'**{task.spec.title}**', '', frame_markdown(key), '']
+    return lines
+
+
 # ---------------------------------------------------------------- whole document
 
 def what_changed(tasks):
@@ -469,15 +513,15 @@ def what_changed(tasks):
     june_ap = cls.results[cls.results['split'] == 'June'].set_index('model')['avg_precision'] * 100
     june_mae = reg.results[reg.results['split'] == 'June'].set_index('model')['mae']
     old = PREVIOUS_PIPELINE
-    new_rows = [[m, f'{june_ap[m]:.2f}'] for _, m in cls.spec.rungs if m in june_ap]
-    mae_rows = [[m, f'{june_mae[m]:.2f}'] for _, m in reg.spec.rungs if m in june_mae]
+    new_rows = [[m, short_label(m), f'{june_ap[m]:.2f}'] for _, m in cls.spec.rungs if m in june_ap]
+    mae_rows = [[m, short_label(m), f'{june_mae[m]:.2f}'] for _, m in reg.spec.rungs if m in june_mae]
     return ['## 4. What changed vs the previous pipeline', '',
             f"The previous pipeline's headline was {old['model']} with June AP {old['june_ap_percent']}% and June MAE "
             f"{old['june_mae_days']} days, chosen as the winner on June outcomes. The new pipeline selects no winner: "
             "every model is scored the same way on Train, CV, Validation, Test (June) and Monitoring (July, August), and "
             "June is the Test set. The cohorts and protocol differ, so the old numbers are context, not a like-for-like comparison.",
-            '', '**New pipeline, Test (June) AP (%)**', '', md_table(['Model', 'June AP (%)'], new_rows), '',
-            '**New pipeline, Test (June) MAE (days)**', '', md_table(['Model', 'June MAE (days)'], mae_rows), '']
+            '', '**New pipeline, Test (June) AP (%)**', '', md_table(['Code', 'Model', 'June AP (%)'], new_rows), '',
+            '**New pipeline, Test (June) MAE (days)**', '', md_table(['Code', 'Model', 'June MAE (days)'], mae_rows), '']
 
 
 def figure_index(root):
@@ -495,6 +539,11 @@ def build_markdown(tasks, root):
             'Protocol: Train (in-sample), CV (5 chronological folds inside Train), Validation (30-day out-of-time holdout), '
             'Test (June) and Monitoring (July, August) scored by frozen models. No model is selected. '
             'Primary metrics: AP for classification, RMSE for regression.', '',
+            '## Model key', '',
+            'Codes are the stable keys used in every table, figure and export; the report should write '
+            '"Code · short label" (for example "C2 · Logistic (CV-stepwise)") on first mention. '
+            'Features is the number of raw features the model uses.', '',
+            *model_key_markdown(tasks),
             '## 1. The simple-to-complex ladder', '',
             f'**{cls.spec.title}** ({cls.spec.metric_label})', '', ladder_markdown_table(cls), '',
             f'**{reg.spec.title}** ({reg.spec.metric_label})', '', ladder_markdown_table(reg), '',

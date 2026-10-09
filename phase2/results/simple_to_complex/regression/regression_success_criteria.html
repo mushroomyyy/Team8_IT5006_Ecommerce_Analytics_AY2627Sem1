@@ -11,9 +11,10 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
 <table class="dataframe">
   <thead>
     <tr style="text-align: right;">
+      <th>Code</th>
+      <th>Model</th>
       <th>split</th>
       <th>criterion</th>
-      <th>model</th>
       <th>value</th>
       <th>threshold</th>
       <th>passed</th>
@@ -21,193 +22,217 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
   </thead>
   <tbody>
     <tr>
+      <td>R1</td>
+      <td>OLS (all)</td>
       <td>June</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R1</td>
       <td>0.370</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R1</td>
+      <td>OLS (all)</td>
       <td>June</td>
       <td>RMSE below R0b</td>
-      <td>R1</td>
       <td>0.647</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R2</td>
+      <td>OLS (CV-stepwise)</td>
       <td>June</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R2</td>
       <td>0.198</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R2</td>
+      <td>OLS (CV-stepwise)</td>
       <td>June</td>
       <td>RMSE below R0b</td>
-      <td>R2</td>
       <td>0.551</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R2B</td>
+      <td>OLS (BIC)</td>
       <td>June</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R2B</td>
       <td>0.369</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R2B</td>
+      <td>OLS (BIC)</td>
       <td>June</td>
       <td>RMSE below R0b</td>
-      <td>R2B</td>
       <td>0.647</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3</td>
+      <td>Random Forest (tuned)</td>
       <td>June</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R3</td>
       <td>0.320</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3</td>
+      <td>Random Forest (tuned)</td>
       <td>June</td>
       <td>RMSE below R0b</td>
-      <td>R3</td>
       <td>0.619</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3d</td>
+      <td>Random Forest (default)</td>
       <td>June</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R3d</td>
       <td>0.282</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3d</td>
+      <td>Random Forest (default)</td>
       <td>June</td>
       <td>RMSE below R0b</td>
-      <td>R3d</td>
       <td>0.598</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3</td>
+      <td>Random Forest (tuned)</td>
       <td>June</td>
       <td>Relative RMSE gain over best OLS (R1); reported</td>
-      <td>R3</td>
       <td>-0.079</td>
       <td>NaN</td>
       <td>reported</td>
     </tr>
     <tr>
+      <td>R3d</td>
+      <td>Random Forest (default)</td>
       <td>June</td>
       <td>Relative RMSE gain over best OLS (R1); reported</td>
-      <td>R3d</td>
       <td>-0.139</td>
       <td>NaN</td>
       <td>reported</td>
     </tr>
     <tr>
+      <td>R1</td>
+      <td>OLS (all)</td>
       <td>Validation</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R1</td>
       <td>0.168</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R1</td>
+      <td>OLS (all)</td>
       <td>Validation</td>
       <td>RMSE below R0b</td>
-      <td>R1</td>
       <td>0.394</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R2</td>
+      <td>OLS (CV-stepwise)</td>
       <td>Validation</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R2</td>
       <td>0.095</td>
       <td>0.1</td>
       <td>fail</td>
     </tr>
     <tr>
+      <td>R2</td>
+      <td>OLS (CV-stepwise)</td>
       <td>Validation</td>
       <td>RMSE below R0b</td>
-      <td>R2</td>
       <td>0.341</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R2B</td>
+      <td>OLS (BIC)</td>
       <td>Validation</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R2B</td>
       <td>0.168</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R2B</td>
+      <td>OLS (BIC)</td>
       <td>Validation</td>
       <td>RMSE below R0b</td>
-      <td>R2B</td>
       <td>0.395</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3</td>
+      <td>Random Forest (tuned)</td>
       <td>Validation</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R3</td>
       <td>0.149</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3</td>
+      <td>Random Forest (tuned)</td>
       <td>Validation</td>
       <td>RMSE below R0b</td>
-      <td>R3</td>
       <td>0.380</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3d</td>
+      <td>Random Forest (default)</td>
       <td>Validation</td>
       <td>RMSE &gt;= 10% below R0a</td>
-      <td>R3d</td>
       <td>0.133</td>
       <td>0.1</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3d</td>
+      <td>Random Forest (default)</td>
       <td>Validation</td>
       <td>RMSE below R0b</td>
-      <td>R3d</td>
       <td>0.369</td>
       <td>0.0</td>
       <td>pass</td>
     </tr>
     <tr>
+      <td>R3</td>
+      <td>Random Forest (tuned)</td>
       <td>Validation</td>
       <td>Relative RMSE gain over best OLS (R1); reported</td>
-      <td>R3</td>
       <td>-0.023</td>
       <td>NaN</td>
       <td>reported</td>
     </tr>
     <tr>
+      <td>R3d</td>
+      <td>Random Forest (default)</td>
       <td>Validation</td>
       <td>Relative RMSE gain over best OLS (R1); reported</td>
-      <td>R3d</td>
       <td>-0.043</td>
       <td>NaN</td>
       <td>reported</td>

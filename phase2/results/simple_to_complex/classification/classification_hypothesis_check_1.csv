@@ -1,29 +1,29 @@
-hypothesis,feature,model,expected_sign,term,coef,p_value,observed_sign,verdict
-time,is_weekend_approval,C1,+,is_weekend_approval,-0.071,0.0083,-,disagree
-time,is_black_friday_period,C1,+,is_black_friday_period,0.234,0.0,+,agree
-time,is_december_peak,C1,+,is_december_peak,0.114,0.0,+,agree
-workload,orders_approved_prev_7d,C1,+,log_orders_approved_prev_7d,0.09,0.0004,+,agree
-workload,approval_lag_hours,C1,+,log_approval_lag_hours,0.151,0.0,+,agree
-order,order_item_count,C1,+,order_item_count,-0.091,0.0002,-,disagree
-order,order_seller_count,C1,+,order_seller_count,-0.16,0.001,-,disagree
-order,order_product_weight_g_sum,C1,+,log_order_product_weight_g_sum,-0.01,0.7436,-,not significant
-order,order_product_volume_cm3_sum,C1,+,log_order_product_volume_cm3_sum,0.101,0.0002,+,agree
-distance,seller_dist_km_mean,C1,+,log_seller_dist_km_mean,0.08,0.0186,+,agree
-distance,seller_state_count,C1,+,seller_state_count,-1.21,0.9928,-,not identified
-payment,payment_installments_max,C1,+,payment_installments_max,0.011,0.5642,+,not significant
-payment,payment_value_sum,C1,+,log_payment_value_sum,0.156,0.0001,+,agree
-promise,promised_lead_days,C1,-,promised_lead_days,-0.439,0.0,-,agree
-time,is_weekend_approval,C2,+,,,,,not in model
-time,is_black_friday_period,C2,+,,,,,not in model
-time,is_december_peak,C2,+,,,,,not in model
-workload,orders_approved_prev_7d,C2,+,,,,,not in model
-workload,approval_lag_hours,C2,+,,,,,not in model
-order,order_item_count,C2,+,,,,,not in model
-order,order_seller_count,C2,+,,,,,not in model
-order,order_product_weight_g_sum,C2,+,,,,,not in model
-order,order_product_volume_cm3_sum,C2,+,,,,,not in model
-distance,seller_dist_km_mean,C2,+,,,,,not in model
-distance,seller_state_count,C2,+,,,,,not in model
-payment,payment_installments_max,C2,+,,,,,not in model
-payment,payment_value_sum,C2,+,,,,,not in model
-promise,promised_lead_days,C2,-,promised_lead_days,-0.347,0.0,-,agree
+Code,Model,hypothesis,feature,expected_sign,term,coef,p_value,observed_sign,verdict
+C1,Logistic (all),time,is_weekend_approval,+,is_weekend_approval,-0.071,0.0083,-,disagree
+C1,Logistic (all),time,is_black_friday_period,+,is_black_friday_period,0.234,0.0,+,agree
+C1,Logistic (all),time,is_december_peak,+,is_december_peak,0.114,0.0,+,agree
+C1,Logistic (all),workload,orders_approved_prev_7d,+,log_orders_approved_prev_7d,0.09,0.0004,+,agree
+C1,Logistic (all),workload,approval_lag_hours,+,log_approval_lag_hours,0.151,0.0,+,agree
+C1,Logistic (all),order,order_item_count,+,order_item_count,-0.091,0.0002,-,disagree
+C1,Logistic (all),order,order_seller_count,+,order_seller_count,-0.16,0.001,-,disagree
+C1,Logistic (all),order,order_product_weight_g_sum,+,log_order_product_weight_g_sum,-0.01,0.7436,-,not significant
+C1,Logistic (all),order,order_product_volume_cm3_sum,+,log_order_product_volume_cm3_sum,0.101,0.0002,+,agree
+C1,Logistic (all),distance,seller_dist_km_mean,+,log_seller_dist_km_mean,0.08,0.0186,+,agree
+C1,Logistic (all),distance,seller_state_count,+,seller_state_count,-1.21,0.9928,-,not identified
+C1,Logistic (all),payment,payment_installments_max,+,payment_installments_max,0.011,0.5642,+,not significant
+C1,Logistic (all),payment,payment_value_sum,+,log_payment_value_sum,0.156,0.0001,+,agree
+C1,Logistic (all),promise,promised_lead_days,-,promised_lead_days,-0.439,0.0,-,agree
+C2,Logistic (CV-stepwise),time,is_weekend_approval,+,,,,,not in model
+C2,Logistic (CV-stepwise),time,is_black_friday_period,+,,,,,not in model
+C2,Logistic (CV-stepwise),time,is_december_peak,+,,,,,not in model
+C2,Logistic (CV-stepwise),workload,orders_approved_prev_7d,+,,,,,not in model
+C2,Logistic (CV-stepwise),workload,approval_lag_hours,+,,,,,not in model
+C2,Logistic (CV-stepwise),order,order_item_count,+,,,,,not in model
+C2,Logistic (CV-stepwise),order,order_seller_count,+,,,,,not in model
+C2,Logistic (CV-stepwise),order,order_product_weight_g_sum,+,,,,,not in model
+C2,Logistic (CV-stepwise),order,order_product_volume_cm3_sum,+,,,,,not in model
+C2,Logistic (CV-stepwise),distance,seller_dist_km_mean,+,,,,,not in model
+C2,Logistic (CV-stepwise),distance,seller_state_count,+,,,,,not in model
+C2,Logistic (CV-stepwise),payment,payment_installments_max,+,,,,,not in model
+C2,Logistic (CV-stepwise),payment,payment_value_sum,+,,,,,not in model
+C2,Logistic (CV-stepwise),promise,promised_lead_days,-,promised_lead_days,-0.347,0.0,-,agree

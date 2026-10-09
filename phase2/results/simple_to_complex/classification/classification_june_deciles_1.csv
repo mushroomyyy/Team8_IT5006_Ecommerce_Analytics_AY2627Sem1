@@ -1,4 +1,4 @@
-Decile,C0,C1,C2,C2B,C3,C3d
+Decile,C0 · No-skill baseline,C1 · Logistic (all),C2 · Logistic (CV-stepwise),C2B · Logistic (BIC),C3 · Random Forest (tuned),C3d · Random Forest (default)
 1,6.6,32.8,32.1,32.1,32.8,31.4
 2,15.3,49.6,46.7,51.8,47.4,42.3
 3,29.9,59.9,59.1,59.9,55.5,50.4

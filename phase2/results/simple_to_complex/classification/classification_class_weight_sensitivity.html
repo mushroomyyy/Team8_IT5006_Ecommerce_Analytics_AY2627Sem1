@@ -12,6 +12,9 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
   <thead>
     <tr style="text-align: right;">
       <th>Model</th>
+      <th>Code</th>
+      <th>Model</th>
+      <th>Class weight</th>
       <th>avg_precision mean +/- SD</th>
       <th>roc_auc mean +/- SD</th>
       <th>brier mean +/- SD</th>
@@ -22,7 +25,10 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
   </thead>
   <tbody>
     <tr>
-      <td>C1 (unweighted)</td>
+      <td>0</td>
+      <td>C1</td>
+      <td>Logistic (all)</td>
+      <td>unweighted</td>
       <td>0.1383 +/- 0.0261</td>
       <td>0.6050 +/- 0.0356</td>
       <td>0.0869 +/- 0.0290</td>
@@ -31,7 +37,10 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>1.8144 +/- 0.4331</td>
     </tr>
     <tr>
-      <td>C1 (class_weight='balanced')</td>
+      <td>1</td>
+      <td>C1</td>
+      <td>Logistic (all)</td>
+      <td>class_weight='balanced'</td>
       <td>0.1371 +/- 0.0271</td>
       <td>0.6073 +/- 0.0319</td>
       <td>0.2850 +/- 0.0394</td>

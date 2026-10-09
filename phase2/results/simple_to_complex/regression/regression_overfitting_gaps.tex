@@ -3,17 +3,17 @@
 \centering
 \small
 \caption{Regression: overfitting gap (Train minus CV mean)}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-model & rmse & mae & r2 & bias \\
+Code & Model & rmse & mae & r2 & bias \\
 \midrule
-R0a & -0.1499 & -0.2246 & 0.0349 & 0.2702 \\
-R0b & 0.1708 & 0.2021 & -0.0157 & 0.2782 \\
-R1 & -0.7556 & -0.5747 & 0.1506 & 1.1188 \\
-R2 & -0.2301 & -0.0648 & 0.0467 & 1.1838 \\
-R2B & -0.7358 & -0.5471 & 0.1466 & 1.158 \\
-R3 & -1.5297 & -1.1609 & 0.2749 & 0.5745 \\
-R3d & -5.7608 & -4.2898 & 0.8022 & -0.4199 \\
+R0a & Median baseline & -0.1499 & -0.2246 & 0.0349 & 0.2702 \\
+R0b & Olist promise & 0.1708 & 0.2021 & -0.0157 & 0.2782 \\
+R1 & OLS (all) & -0.7556 & -0.5747 & 0.1506 & 1.1188 \\
+R2 & OLS (CV-stepwise) & -0.2301 & -0.0648 & 0.0467 & 1.1838 \\
+R2B & OLS (BIC) & -0.7358 & -0.5471 & 0.1466 & 1.158 \\
+R3 & Random Forest (tuned) & -1.5297 & -1.1609 & 0.2749 & 0.5745 \\
+R3d & Random Forest (default) & -5.7608 & -4.2898 & 0.8022 & -0.4199 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}

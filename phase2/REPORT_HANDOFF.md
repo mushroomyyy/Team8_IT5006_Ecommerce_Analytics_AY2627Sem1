@@ -11,6 +11,7 @@
 - The models:
   - Classification: C0 no-skill; C1 logistic with all 24 features; C2 logistic with CV-stepwise features; C2B logistic with BIC-stepwise features; C3 tuned Random Forest; C3d default Random Forest.
   - Regression: R0a median baseline; R0b Olist promise baseline; R1 OLS; R2 OLS with CV-stepwise features; R2B OLS with BIC-stepwise features; R3 tuned Random Forest; R3d default Random Forest.
+- The model key (code, short label, description, feature count) is the first section of `results/simple_to_complex/RESULTS_SUMMARY.md` and comes from `src/model_labels.py`; in the report write "Code · short label" (for example "C2 · Logistic (CV-stepwise)") on first mention.
 - Primary metrics: **AP** for classification (write "AP, the area under the precision-recall curve" once) and **RMSE** for regression.
 - Delete the old pipeline's text: XGBoost, LightGBM, CatBoost, the ensemble, "June-selected" models, the paired model comparison, and the limitation "June outcomes informed model selection".
 
@@ -111,3 +112,42 @@ Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; 
 - **Regression RF** does not beat OLS out of time: RMSE 8.40 vs 8.21 on Validation and 7.95 vs 7.39 on June.
 - The old pipeline headline (LightGBM June AP 15.09%, MAE 4.85 days) belongs only in a short "what changed" note.
 - **User preference:** don't call out June's small late-order count or late rate as a caveat. Report June metrics as they are.
+
+## Evaluation checklist (cover fully, both tasks)
+- **Evaluation design:**
+  - Explain Train, CV (5 expanding chronological folds of 30 days, with a 45-day gap), Validation (19 Mar–17 Apr 2018, diagnostic only), Test (June: refit on all history before 2 June, scored day by day) and Monitoring (July and August, frozen models).
+  - Figures: `01_validation_timeline.png` and `01_cv_folds_{classification,regression}.png`.
+  - Fold table from `data/01_cv_folds.csv`; counts from `data/01_split_summary.csv` and `01_cohort_counts.csv`.
+  - Label buffer and waiting-period checks: `01_label_buffer_audit.png` and `01_waiting_period_audit.png`.
+- **Metrics:**
+  - Classification: AP (primary), ROC-AUC and Brier; precision, recall and F1 at the top-10% capacity cut-off and at 0.5; top-10% capture and lift.
+  - Regression: RMSE (primary), MAE, R², median AE and bias; error by late vs on-time orders; the derived late flag.
+  - Success criteria: `{task}_success_criteria`.
+- **Results:**
+  - The full comparison table `{task}_model_comparison`, with `02_model_comparison_ap.png` and `03_model_comparison_rmse.png`.
+  - The ladder `04_ladder.png`.
+  - Overfitting gaps: `{task}_overfitting_gaps` and `04_overfitting_gaps.png`.
+  - Tuned vs default RF: `{task}_rf_tuning_gain`.
+  - June deciles and lift: `classification_june_deciles` and `02_june_decile_lift.png`.
+  - PR and ROC curves: `02_pr_curves.png` and `02_roc_curves.png`.
+  - Calibration: `02_calibration.png`.
+  - Regression error by outcome, late flag, and `03_predicted_vs_actual.png`.
+- **Monitoring and drift:**
+  - `{task}_drift`, `04_drift_summary.png`, `02_drift_ap.png`, `02_drift_lift.png`, `03_drift_rmse.png` and `03_drift_mae.png`.
+  - The models are frozen (identical fingerprints), so the changes reflect the data. The RF degrades most.
+
+## CV folds and Random Forest tuning (explain explicitly)
+- **The same 5 folds drive every decision:**
+  - linear CV-stepwise + 1-SE;
+  - the class-weight check;
+  - the resampling experiment (resampling happens inside training folds only);
+  - the RF search;
+  - every CV column.
+- **Per-fold results:** `{task}/cv_fold_scores.csv`. Show a fold × model table (C1, C2, C3 and R1, R2, R3); the RF's CV advantage sits in the September–February peak-season folds.
+- **RF search, Stage A:** 60 random configurations with 200 trees each, varying depth, leaf size, split size, max features, bootstrap fraction, and (classification only) class weight and criterion.
+- **RF search, Stage B:** a grid around the best, with 300 or 500 trees; near-ties go to the simpler model. Scored by AP or RMSE on the same folds.
+- **RF tables and files:**
+  - `{task}_rf_search_summary` and `{task}/rf_best_params.json`;
+  - `rf_search_stageA.csv` and `rf_search_stageB.csv`, for an appendix;
+  - the sensitivity figures `02_rf_sensitivity.png` and `03_rf_sensitivity.png`.
+- **How the tuned settings are used:** the RF uses the 24 raw features. The tuned settings are refit on all history before 2 June for June, then frozen for July and August. Nothing is re-tuned on later data.

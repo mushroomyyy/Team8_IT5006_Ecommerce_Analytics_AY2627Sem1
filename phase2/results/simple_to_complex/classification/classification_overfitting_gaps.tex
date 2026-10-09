@@ -3,16 +3,16 @@
 \centering
 \small
 \caption{Classification: overfitting gap (Train minus CV mean)}
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
-model & avg\_precision & roc\_auc & brier & precision\_top10 & top10\_lift \\
+Code & Model & avg\_precision & roc\_auc & brier & precision\_top10 & top10\_lift \\
 \midrule
-C0 & -0.0073 & 0.0 & -0.0067 & -0.0066 & -0.0303 \\
-C1 & 0.0733 & 0.0813 & -0.0108 & 0.0933 & 1.0957 \\
-C2 & 0.0012 & 0.0266 & -0.0078 & 0.0084 & 0.1456 \\
-C2B & 0.0672 & 0.0767 & -0.0105 & 0.0829 & 0.9555 \\
-C3 & 0.1289 & 0.124 & -0.0106 & 0.1206 & 1.4196 \\
-C3d & 0.7474 & 0.3754 & -0.0698 & 0.6707 & 7.7052 \\
+C0 & No-skill baseline & -0.0073 & 0.0 & -0.0067 & -0.0066 & -0.0303 \\
+C1 & Logistic (all) & 0.0733 & 0.0813 & -0.0108 & 0.0933 & 1.0957 \\
+C2 & Logistic (CV-stepwise) & 0.0012 & 0.0266 & -0.0078 & 0.0084 & 0.1456 \\
+C2B & Logistic (BIC) & 0.0672 & 0.0767 & -0.0105 & 0.0829 & 0.9555 \\
+C3 & Random Forest (tuned) & 0.1289 & 0.124 & -0.0106 & 0.1206 & 1.4196 \\
+C3d & Random Forest (default) & 0.7474 & 0.3754 & -0.0698 & 0.6707 & 7.7052 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}

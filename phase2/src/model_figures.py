@@ -14,6 +14,7 @@ from scipy import stats
 from sklearn.calibration import calibration_curve
 
 from . import report_figures as figs
+from .model_labels import MODEL_LABELS, display_name
 
 MODEL_COLORS = {'C0': figs.GRAY, 'R0': figs.GRAY, 'R0a': figs.GRAY, 'R0b': figs.SLATE, 'C1': figs.BLUE, 'R1': figs.BLUE,
                 'C2': figs.AQUA, 'R2': figs.AQUA, 'C2B': figs.YELLOW, 'R2B': figs.YELLOW,
@@ -23,6 +24,11 @@ MODEL_MARKERS = {'C3d': 's', 'R3d': 's', 'C0': 'x', 'R0': 'x', 'R0a': 'x', 'R0b'
 
 def _color(model):
     return MODEL_COLORS.get(str(model).split(':')[0].split(' ')[0], figs.INK2)
+
+
+def _name(label):
+    """Legend text: code plus short label for model codes; other labels (e.g. resampling options) unchanged."""
+    return display_name(label) if label in MODEL_LABELS else label
 
 
 def _colors_for(labels):
@@ -80,9 +86,9 @@ def plot_decile_lift(deciles, save_path=None, title='June risk deciles: capture 
         for model, table in deciles.items():
             x = np.r_[0, table['decile']]
             axes[0].plot(x, np.r_[0, table['cumulative_capture_pct']], marker=MODEL_MARKERS.get(model, 'o'),
-                         ms=4, color=_color(model), label=model)
+                         ms=4, color=_color(model), label=_name(model))
             axes[1].plot(table['decile'], table['lift'], marker=MODEL_MARKERS.get(model, 'o'), ms=4,
-                         color=_color(model), label=model)
+                         color=_color(model), label=_name(model))
         axes[1].axhline(1, color=figs.GRAY, ls='--', lw=1, label='No lift (1.0)')
         axes[0].set(xlabel='Risk decile (1 = highest predicted risk, cumulative)',
                     ylabel='Late orders captured (%)', xticks=range(0, 11))
@@ -107,7 +113,7 @@ def plot_model_comparison(values, ylabel, sds=None, save_path=None, title='Model
             x = np.arange(len(row)) + (i - (n - 1) / 2) * 0.1
             error = None if sds is None else sds.loc[model].fillna(0).to_numpy()
             ax.errorbar(x, row.to_numpy(), yerr=error, fmt=MODEL_MARKERS.get(model, 'o'),
-                        color=_color(model), ms=6, capsize=3, label=model)
+                        color=_color(model), ms=6, capsize=3, label=_name(model))
         ax.set_xticks(range(len(values.columns)), values.columns)
         ax.set(xlabel='Evaluation split', ylabel=ylabel)
         ax.legend(ncol=2)
@@ -122,7 +128,7 @@ def plot_drift(drift, metric, ylabel, periods=('June', 'July', 'August'), save_p
         fig, ax = plt.subplots(figsize=(8, 4.4))
         for _, row in frame.iterrows():
             ax.plot(list(periods), [row[p] for p in periods], marker=MODEL_MARKERS.get(row['model'], 'o'),
-                    color=_color(row['model']), label=row['model'])
+                    color=_color(row['model']), label=_name(row['model']))
         ax.set(xlabel='Month (June = Test, July and August = Monitoring)', ylabel=ylabel)
         ax.legend(ncol=2)
         figs._style(ax, 'y')
@@ -143,7 +149,7 @@ def plot_calibration(panels, save_path=None, n_bins=10, title='Calibration', xla
                 observed, predicted = calibration_curve(y_true, prob, n_bins=n_bins, strategy='quantile')
                 top = max(top, predicted.max(), observed.max())
                 ax.plot(predicted, observed, marker=MODEL_MARKERS.get(label, 'o'), ms=4,
-                        color=colors[label], label=label)
+                        color=colors[label], label=_name(label))
             top = min(1.0, top * 1.1)
             ax.plot([0, top], [0, top], color=figs.GRAY, ls='--', lw=1, label='Perfect calibration')
             ax.set(title=name, xlabel=xlabel or 'Mean predicted probability of late delivery',
@@ -201,7 +207,7 @@ def plot_resampling_comparison(summary, labels, save_path=None, title='Class-imb
                 rows = summary[summary['model'] == model].set_index('strategy').loc[strategies]
                 x = np.arange(len(strategies)) + (i - 0.5) * 0.2
                 ax.errorbar(x, rows[f'cv_{metric}_mean'], yerr=rows[f'cv_{metric}_std'], fmt='o',
-                            color=_color(model), capsize=3, label=model)
+                            color=_color(model), capsize=3, label=_name(model))
             ax.set_xticks(range(len(strategies)), [labels[s] for s in strategies], rotation=30, ha='right')
             ax.set(ylabel=label, xlabel='Resampling inside each training fold')
             figs._style(ax, 'y')
@@ -269,7 +275,7 @@ def plot_pr_curves(panels, save_path=None, top_frac=0.10, title='Precision-recal
                 y, p = np.asarray(y_true, dtype=int), np.asarray(prob, dtype=float)
                 precision, recall, _ = precision_recall_curve(y, p)
                 ax.plot(recall, precision, color=_color(label), lw=1.6,
-                        label=f'{label} (AP {average_precision_score(y, p):.3f})')
+                        label=f'{_name(label)} (AP {average_precision_score(y, p):.3f})')
                 flagged = _top_flagged(p, top_frac)
                 ax.scatter([y[flagged].sum() / y.sum()], [y[flagged].mean()], s=60, color=_color(label),
                            edgecolor='black', zorder=4)
@@ -297,7 +303,7 @@ def plot_roc_curves(panels, save_path=None, top_frac=0.10, title='ROC curves'):
             for label, (y_true, prob) in curves.items():
                 y, p = np.asarray(y_true, dtype=int), np.asarray(prob, dtype=float)
                 fpr, tpr, _ = roc_curve(y, p)
-                ax.plot(fpr, tpr, color=_color(label), lw=1.6, label=f'{label} (ROC-AUC {roc_auc_score(y, p):.3f})')
+                ax.plot(fpr, tpr, color=_color(label), lw=1.6, label=f'{_name(label)} (ROC-AUC {roc_auc_score(y, p):.3f})')
                 flagged = _top_flagged(p, top_frac)
                 ax.scatter([(flagged & (y == 0)).sum() / (y == 0).sum()], [(flagged & (y == 1)).sum() / y.sum()],
                            s=60, color=_color(label), edgecolor='black', zorder=4)

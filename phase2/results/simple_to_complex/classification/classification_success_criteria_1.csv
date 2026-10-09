@@ -1,15 +1,15 @@
-split,criterion,model,value,threshold,passed
-June,Top-10% lift >= 2,C1,3.281,2.0,pass
-June,Top-10% lift >= 2,C2,3.209,2.0,pass
-June,Top-10% lift >= 2,C2B,3.209,2.0,pass
-June,Top-10% lift >= 2,C3,3.281,2.0,pass
-June,Top-10% lift >= 2,C3d,3.136,2.0,pass
-June,Top-10% precision >= 1.1 x best linear (C1),C3,0.073,0.08,fail
-June,Top-10% precision >= 1.1 x best linear (C1),C3d,0.07,0.08,fail
-Validation,Top-10% lift >= 2,C1,2.875,2.0,pass
-Validation,Top-10% lift >= 2,C2,2.889,2.0,pass
-Validation,Top-10% lift >= 2,C2B,2.931,2.0,pass
-Validation,Top-10% lift >= 2,C3,2.37,2.0,pass
-Validation,Top-10% lift >= 2,C3d,2.272,2.0,pass
-Validation,Top-10% precision >= 1.1 x best linear (C2),C3,0.246,0.33,fail
-Validation,Top-10% precision >= 1.1 x best linear (C2),C3d,0.236,0.33,fail
+Code,Model,split,criterion,value,threshold,passed
+C1,Logistic (all),June,Top-10% lift >= 2,3.281,2.0,pass
+C2,Logistic (CV-stepwise),June,Top-10% lift >= 2,3.209,2.0,pass
+C2B,Logistic (BIC),June,Top-10% lift >= 2,3.209,2.0,pass
+C3,Random Forest (tuned),June,Top-10% lift >= 2,3.281,2.0,pass
+C3d,Random Forest (default),June,Top-10% lift >= 2,3.136,2.0,pass
+C3,Random Forest (tuned),June,Top-10% precision >= 1.1 x best linear (C1),0.073,0.08,fail
+C3d,Random Forest (default),June,Top-10% precision >= 1.1 x best linear (C1),0.07,0.08,fail
+C1,Logistic (all),Validation,Top-10% lift >= 2,2.875,2.0,pass
+C2,Logistic (CV-stepwise),Validation,Top-10% lift >= 2,2.889,2.0,pass
+C2B,Logistic (BIC),Validation,Top-10% lift >= 2,2.931,2.0,pass
+C3,Random Forest (tuned),Validation,Top-10% lift >= 2,2.37,2.0,pass
+C3d,Random Forest (default),Validation,Top-10% lift >= 2,2.272,2.0,pass
+C3,Random Forest (tuned),Validation,Top-10% precision >= 1.1 x best linear (C2),0.246,0.33,fail
+C3d,Random Forest (default),Validation,Top-10% precision >= 1.1 x best linear (C2),0.236,0.33,fail

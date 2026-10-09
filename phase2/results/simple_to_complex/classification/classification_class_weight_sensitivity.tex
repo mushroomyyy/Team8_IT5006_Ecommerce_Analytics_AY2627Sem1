@@ -3,12 +3,12 @@
 \centering
 \small
 \caption{C1 class-weight sensitivity (CV)}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrrrr}
 \toprule
-Model & avg\_precision mean +/- SD & roc\_auc mean +/- SD & brier mean +/- SD & precision\_top10 mean +/- SD & top10\_capture mean +/- SD & top10\_lift mean +/- SD \\
+Model & Code & Model & Class weight & avg\_precision mean +/- SD & roc\_auc mean +/- SD & brier mean +/- SD & precision\_top10 mean +/- SD & top10\_capture mean +/- SD & top10\_lift mean +/- SD \\
 \midrule
-C1 (unweighted) & 0.1383 +/- 0.0261 & 0.6050 +/- 0.0356 & 0.0869 +/- 0.0290 & 0.1638 +/- 0.0252 & 0.1816 +/- 0.0435 & 1.8144 +/- 0.4331 \\
-C1 (class\_weight='balanced') & 0.1371 +/- 0.0271 & 0.6073 +/- 0.0319 & 0.2850 +/- 0.0394 & 0.1610 +/- 0.0250 & 0.1791 +/- 0.0454 & 1.7890 +/- 0.4522 \\
+0 & C1 & Logistic (all) & unweighted & 0.1383 +/- 0.0261 & 0.6050 +/- 0.0356 & 0.0869 +/- 0.0290 & 0.1638 +/- 0.0252 & 0.1816 +/- 0.0435 & 1.8144 +/- 0.4331 \\
+1 & C1 & Logistic (all) & class\_weight='balanced' & 0.1371 +/- 0.0271 & 0.6073 +/- 0.0319 & 0.2850 +/- 0.0394 & 0.1610 +/- 0.0250 & 0.1791 +/- 0.0454 & 1.7890 +/- 0.4522 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
