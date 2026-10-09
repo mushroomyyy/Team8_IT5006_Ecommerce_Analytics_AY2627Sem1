@@ -3,38 +3,38 @@
 \centering
 \small
 \caption{Regression: drift from June to August}
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
-model & metric & June & July & August & change\_june\_to\_last \\
+Code & Model & metric & June & July & August & change\_june\_to\_last \\
 \midrule
-R0a & rmse & 11.6879 & 8.1623 & 8.4157 & -3.2721 \\
-R0a & mae & 9.1631 & 5.4673 & 5.9063 & -3.2569 \\
-R0a & bias & 7.1527 & -0.3244 & -2.5086 & -9.6613 \\
-R0a & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
-R0b & rmse & 20.8877 & 13.9944 & 11.7393 & -9.1484 \\
-R0b & mae & 19.2994 & 12.2614 & 8.9229 & -10.3765 \\
-R0b & bias & 18.8207 & 11.1361 & 7.6435 & -11.1772 \\
-R0b & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
-R1 & rmse & 7.3692 & 7.3021 & 6.4791 & -0.89 \\
-R1 & mae & 5.8058 & 5.2375 & 4.462 & -1.3437 \\
-R1 & bias & 4.0971 & 2.3913 & 2.1312 & -1.966 \\
-R1 & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
-R2 & rmse & 9.3728 & 7.3528 & 6.3848 & -2.988 \\
-R2 & mae & 8.0346 & 5.3441 & 3.9941 & -4.0406 \\
-R2 & bias & 6.6617 & 2.7052 & 1.478 & -5.1837 \\
-R2 & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
-R2B & rmse & 7.3738 & 7.2834 & 6.4721 & -0.9017 \\
-R2B & mae & 5.8108 & 5.2191 & 4.4532 & -1.3577 \\
-R2B & bias & 4.099 & 2.3619 & 2.1207 & -1.9782 \\
-R2B & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
-R3 & rmse & 7.9533 & 7.4526 & 7.4971 & -0.4562 \\
-R3 & mae & 6.4473 & 5.3081 & 5.1874 & -1.2598 \\
-R3 & bias & 4.9433 & 2.5562 & 1.7194 & -3.2238 \\
-R3 & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
-R3d & rmse & 8.3931 & 8.2832 & 8.2884 & -0.1047 \\
-R3d & mae & 6.8037 & 6.1984 & 6.0134 & -0.7904 \\
-R3d & bias & 5.2804 & 3.779 & 3.6074 & -1.673 \\
-R3d & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
+R0a & Median baseline & rmse & 11.6879 & 8.1623 & 8.4157 & -3.2721 \\
+R0a & Median baseline & mae & 9.1631 & 5.4673 & 5.9063 & -3.2569 \\
+R0a & Median baseline & bias & 7.1527 & -0.3244 & -2.5086 & -9.6613 \\
+R0a & Median baseline & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
+R0b & Olist promise & rmse & 20.8877 & 13.9944 & 11.7393 & -9.1484 \\
+R0b & Olist promise & mae & 19.2994 & 12.2614 & 8.9229 & -10.3765 \\
+R0b & Olist promise & bias & 18.8207 & 11.1361 & 7.6435 & -11.1772 \\
+R0b & Olist promise & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
+R1 & OLS (all) & rmse & 7.3692 & 7.3021 & 6.4791 & -0.89 \\
+R1 & OLS (all) & mae & 5.8058 & 5.2375 & 4.462 & -1.3437 \\
+R1 & OLS (all) & bias & 4.0971 & 2.3913 & 2.1312 & -1.966 \\
+R1 & OLS (all) & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
+R2 & OLS (CV-stepwise) & rmse & 9.3728 & 7.3528 & 6.3848 & -2.988 \\
+R2 & OLS (CV-stepwise) & mae & 8.0346 & 5.3441 & 3.9941 & -4.0406 \\
+R2 & OLS (CV-stepwise) & bias & 6.6617 & 2.7052 & 1.478 & -5.1837 \\
+R2 & OLS (CV-stepwise) & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
+R2B & OLS (BIC) & rmse & 7.3738 & 7.2834 & 6.4721 & -0.9017 \\
+R2B & OLS (BIC) & mae & 5.8108 & 5.2191 & 4.4532 & -1.3577 \\
+R2B & OLS (BIC) & bias & 4.099 & 2.3619 & 2.1207 & -1.9782 \\
+R2B & OLS (BIC) & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
+R3 & Random Forest (tuned) & rmse & 7.9533 & 7.4526 & 7.4971 & -0.4562 \\
+R3 & Random Forest (tuned) & mae & 6.4473 & 5.3081 & 5.1874 & -1.2598 \\
+R3 & Random Forest (tuned) & bias & 4.9433 & 2.5562 & 1.7194 & -3.2238 \\
+R3 & Random Forest (tuned) & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
+R3d & Random Forest (default) & rmse & 8.3931 & 8.2832 & 8.2884 & -0.1047 \\
+R3d & Random Forest (default) & mae & 6.8037 & 6.1984 & 6.0134 & -0.7904 \\
+R3d & Random Forest (default) & bias & 5.2804 & 3.779 & 3.6074 & -1.673 \\
+R3d & Random Forest (default) & late\_rate & 0.0189 & 0.0444 & 0.0729 & 0.054 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}

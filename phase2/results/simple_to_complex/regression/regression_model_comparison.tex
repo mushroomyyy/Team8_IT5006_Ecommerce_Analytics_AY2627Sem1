@@ -3,17 +3,17 @@
 \centering
 \small
 \caption{Regression: RMSE, days (primary; lower is better)}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
-Model & Train & CV mean +/- SD & Validation & June & July & August \\
+Code & Model & Train & CV mean +/- SD & Validation & June & July & August \\
 \midrule
-R0a & 9.115 & 9.265 +/- 1.022 & 9.864 & 11.688 & 8.162 & 8.416 \\
-R0b & 14.426 & 14.255 +/- 1.237 & 13.550 & 20.888 & 13.994 & 11.739 \\
-R1 & 7.895 & 8.651 +/- 1.349 & 8.205 & 7.369 & 7.302 & 6.479 \\
-R2 & 8.384 & 8.614 +/- 1.163 & 8.926 & 9.373 & 7.353 & 6.385 \\
-R2B & 7.899 & 8.635 +/- 1.371 & 8.204 & 7.374 & 7.283 & 6.472 \\
-R3 & 6.780 & 8.310 +/- 0.934 & 8.397 & 7.953 & 7.453 & 7.497 \\
-R3d & 2.950 & 8.710 +/- 1.014 & 8.556 & 8.393 & 8.283 & 8.288 \\
+R0a & Median baseline & 9.115 & 9.265 +/- 1.022 & 9.864 & 11.688 & 8.162 & 8.416 \\
+R0b & Olist promise & 14.426 & 14.255 +/- 1.237 & 13.550 & 20.888 & 13.994 & 11.739 \\
+R1 & OLS (all) & 7.895 & 8.651 +/- 1.349 & 8.205 & 7.369 & 7.302 & 6.479 \\
+R2 & OLS (CV-stepwise) & 8.384 & 8.614 +/- 1.163 & 8.926 & 9.373 & 7.353 & 6.385 \\
+R2B & OLS (BIC) & 7.899 & 8.635 +/- 1.371 & 8.204 & 7.374 & 7.283 & 6.472 \\
+R3 & Random Forest (tuned) & 6.780 & 8.310 +/- 0.934 & 8.397 & 7.953 & 7.453 & 7.497 \\
+R3d & Random Forest (default) & 2.950 & 8.710 +/- 1.014 & 8.556 & 8.393 & 8.283 & 8.288 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
@@ -24,17 +24,17 @@ R3d & 2.950 & 8.710 +/- 1.014 & 8.556 & 8.393 & 8.283 & 8.288 \\
 \centering
 \small
 \caption{Regression: MAE, days}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
-Model & Train & CV mean +/- SD & Validation & June & July & August \\
+Code & Model & Train & CV mean +/- SD & Validation & June & July & August \\
 \midrule
-R0a & 6.100 & 6.324 +/- 0.725 & 6.733 & 9.163 & 5.467 & 5.906 \\
-R0b & 13.012 & 12.810 +/- 1.300 & 11.867 & 19.299 & 12.261 & 8.923 \\
-R1 & 5.336 & 5.911 +/- 0.827 & 5.625 & 5.806 & 5.237 & 4.462 \\
-R2 & 5.765 & 5.829 +/- 0.857 & 6.156 & 8.035 & 5.344 & 3.994 \\
-R2B & 5.341 & 5.888 +/- 0.831 & 5.626 & 5.811 & 5.219 & 4.453 \\
-R3 & 4.535 & 5.696 +/- 0.889 & 5.675 & 6.447 & 5.308 & 5.187 \\
-R3d & 2.000 & 6.290 +/- 1.066 & 6.059 & 6.804 & 6.198 & 6.013 \\
+R0a & Median baseline & 6.100 & 6.324 +/- 0.725 & 6.733 & 9.163 & 5.467 & 5.906 \\
+R0b & Olist promise & 13.012 & 12.810 +/- 1.300 & 11.867 & 19.299 & 12.261 & 8.923 \\
+R1 & OLS (all) & 5.336 & 5.911 +/- 0.827 & 5.625 & 5.806 & 5.237 & 4.462 \\
+R2 & OLS (CV-stepwise) & 5.765 & 5.829 +/- 0.857 & 6.156 & 8.035 & 5.344 & 3.994 \\
+R2B & OLS (BIC) & 5.341 & 5.888 +/- 0.831 & 5.626 & 5.811 & 5.219 & 4.453 \\
+R3 & Random Forest (tuned) & 4.535 & 5.696 +/- 0.889 & 5.675 & 6.447 & 5.308 & 5.187 \\
+R3d & Random Forest (default) & 2.000 & 6.290 +/- 1.066 & 6.059 & 6.804 & 6.198 & 6.013 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
@@ -45,17 +45,17 @@ R3d & 2.000 & 6.290 +/- 1.066 & 6.059 & 6.804 & 6.198 & 6.013 \\
 \centering
 \small
 \caption{Regression: R-squared}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
-Model & Train & CV mean +/- SD & Validation & June & July & August \\
+Code & Model & Train & CV mean +/- SD & Validation & June & July & August \\
 \midrule
-R0a & 0.010 & -0.025 +/- 0.126 & -0.088 & -0.542 & 0.082 & 0.140 \\
-R0b & -1.479 & -1.463 +/- 0.469 & -1.053 & -3.924 & -1.698 & -0.673 \\
-R1 & 0.257 & 0.107 +/- 0.176 & 0.247 & 0.387 & 0.265 & 0.490 \\
-R2 & 0.163 & 0.116 +/- 0.133 & 0.109 & 0.008 & 0.255 & 0.505 \\
-R2B & 0.257 & 0.110 +/- 0.179 & 0.247 & 0.386 & 0.269 & 0.491 \\
-R3 & 0.452 & 0.177 +/- 0.086 & 0.211 & 0.286 & 0.235 & 0.317 \\
-R3d & 0.896 & 0.094 +/- 0.125 & 0.181 & 0.205 & 0.055 & 0.166 \\
+R0a & Median baseline & 0.010 & -0.025 +/- 0.126 & -0.088 & -0.542 & 0.082 & 0.140 \\
+R0b & Olist promise & -1.479 & -1.463 +/- 0.469 & -1.053 & -3.924 & -1.698 & -0.673 \\
+R1 & OLS (all) & 0.257 & 0.107 +/- 0.176 & 0.247 & 0.387 & 0.265 & 0.490 \\
+R2 & OLS (CV-stepwise) & 0.163 & 0.116 +/- 0.133 & 0.109 & 0.008 & 0.255 & 0.505 \\
+R2B & OLS (BIC) & 0.257 & 0.110 +/- 0.179 & 0.247 & 0.386 & 0.269 & 0.491 \\
+R3 & Random Forest (tuned) & 0.452 & 0.177 +/- 0.086 & 0.211 & 0.286 & 0.235 & 0.317 \\
+R3d & Random Forest (default) & 0.896 & 0.094 +/- 0.125 & 0.181 & 0.205 & 0.055 & 0.166 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
@@ -66,17 +66,17 @@ R3d & 0.896 & 0.094 +/- 0.125 & 0.181 & 0.205 & 0.055 & 0.166 \\
 \centering
 \small
 \caption{Regression: Median absolute error, days}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
-Model & Train & CV mean +/- SD & Validation & June & July & August \\
+Code & Model & Train & CV mean +/- SD & Validation & June & July & August \\
 \midrule
-R0a & 4.000 & 4.400 +/- 0.548 & 5.000 & 8.000 & 4.000 & 5.000 \\
-R0b & 13.000 & 12.800 +/- 1.304 & 11.000 & 19.000 & 11.000 & 7.000 \\
-R1 & 3.825 & 4.173 +/- 0.683 & 4.008 & 5.037 & 4.187 & 3.432 \\
-R2 & 4.278 & 4.172 +/- 0.674 & 4.290 & 7.467 & 4.176 & 2.612 \\
-R2B & 3.836 & 4.143 +/- 0.638 & 4.005 & 5.039 & 4.150 & 3.424 \\
-R3 & 3.170 & 4.162 +/- 0.907 & 3.864 & 5.828 & 4.125 & 3.695 \\
-R3d & 1.390 & 4.807 +/- 1.251 & 4.410 & 6.050 & 4.910 & 4.410 \\
+R0a & Median baseline & 4.000 & 4.400 +/- 0.548 & 5.000 & 8.000 & 4.000 & 5.000 \\
+R0b & Olist promise & 13.000 & 12.800 +/- 1.304 & 11.000 & 19.000 & 11.000 & 7.000 \\
+R1 & OLS (all) & 3.825 & 4.173 +/- 0.683 & 4.008 & 5.037 & 4.187 & 3.432 \\
+R2 & OLS (CV-stepwise) & 4.278 & 4.172 +/- 0.674 & 4.290 & 7.467 & 4.176 & 2.612 \\
+R2B & OLS (BIC) & 3.836 & 4.143 +/- 0.638 & 4.005 & 5.039 & 4.150 & 3.424 \\
+R3 & Random Forest (tuned) & 3.170 & 4.162 +/- 0.907 & 3.864 & 5.828 & 4.125 & 3.695 \\
+R3d & Random Forest (default) & 1.390 & 4.807 +/- 1.251 & 4.410 & 6.050 & 4.910 & 4.410 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}
@@ -87,17 +87,17 @@ R3d & 1.390 & 4.807 +/- 1.251 & 4.410 & 6.050 & 4.910 & 4.410 \\
 \centering
 \small
 \caption{Regression: Bias (prediction minus actual), days}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
-Model & Train & CV mean +/- SD & Validation & June & July & August \\
+Code & Model & Train & CV mean +/- SD & Validation & June & July & August \\
 \midrule
-R0a & -1.515 & -1.785 +/- 1.911 & -3.022 & 7.153 & -0.324 & -2.509 \\
-R0b & 11.333 & 11.055 +/- 1.890 & 9.745 & 18.821 & 11.136 & 7.643 \\
-R1 & 0.000 & -1.119 +/- 2.700 & -0.260 & 4.097 & 2.391 & 2.131 \\
-R2 & -0.002 & -1.186 +/- 1.374 & -0.713 & 6.662 & 2.705 & 1.478 \\
-R2B & 0.000 & -1.158 +/- 2.638 & -0.257 & 4.099 & 2.362 & 2.121 \\
-R3 & 0.035 & -0.539 +/- 1.088 & -0.714 & 4.943 & 2.556 & 1.719 \\
-R3d & 0.148 & 0.567 +/- 1.696 & 0.300 & 5.280 & 3.779 & 3.607 \\
+R0a & Median baseline & -1.515 & -1.785 +/- 1.911 & -3.022 & 7.153 & -0.324 & -2.509 \\
+R0b & Olist promise & 11.333 & 11.055 +/- 1.890 & 9.745 & 18.821 & 11.136 & 7.643 \\
+R1 & OLS (all) & 0.000 & -1.119 +/- 2.700 & -0.260 & 4.097 & 2.391 & 2.131 \\
+R2 & OLS (CV-stepwise) & -0.002 & -1.186 +/- 1.374 & -0.713 & 6.662 & 2.705 & 1.478 \\
+R2B & OLS (BIC) & 0.000 & -1.158 +/- 2.638 & -0.257 & 4.099 & 2.362 & 2.121 \\
+R3 & Random Forest (tuned) & 0.035 & -0.539 +/- 1.088 & -0.714 & 4.943 & 2.556 & 1.719 \\
+R3d & Random Forest (default) & 0.148 & 0.567 +/- 1.696 & 0.300 & 5.280 & 3.779 & 3.607 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize Train is in-sample; CV is mean +/- SD over 5 chronological folds; June is Test; July and August are Monitoring. Errors are in days.\end{minipage}

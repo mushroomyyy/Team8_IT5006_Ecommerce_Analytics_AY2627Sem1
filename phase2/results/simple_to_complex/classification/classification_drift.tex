@@ -3,46 +3,46 @@
 \centering
 \small
 \caption{Classification: drift from June to August}
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
-model & metric & June & July & August & change\_june\_to\_last \\
+Code & Model & metric & June & July & August & change\_june\_to\_last \\
 \midrule
-C0 & avg\_precision & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
-C0 & roc\_auc & 0.5 & 0.5 & 0.5 & 0.0 \\
-C0 & brier & 0.0294 & 0.0525 & 0.0738 & 0.0444 \\
-C0 & precision\_top10 & 0.0146 & 0.0424 & 0.0787 & 0.0641 \\
-C0 & top10\_lift & 0.6563 & 0.8175 & 0.9937 & 0.3374 \\
-C0 & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
-C1 & avg\_precision & 0.0806 & 0.0865 & 0.1198 & 0.0393 \\
-C1 & roc\_auc & 0.6923 & 0.5764 & 0.5728 & -0.1195 \\
-C1 & brier & 0.0235 & 0.0527 & 0.077 & 0.0536 \\
-C1 & precision\_top10 & 0.0729 & 0.0995 & 0.1225 & 0.0496 \\
-C1 & top10\_lift & 3.2815 & 1.9179 & 1.5478 & -1.7337 \\
-C1 & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
-C2 & avg\_precision & 0.0732 & 0.093 & 0.1155 & 0.0423 \\
-C2 & roc\_auc & 0.6935 & 0.5677 & 0.5774 & -0.1162 \\
-C2 & brier & 0.0256 & 0.0578 & 0.0807 & 0.0551 \\
-C2 & precision\_top10 & 0.0713 & 0.0995 & 0.1225 & 0.0512 \\
-C2 & top10\_lift & 3.2086 & 1.9179 & 1.5478 & -1.6607 \\
-C2 & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
-C2B & avg\_precision & 0.0803 & 0.09 & 0.1279 & 0.0476 \\
-C2B & roc\_auc & 0.6983 & 0.5781 & 0.6031 & -0.0952 \\
-C2B & brier & 0.0235 & 0.0519 & 0.0749 & 0.0514 \\
-C2B & precision\_top10 & 0.0713 & 0.0979 & 0.1301 & 0.0588 \\
-C2B & top10\_lift & 3.2086 & 1.8865 & 1.6434 & -1.5652 \\
-C2B & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
-C3 & avg\_precision & 0.1122 & 0.1118 & 0.1137 & 0.0016 \\
-C3 & roc\_auc & 0.6369 & 0.5439 & 0.4263 & -0.2106 \\
-C3 & brier & 0.0268 & 0.052 & 0.0782 & 0.0514 \\
-C3 & precision\_top10 & 0.0729 & 0.0897 & 0.1059 & 0.033 \\
-C3 & top10\_lift & 3.2815 & 1.7293 & 1.3376 & -1.9439 \\
-C3 & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
-C3d & avg\_precision & 0.1097 & 0.1222 & 0.1159 & 0.0062 \\
-C3d & roc\_auc & 0.6529 & 0.5905 & 0.5295 & -0.1233 \\
-C3d & brier & 0.0266 & 0.0579 & 0.0936 & 0.067 \\
-C3d & precision\_top10 & 0.0697 & 0.1044 & 0.0953 & 0.0256 \\
-C3d & top10\_lift & 3.1356 & 2.0123 & 1.2039 & -1.9318 \\
-C3d & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
+C0 & No-skill baseline & avg\_precision & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
+C0 & No-skill baseline & roc\_auc & 0.5 & 0.5 & 0.5 & 0.0 \\
+C0 & No-skill baseline & brier & 0.0294 & 0.0525 & 0.0738 & 0.0444 \\
+C0 & No-skill baseline & precision\_top10 & 0.0146 & 0.0424 & 0.0787 & 0.0641 \\
+C0 & No-skill baseline & top10\_lift & 0.6563 & 0.8175 & 0.9937 & 0.3374 \\
+C0 & No-skill baseline & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
+C1 & Logistic (all) & avg\_precision & 0.0806 & 0.0865 & 0.1198 & 0.0393 \\
+C1 & Logistic (all) & roc\_auc & 0.6923 & 0.5764 & 0.5728 & -0.1195 \\
+C1 & Logistic (all) & brier & 0.0235 & 0.0527 & 0.077 & 0.0536 \\
+C1 & Logistic (all) & precision\_top10 & 0.0729 & 0.0995 & 0.1225 & 0.0496 \\
+C1 & Logistic (all) & top10\_lift & 3.2815 & 1.9179 & 1.5478 & -1.7337 \\
+C1 & Logistic (all) & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
+C2 & Logistic (CV-stepwise) & avg\_precision & 0.0732 & 0.093 & 0.1155 & 0.0423 \\
+C2 & Logistic (CV-stepwise) & roc\_auc & 0.6935 & 0.5677 & 0.5774 & -0.1162 \\
+C2 & Logistic (CV-stepwise) & brier & 0.0256 & 0.0578 & 0.0807 & 0.0551 \\
+C2 & Logistic (CV-stepwise) & precision\_top10 & 0.0713 & 0.0995 & 0.1225 & 0.0512 \\
+C2 & Logistic (CV-stepwise) & top10\_lift & 3.2086 & 1.9179 & 1.5478 & -1.6607 \\
+C2 & Logistic (CV-stepwise) & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
+C2B & Logistic (BIC) & avg\_precision & 0.0803 & 0.09 & 0.1279 & 0.0476 \\
+C2B & Logistic (BIC) & roc\_auc & 0.6983 & 0.5781 & 0.6031 & -0.0952 \\
+C2B & Logistic (BIC) & brier & 0.0235 & 0.0519 & 0.0749 & 0.0514 \\
+C2B & Logistic (BIC) & precision\_top10 & 0.0713 & 0.0979 & 0.1301 & 0.0588 \\
+C2B & Logistic (BIC) & top10\_lift & 3.2086 & 1.8865 & 1.6434 & -1.5652 \\
+C2B & Logistic (BIC) & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
+C3 & Random Forest (tuned) & avg\_precision & 0.1122 & 0.1118 & 0.1137 & 0.0016 \\
+C3 & Random Forest (tuned) & roc\_auc & 0.6369 & 0.5439 & 0.4263 & -0.2106 \\
+C3 & Random Forest (tuned) & brier & 0.0268 & 0.052 & 0.0782 & 0.0514 \\
+C3 & Random Forest (tuned) & precision\_top10 & 0.0729 & 0.0897 & 0.1059 & 0.033 \\
+C3 & Random Forest (tuned) & top10\_lift & 3.2815 & 1.7293 & 1.3376 & -1.9439 \\
+C3 & Random Forest (tuned) & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
+C3d & Random Forest (default) & avg\_precision & 0.1097 & 0.1222 & 0.1159 & 0.0062 \\
+C3d & Random Forest (default) & roc\_auc & 0.6529 & 0.5905 & 0.5295 & -0.1233 \\
+C3d & Random Forest (default) & brier & 0.0266 & 0.0579 & 0.0936 & 0.067 \\
+C3d & Random Forest (default) & precision\_top10 & 0.0697 & 0.1044 & 0.0953 & 0.0256 \\
+C3d & Random Forest (default) & top10\_lift & 3.1356 & 2.0123 & 1.2039 & -1.9318 \\
+C3d & Random Forest (default) & late\_rate & 0.0223 & 0.0519 & 0.0792 & 0.0569 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}

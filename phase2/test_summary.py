@@ -7,6 +7,7 @@ import matplotlib
 import pandas as pd
 
 matplotlib.use('Agg')
+from src import model_labels as ml
 from src import summary as sm
 from src.report_tables import export_report_tables
 
@@ -25,9 +26,13 @@ def toy_root(root):
         gaps = pd.DataFrame({'model': models, spec.metric: [0.01] * len(models)})
         drift = pd.DataFrame([{'model': m, 'metric': spec.metric, 'June': 1.0, 'July': 2.0, 'August': 3.0,
                                'change_june_to_last': 2.0} for m in models])
-        export_report_tables([{'frame': gaps, 'title': 'toy overfitting gap'}], out, f'{spec.name}_overfitting_gaps')
-        export_report_tables([{'frame': drift, 'title': 'toy drift'}], out, f'{spec.name}_drift')
-        (out / 'run_metadata.json').write_text(json.dumps({'versions': {'python': '3.13', 'numpy': spec.name[:1]}}))
+        export_report_tables([{'frame': ml.add_model_columns(gaps), 'title': 'toy overfitting gap'}], out,
+                             f'{spec.name}_overfitting_gaps')
+        export_report_tables([{'frame': ml.add_model_columns(drift), 'title': 'toy drift'}], out, f'{spec.name}_drift')
+        (out / 'run_metadata.json').write_text(json.dumps({
+            'versions': {'python': '3.13', 'numpy': spec.name[:1]},
+            'features': {'numeric': ['a', 'b'], 'categorical': ['c']},
+            'selected_variables': {spec.linear_models[0]: ['a', 'b', 'c'], spec.linear_models[1]: ['a']}}))
 
 
 class SummaryTests(unittest.TestCase):
@@ -50,6 +55,12 @@ class SummaryTests(unittest.TestCase):
         c1 = frame[(frame['model'] == 'C1') & (frame['split'] == 'CV')].iloc[0]
         self.assertAlmostEqual(c1['value'], 100 * (0.2 + 0.02))
         self.assertEqual(len(frame), 15)
+
+    def test_model_key_reads_feature_counts_from_metadata(self):
+        text = '\n'.join(sm.model_key_markdown(self.tasks))
+        self.assertIn('| C2 | Logistic (CV-stepwise) |', text)
+        self.assertIn('Logistic (CV-stepwise) | Plain logistic, features chosen by CV forward stepwise with the 1-SE rule | 1 |', text)
+        self.assertIn('| R3d | Random Forest (default) | Random Forest, raw 24 features, scikit-learn default hyperparameters | 3 |', text)
 
     def test_figures_are_written(self):
         for plot in (sm.plot_ladder, sm.plot_overfitting_gaps, sm.plot_drift_summary):

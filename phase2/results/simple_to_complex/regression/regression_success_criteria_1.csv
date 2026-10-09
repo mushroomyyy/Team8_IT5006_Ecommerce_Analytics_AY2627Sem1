@@ -1,25 +1,25 @@
-split,criterion,model,value,threshold,passed
-June,RMSE >= 10% below R0a,R1,0.37,0.1,pass
-June,RMSE below R0b,R1,0.647,0.0,pass
-June,RMSE >= 10% below R0a,R2,0.198,0.1,pass
-June,RMSE below R0b,R2,0.551,0.0,pass
-June,RMSE >= 10% below R0a,R2B,0.369,0.1,pass
-June,RMSE below R0b,R2B,0.647,0.0,pass
-June,RMSE >= 10% below R0a,R3,0.32,0.1,pass
-June,RMSE below R0b,R3,0.619,0.0,pass
-June,RMSE >= 10% below R0a,R3d,0.282,0.1,pass
-June,RMSE below R0b,R3d,0.598,0.0,pass
-June,Relative RMSE gain over best OLS (R1); reported,R3,-0.079,,reported
-June,Relative RMSE gain over best OLS (R1); reported,R3d,-0.139,,reported
-Validation,RMSE >= 10% below R0a,R1,0.168,0.1,pass
-Validation,RMSE below R0b,R1,0.394,0.0,pass
-Validation,RMSE >= 10% below R0a,R2,0.095,0.1,fail
-Validation,RMSE below R0b,R2,0.341,0.0,pass
-Validation,RMSE >= 10% below R0a,R2B,0.168,0.1,pass
-Validation,RMSE below R0b,R2B,0.395,0.0,pass
-Validation,RMSE >= 10% below R0a,R3,0.149,0.1,pass
-Validation,RMSE below R0b,R3,0.38,0.0,pass
-Validation,RMSE >= 10% below R0a,R3d,0.133,0.1,pass
-Validation,RMSE below R0b,R3d,0.369,0.0,pass
-Validation,Relative RMSE gain over best OLS (R1); reported,R3,-0.023,,reported
-Validation,Relative RMSE gain over best OLS (R1); reported,R3d,-0.043,,reported
+Code,Model,split,criterion,value,threshold,passed
+R1,OLS (all),June,RMSE >= 10% below R0a,0.37,0.1,pass
+R1,OLS (all),June,RMSE below R0b,0.647,0.0,pass
+R2,OLS (CV-stepwise),June,RMSE >= 10% below R0a,0.198,0.1,pass
+R2,OLS (CV-stepwise),June,RMSE below R0b,0.551,0.0,pass
+R2B,OLS (BIC),June,RMSE >= 10% below R0a,0.369,0.1,pass
+R2B,OLS (BIC),June,RMSE below R0b,0.647,0.0,pass
+R3,Random Forest (tuned),June,RMSE >= 10% below R0a,0.32,0.1,pass
+R3,Random Forest (tuned),June,RMSE below R0b,0.619,0.0,pass
+R3d,Random Forest (default),June,RMSE >= 10% below R0a,0.282,0.1,pass
+R3d,Random Forest (default),June,RMSE below R0b,0.598,0.0,pass
+R3,Random Forest (tuned),June,Relative RMSE gain over best OLS (R1); reported,-0.079,,reported
+R3d,Random Forest (default),June,Relative RMSE gain over best OLS (R1); reported,-0.139,,reported
+R1,OLS (all),Validation,RMSE >= 10% below R0a,0.168,0.1,pass
+R1,OLS (all),Validation,RMSE below R0b,0.394,0.0,pass
+R2,OLS (CV-stepwise),Validation,RMSE >= 10% below R0a,0.095,0.1,fail
+R2,OLS (CV-stepwise),Validation,RMSE below R0b,0.341,0.0,pass
+R2B,OLS (BIC),Validation,RMSE >= 10% below R0a,0.168,0.1,pass
+R2B,OLS (BIC),Validation,RMSE below R0b,0.395,0.0,pass
+R3,Random Forest (tuned),Validation,RMSE >= 10% below R0a,0.149,0.1,pass
+R3,Random Forest (tuned),Validation,RMSE below R0b,0.38,0.0,pass
+R3d,Random Forest (default),Validation,RMSE >= 10% below R0a,0.133,0.1,pass
+R3d,Random Forest (default),Validation,RMSE below R0b,0.369,0.0,pass
+R3,Random Forest (tuned),Validation,Relative RMSE gain over best OLS (R1); reported,-0.023,,reported
+R3d,Random Forest (default),Validation,Relative RMSE gain over best OLS (R1); reported,-0.043,,reported

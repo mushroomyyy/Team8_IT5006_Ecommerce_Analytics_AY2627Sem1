@@ -29,6 +29,8 @@ Every model is scored in the same way on the same orders. Every decision (select
 | C3 Random Forest, tuned (AP) | R3 Random Forest, tuned (RMSE) |
 | C3d Random Forest, scikit-learn defaults | R3d Random Forest, scikit-learn defaults |
 
+The model key (code, short label, description, feature count) is the first section of `results/simple_to_complex/RESULTS_SUMMARY.md`; the labels live in `src/model_labels.py`, and every table and figure shows "Code · short label".
+
 Lasso appears only in the variable-selection overlap tables. Linear models always use log1p, cyclic calendar terms and no squared terms, and fold the 118 `Mixed` route orders into `All interstate` (no late orders in Train).
 
 ## Layout
@@ -57,6 +59,7 @@ Lasso appears only in the variable-selection overlap tables. Linear models alway
 | `src/data_audits.py` | Data, label and transform audits for notebook 01 |
 | `src/validation_timelines.py` | Train / CV / Validation / Test / Monitoring timeline figure |
 | `src/report_figures.py`, `src/model_figures.py` | Figure style and the shared model figures |
+| `src/model_labels.py` | Short labels, descriptions and the model key for every model code |
 | `src/report_tables.py` | Export tables as HTML, LaTeX and CSV |
 | `src/summary.py` | Ladder figures, `RESULTS_SUMMARY.md` and merged metadata (also a script) |
 | `test_*.py` | Unit tests (`python -m unittest`) |

@@ -79,7 +79,8 @@ def plot_split_and_folds(train_dates, validation_dates, folds, task_label='', sa
     """Timeline of the CV folds and the Validation block inside the historical window.
 
     `train_dates` must be positionally aligned with the fold indices in `folds`.
-    Numbers above the orange and green blocks are order counts.
+    Each blue bar carries its Train order count; each orange (CV) and green (Validation) block is
+    labelled above with its date range and order count.
     """
     train_dates = pd.to_datetime(pd.Series(train_dates)).dt.normalize().reset_index(drop=True)
     validation_dates = pd.to_datetime(pd.Series(validation_dates)).dt.normalize()
@@ -87,6 +88,7 @@ def plot_split_and_folds(train_dates, validation_dates, folds, task_label='', sa
     start = train_dates.min()
     validation_start, validation_end = validation_dates.min(), validation_dates.max() + one_day
     num, height, gap = mdates.date2num, 0.46, 0.6
+    span = lambda first, last: f'{first:%d %b}\u2013{last:%d %b}'  # inclusive date range
 
     def block(ax, y, left, right, color, pad=0.0):
         ax.barh(y, num(right) - num(left) - pad, left=num(left) + pad, height=height, color=color)
@@ -102,8 +104,14 @@ def plot_split_and_folds(train_dates, validation_dates, folds, task_label='', sa
             block(ax, y, start, validation_end, UNUSED)
             block(ax, y, train_dates.iloc[train_idx].min(), train_to, BLUE)
             block(ax, y, valid_from, valid_to, ORANGE, pad=gap)
-            ax.text((num(valid_from) + num(valid_to)) / 2, y + height / 2 + 0.06, f'{len(valid_idx):,}',
-                    ha='center', va='bottom', fontsize=8.5, color=INK2)
+            train_from = train_dates.iloc[train_idx].min()
+            ax.text((num(train_from) + num(train_to)) / 2, y, f'{len(train_idx):,} Train',
+                    ha='center', va='center', fontsize=8, color='white')
+            ax.text((num(train_to) + num(valid_from)) / 2, y, '45d', ha='center', va='center',
+                    fontsize=8, color=INK2)
+            ax.text((num(valid_from) + num(valid_to)) / 2, y + height / 2 + 0.06,
+                    f'{span(valid_from, valid_to - one_day)} | {len(valid_idx):,} orders',
+                    ha='center', va='bottom', fontsize=8, color=INK2)
             labels.append((y, f'CV fold {k}'))
         block(ax, 0, start, validation_end, UNUSED)
         train_end = train_dates.max() + one_day
@@ -112,8 +120,11 @@ def plot_split_and_folds(train_dates, validation_dates, folds, task_label='', sa
         if train_end < validation_start:
             ax.text((num(train_end) + num(validation_start)) / 2, 0, '45-day gap',
                     ha='center', va='center', fontsize=8, color=INK2)
-        ax.text((num(validation_start) + num(validation_end)) / 2, height / 2 + 0.06,
-                f'{len(validation_dates):,}', ha='center', va='bottom', fontsize=8.5, color=INK2)
+        ax.text((num(start) + num(train_end)) / 2, 0, f'{len(train_dates):,} Train',
+                ha='center', va='center', fontsize=8, color='white')
+        ax.text(num(validation_end), height / 2 + 0.06,  # right-aligned so it stays inside the axes
+                f'Validation {span(validation_start, validation_end - one_day)} | {len(validation_dates):,} orders',
+                ha='right', va='bottom', fontsize=8, color=INK2)
         labels.append((0, 'Train and\nValidation'))
         ax.set_yticks([y for y, _ in labels], [text for _, text in labels])
         ax.set_ylim(-0.6, len(folds) + 0.75)
@@ -129,8 +140,8 @@ def plot_split_and_folds(train_dates, validation_dates, folds, task_label='', sa
                            Patch(color=UNUSED, label='Excluded gap')],
                   ncol=4, loc='lower left', bbox_to_anchor=(-0.02, 1.0), columnspacing=1.4, handlelength=1.2)
         _titles(fig, f'{task_label + ": " if task_label else ""}Train, CV folds and Validation',
-                'Expanding chronological folds; a 45-day gap separates each Train block from the block '
-                'that scores it. Numbers are orders.')
+                'Expanding folds, 45-day gap before each scored block. '
+                'Test (June) and Monitoring: see 01_validation_timeline.png.')
         _finish(fig, save_path)
 
 

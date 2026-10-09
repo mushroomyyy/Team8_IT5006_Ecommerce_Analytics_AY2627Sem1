@@ -11,7 +11,8 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
 <table class="dataframe">
   <thead>
     <tr style="text-align: right;">
-      <th>model</th>
+      <th>Code</th>
+      <th>Model</th>
       <th>Validation RMSE late</th>
       <th>Validation MAE late</th>
       <th>Validation RMSE on-time</th>
@@ -25,6 +26,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
   <tbody>
     <tr>
       <td>R0a</td>
+      <td>Median baseline</td>
       <td>24.854</td>
       <td>23.418</td>
       <td>6.251</td>
@@ -36,6 +38,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     </tr>
     <tr>
       <td>R0b</td>
+      <td>Olist promise</td>
       <td>13.433</td>
       <td>10.546</td>
       <td>13.564</td>
@@ -47,6 +50,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     </tr>
     <tr>
       <td>R1</td>
+      <td>OLS (all)</td>
       <td>20.936</td>
       <td>18.952</td>
       <td>5.076</td>
@@ -58,6 +62,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     </tr>
     <tr>
       <td>R2</td>
+      <td>OLS (CV-stepwise)</td>
       <td>23.048</td>
       <td>21.417</td>
       <td>5.398</td>
@@ -69,6 +74,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     </tr>
     <tr>
       <td>R2B</td>
+      <td>OLS (BIC)</td>
       <td>20.931</td>
       <td>18.947</td>
       <td>5.077</td>
@@ -80,6 +86,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     </tr>
     <tr>
       <td>R3</td>
+      <td>Random Forest (tuned)</td>
       <td>21.605</td>
       <td>19.844</td>
       <td>5.115</td>
@@ -91,6 +98,7 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
     </tr>
     <tr>
       <td>R3d</td>
+      <td>Random Forest (default)</td>
       <td>20.640</td>
       <td>18.576</td>
       <td>5.807</td>
