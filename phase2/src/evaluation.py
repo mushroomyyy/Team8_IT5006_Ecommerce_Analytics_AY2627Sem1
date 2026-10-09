@@ -9,7 +9,6 @@ from sklearn.metrics import (
     mean_absolute_error, mean_squared_error, median_absolute_error, precision_score,
     r2_score, recall_score, roc_auc_score,
 )
-from sklearn.model_selection import cross_validate
 
 from . import LOOKBACK
 from .datasets import EXCLUDED_STATUSES
@@ -230,40 +229,6 @@ def cv_mean_sd(cv_folds):
     """Mean and sample SD (ddof=1) of every metric per model from a long per-fold frame."""
     grouped = cv_folds.drop(columns='fold').groupby('model', sort=False)
     return grouped.mean(), grouped.std(ddof=1)
-
-
-def greedy_transform_cv(build_model, groups, X, y, folds, scoring, higher_is_better=True, initial=()):
-    """Add transform groups one at a time and keep each only if mean CV score improves.
-
-    `build_model(kept_groups)` returns an unfitted pipeline using those groups;
-    `groups` is the ordered list of group names to try. Each group is also scored
-    alone on the starting design (`initial` groups already kept). Returns (table, kept
-    groups). `scoring` is a scorer name; `cv_mean` is in that scorer's own units.
-    """
-    sign = 1 if higher_is_better else -1
-
-    def score(kept):
-        values = cross_validate(build_model(kept), X, y, cv=folds, scoring=scoring,
-                                n_jobs=-1, error_score='raise')['test_score']
-        return sign * values.mean(), values.std(ddof=1)
-
-    start = list(initial)
-    base_mean, base_sd = score(start)
-    rows = [{'design': '+'.join(start) or 'raw', 'groups': '+'.join(start), 'cv_mean': sign * base_mean, 'cv_sd': base_sd,
-             'change_vs_kept': 0.0, 'kept': True}]
-    kept, best = start, base_mean
-    for group in groups:
-        alone_mean, alone_sd = score(start + [group])
-        mean, sd = score(kept + [group])
-        improved = mean > best
-        rows.append({'design': f'{rows[0]["design"]} + {group}', 'groups': '+'.join(start + [group]), 'cv_mean': sign * alone_mean,
-                     'cv_sd': alone_sd, 'change_vs_kept': np.nan, 'kept': False})
-        rows.append({'design': f'kept ({"+".join(kept) or "raw"}) + {group}', 'groups': '+'.join(kept + [group]),
-                     'cv_mean': sign * mean, 'cv_sd': sd,
-                     'change_vs_kept': sign * (mean - best), 'kept': improved})
-        if improved:
-            kept, best = kept + [group], mean
-    return pd.DataFrame(rows), kept
 
 
 def comparison_table(results, cv_folds, metric, percent=False, splits=None):

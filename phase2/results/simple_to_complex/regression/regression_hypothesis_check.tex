@@ -7,20 +7,20 @@
 \toprule
 hypothesis & feature & model & expected\_sign & term & coef & p\_value & observed\_sign & verdict \\
 \midrule
-time & is\_weekend\_approval & R1 & + & is\_weekend\_approval & -0.175 & 0.0044 & - & disagree \\
-time & is\_black\_friday\_period & R1 & + & is\_black\_friday\_period & 0.986 & 0.0 & + & agree \\
-time & is\_december\_peak & R1 & + & is\_december\_peak & 0.378 & 0.0 & + & agree \\
-workload & orders\_approved\_prev\_7d & R1 & + & log\_orders\_approved\_prev\_7d & 0.202 & 0.0018 & + & agree \\
-workload & approval\_lag\_hours & R1 & + & log\_approval\_lag\_hours & 0.36 & 0.0 & + & agree \\
-order & order\_item\_count & R1 & + & order\_item\_count & -0.391 & 0.0 & - & disagree \\
-order & order\_seller\_count & R1 & + & order\_seller\_count & -0.509 & 0.0 & - & disagree \\
-order & order\_product\_weight\_g\_sum & R1 & + & log\_order\_product\_weight\_g\_sum & 0.199 & 0.0094 & + & agree \\
-order & order\_product\_volume\_cm3\_sum & R1 & + & log\_order\_product\_volume\_cm3\_sum & 0.24 & 0.0001 & + & agree \\
-distance & seller\_dist\_km\_mean & R1 & + & log\_seller\_dist\_km\_mean & 1.166 & 0.0 & + & agree \\
+time & is\_weekend\_approval & R1 & + & is\_weekend\_approval & -0.173 & 0.0049 & - & disagree \\
+time & is\_black\_friday\_period & R1 & + & is\_black\_friday\_period & 0.983 & 0.0 & + & agree \\
+time & is\_december\_peak & R1 & + & is\_december\_peak & 0.39 & 0.0 & + & agree \\
+workload & orders\_approved\_prev\_7d & R1 & + & log\_orders\_approved\_prev\_7d & 0.203 & 0.0017 & + & agree \\
+workload & approval\_lag\_hours & R1 & + & log\_approval\_lag\_hours & 0.352 & 0.0 & + & agree \\
+order & order\_item\_count & R1 & + & order\_item\_count & -0.397 & 0.0 & - & disagree \\
+order & order\_seller\_count & R1 & + & order\_seller\_count & -0.323 & 0.0 & - & disagree \\
+order & order\_product\_weight\_g\_sum & R1 & + & log\_order\_product\_weight\_g\_sum & 0.187 & 0.0141 & + & agree \\
+order & order\_product\_volume\_cm3\_sum & R1 & + & log\_order\_product\_volume\_cm3\_sum & 0.241 & 0.0001 & + & agree \\
+distance & seller\_dist\_km\_mean & R1 & + & log\_seller\_dist\_km\_mean & 1.037 & 0.0 & + & agree \\
 distance & seller\_state\_count & R1 & + & seller\_state\_count & -0.145 & 0.0 & - & disagree \\
-payment & payment\_installments\_max & R1 & + & payment\_installments\_max & 0.077 & 0.1008 & + & not significant \\
-payment & payment\_value\_sum & R1 & + & log\_payment\_value\_sum & 0.062 & 0.5239 & + & not significant \\
-promise & promised\_lead\_days & R1 & - & promised\_lead\_days & -5.593 & 0.0 & - & agree \\
+payment & payment\_installments\_max & R1 & + & payment\_installments\_max & 0.075 & 0.1083 & + & not significant \\
+payment & payment\_value\_sum & R1 & + & log\_payment\_value\_sum & 0.059 & 0.5428 & + & not significant \\
+promise & promised\_lead\_days & R1 & - & promised\_lead\_days & -5.69 & 0.0 & - & agree \\
 time & is\_weekend\_approval & R2 & + & nan & nan & nan &  & not in model \\
 time & is\_black\_friday\_period & R2 & + & nan & nan & nan &  & not in model \\
 time & is\_december\_peak & R2 & + & nan & nan & nan &  & not in model \\
@@ -34,7 +34,7 @@ distance & seller\_dist\_km\_mean & R2 & + & nan & nan & nan &  & not in model \
 distance & seller\_state\_count & R2 & + & nan & nan & nan &  & not in model \\
 payment & payment\_installments\_max & R2 & + & nan & nan & nan &  & not in model \\
 payment & payment\_value\_sum & R2 & + & nan & nan & nan &  & not in model \\
-promise & promised\_lead\_days & R2 & - & promised\_lead\_days & -3.318 & 0.0 & - & agree \\
+promise & promised\_lead\_days & R2 & - & promised\_lead\_days & -3.679 & 0.0 & - & agree \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}

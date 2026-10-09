@@ -7,7 +7,7 @@ Two views of one delivery-performance problem on the Olist e-commerce data, both
 Each task starts from a baseline, builds a plain linear model (with transformations and variable selection judged on later time periods), and only then asks whether a Random Forest earns its extra complexity. Primary metrics: **AP** (area under the precision-recall curve) for classification and **RMSE** in days for regression.
 
 ## Protocol
-Every model is scored in the same way on the same orders. Every decision (transforms, selected variables, Random Forest hyperparameters) uses Train only.
+Every model is scored in the same way on the same orders. Every decision (selected variables, Random Forest hyperparameters) uses Train only. Linear-model transformations (log1p on skewed inputs, sine/cosine for month and weekday, no squared terms) are pre-specified from the predictors' distributions, not tuned on the outcome; variable selection is the only outcome-driven step.
 
 | Name | Meaning |
 |---|---|
@@ -29,7 +29,7 @@ Every model is scored in the same way on the same orders. Every decision (transf
 | C3 Random Forest, tuned (AP) | R3 Random Forest, tuned (RMSE) |
 | C3d Random Forest, scikit-learn defaults | R3d Random Forest, scikit-learn defaults |
 
-Lasso appears only in the variable-selection overlap tables. Linear models use log, cyclic calendar and squared terms where CV supports them, and fold the 118 `Mixed` route orders into `All interstate` (no late orders in Train).
+Lasso appears only in the variable-selection overlap tables. Linear models always use log1p, cyclic calendar terms and no squared terms, and fold the 118 `Mixed` route orders into `All interstate` (no late orders in Train).
 
 ## Layout
 | Path | Contents |
@@ -44,7 +44,7 @@ Lasso appears only in the variable-selection overlap tables. Linear models use l
 | `src/splits.py` | Time-aware splits and CV folds |
 | `src/datasets.py` | One shared definition of Train, Validation, CV folds and history per task |
 | `src/preprocessing.py` | Preprocessing shared by both tasks |
-| `src/linear_transforms.py` | Log, cyclic and squared transforms for the linear models |
+| `src/linear_transforms.py` | Log and cyclic transforms for the linear models |
 | `src/feature_selection.py` | Fixed multicollinearity screen (also a script) |
 | `src/variable_selection.py` | CV-stepwise (1-SE), IC-stepwise, Lasso and overlap, Train only |
 | `src/tuning.py` | Plain unweighted logistic regression with a convergence check |

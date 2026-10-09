@@ -43,11 +43,11 @@ Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; 
 - `classification/classification_success_criteria.*` and `regression/regression_success_criteria.*`.
 
 **6–7. Stage 1: linear models**
-- Transform CV: `{task}/{task}_transform_cv.*`.
+- Transformations are **pre-specified, not tested**: log1p on the 8 skewed inputs, sine/cosine for month and weekday, the Mixed route merged into interstate, and no squared terms. The justifications are in `RESULTS_SUMMARY.md` §2.2/§3.2 and `MULTICOLLINEARITY_NOTES.md`. Variable selection is the only outcome-driven step, and it runs on the transformed features.
 - Variable selection:
   - stepwise path: `{task}_stepwise_path.*` and `figures/0{2,3}_stepwise_path.png`;
   - overlap of CV-stepwise, BIC, AIC and Lasso: `{task}_selection_overlap.*`;
-  - curvature check: `figures/0{2,3}_curvature_partial_residuals.png`.
+  - curvature diagnostic (diagnostic only; shows no strong curvature remains): `figures/0{2,3}_curvature_partial_residuals.png`.
 - Classification only:
   - class weights: `classification_class_weight_sensitivity.*`;
   - **class-imbalance experiment** (random under/oversampling and SMOTENC): `classification_resampling.*`, `figures/02_resampling_cv_metrics.png` and `02_resampling_calibration.png`. Conclusion: no option improves CV AP, and all of them badly worsen calibration, so none is used. Check citation details before using them.
@@ -97,8 +97,17 @@ Paths are relative to the repo root. Tables come as `.csv`, `.html` and `.tex`; 
   - It fails the "≥ 1.10 × logistic top-10% precision" criterion.
   - It drifts worst by August.
   Present this honestly: the more complex model is not justified out of time.
-- **C2** keeps only 6 of the 24 features (1-SE rule) and performs about as well as C1 out of time.
-- **R2** keeps only `promised_lead_days` (1-SE rule) and is clearly worse than R1 on June (RMSE 9.28 vs 7.39). BIC (R2B, 17 variables) matches R1. Treat this as a finding about the 1-SE rule with noisy time folds.
+- **C2** keeps only 3 of the 24 features (1-SE rule): `customer_state`, `promised_lead_days`, `route_type`. It performs about as well as C1 out of time.
+- **R2** keeps only `promised_lead_days` (1-SE rule) and is clearly worse than R1 on June (RMSE 9.37 vs 7.37). BIC (R2B, 17 variables) matches R1. Treat this as a finding about the 1-SE rule with noisy time folds.
+- **CV favours the RF more than later periods do.**
+  - The RF beats logistic in every CV fold (AP about 0.23–0.31 vs 0.12–0.17; see `classification/cv_fold_scores.csv`), but not on Validation and only slightly on June.
+  - All five CV folds fall between September and February, which covers Black Friday and the Christmas peak. Validation, June, July and August are off-peak.
+  - So the RF tuning and the stepwise selection were judged on peak-season behaviour. Present this as the reason CV over-promised for the RF; it is a key insight, not a bug.
+- **1-SE stepwise is fragile here.** The large fold-to-fold differences make the 1-SE band wide, so C2 and R2 are very small. BIC (C2B/R2B) is steadier and behaves like the full model.
+- **"Wrong-sign" hypotheses.**
+  - More items, more sellers and weekend approval all *lower* late risk.
+  - Multi-seller and Mixed-route orders have zero late orders in Train.
+  - These look like data-recording quirks (e.g. how split orders are delivered or recorded), not logistics. Interpret them in the report rather than just listing "disagree".
 - **Regression RF** does not beat OLS out of time: RMSE 8.40 vs 8.21 on Validation and 7.95 vs 7.39 on June.
 - The old pipeline headline (LightGBM June AP 15.09%, MAE 4.85 days) belongs only in a short "what changed" note.
 - **User preference:** don't call out June's small late-order count or late rate as a caveat. Report June metrics as they are.

@@ -29,14 +29,12 @@ CAT = ['customer_state']
 
 
 class LinearTransformTests(unittest.TestCase):
-    def test_log1p_cyclic_and_squared_columns_are_named_and_computed(self):
+    def test_log1p_and_cyclic_columns_are_named_and_computed(self):
         frame = toy_frame()
-        pre = make_linear_preprocessor(NUM, CAT, log_cols=['weight'], cyclic=True,
-                                       squared_cols=['weight']).fit(frame)
+        pre = make_linear_preprocessor(NUM, CAT, log_cols=['weight'], cyclic=True).fit(frame)
         names = readable_names(pre)
-        self.assertEqual(names[:6], ['log_weight', 'sq_weight', 'order_approved_month_sin',
-                                     'order_approved_month_cos', 'order_approved_day_of_week_sin',
-                                     'order_approved_day_of_week_cos'])
+        self.assertEqual(names[:5], ['log_weight', 'order_approved_month_sin', 'order_approved_month_cos',
+                                     'order_approved_day_of_week_sin', 'order_approved_day_of_week_cos'])
         self.assertNotIn('order_approved_month', names)
         self.assertEqual(names[-2:], ['customer_state_MG', 'customer_state_RJ'])  # SP is the reference
         design = pd.DataFrame(pre.transform(frame), columns=names)
@@ -47,16 +45,15 @@ class LinearTransformTests(unittest.TestCase):
         np.testing.assert_allclose(expand['order_approved_month_sin'], np.sin(angle))
         np.testing.assert_allclose(expand['order_approved_day_of_week_cos'],
                                    np.cos(2 * np.pi * frame['order_approved_day_of_week'] / 7))
-        centre = np.log1p(frame['weight']).mean()
-        np.testing.assert_allclose(expand['sq_weight'], (np.log1p(frame['weight']) - centre) ** 2)
 
     def test_everything_is_fitted_on_the_rows_passed_to_fit(self):
         train, later = toy_frame(), toy_frame(seed=5).assign(weight=1e7)
-        pre = make_linear_preprocessor(NUM, CAT, log_cols=['weight'], squared_cols=['weight']).fit(train)
-        centre = pre.named_steps['expand'].square_centres_['weight']
+        pre = make_linear_preprocessor(NUM, CAT, log_cols=['weight']).fit(train)
+        scale = pre.named_steps['encode'].named_transformers_['numeric'].named_steps['scaler'].mean_
         pre.transform(later)
-        self.assertEqual(pre.named_steps['expand'].square_centres_['weight'], centre)
-        self.assertAlmostEqual(centre, np.log1p(train['weight']).mean())
+        np.testing.assert_array_equal(
+            pre.named_steps['encode'].named_transformers_['numeric'].named_steps['scaler'].mean_, scale)
+        self.assertAlmostEqual(scale[0], np.log1p(train['weight']).mean())
 
     def test_options_off_reproduce_the_plain_design_and_subsets_are_supported(self):
         frame = toy_frame()
@@ -68,9 +65,8 @@ class LinearTransformTests(unittest.TestCase):
 
     def test_unit_columns_group_transformed_variants_with_their_raw_feature(self):
         frame = toy_frame()
-        design, mapping, pre = linear_design(frame, NUM, CAT, log_cols=['weight'], cyclic=True,
-                                             squared_cols=['weight'])
-        self.assertEqual(mapping['weight'], ['log_weight', 'sq_weight'])
+        design, mapping, pre = linear_design(frame, NUM, CAT, log_cols=['weight'], cyclic=True)
+        self.assertEqual(mapping['weight'], ['log_weight'])
         self.assertEqual(mapping['order_approved_month'],
                          ['order_approved_month_sin', 'order_approved_month_cos'])
         self.assertEqual(mapping['customer_state'], ['customer_state_MG', 'customer_state_RJ'])

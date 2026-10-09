@@ -1,7 +1,7 @@
 """Variable selection for the plain linear models, using Train rows only.
 
 A unit is a raw feature. The three categoricals are single units (the whole dummy
-block moves together) and transformed variants (log, sine/cosine, squared) travel
+block moves together) and transformed variants (log, sine/cosine) travel
 with their raw feature.
 
 Methods: forward stepwise scored by chronological CV with the 1-SE rule (primary),
@@ -52,7 +52,7 @@ def make_unit_pipeline_builder(task, num_cols, cat_cols, **transform_kwargs):
     """Return `build(units)`: an unfitted plain linear/logistic pipeline for a subset of units.
 
     `transform_kwargs` are the `make_linear_preprocessor` options (log_cols, cyclic,
-    squared_cols). Columns keep their original order whatever order units entered.
+    merge_mixed_route). Columns keep their original order whatever order units entered.
     """
     def build(units):
         chosen = set(units)

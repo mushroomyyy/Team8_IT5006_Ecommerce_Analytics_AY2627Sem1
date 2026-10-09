@@ -43,22 +43,6 @@ class TableTests(unittest.TestCase):
         drift = ev.drift_table(results, ['avg_precision'])
         self.assertEqual(len(drift), 3)
 
-    def test_greedy_transform_cv_keeps_only_improving_group(self):
-        from sklearn.linear_model import LinearRegression
-        rng = np.random.default_rng(0)
-        X = pd.DataFrame({'x': rng.normal(size=300)})
-        y = pd.Series(X['x'] ** 2 + rng.normal(scale=.1, size=300))
-        folds = [(np.arange(0, 150 + 30 * k), np.arange(150 + 30 * k, 180 + 30 * k)) for k in range(5)]
-
-        def build(kept):
-            from sklearn.pipeline import make_pipeline
-            from sklearn.preprocessing import FunctionTransformer
-            func = (lambda d: d.assign(sq=d['x'] ** 2)) if 'squared' in kept else (lambda d: d)
-            return make_pipeline(FunctionTransformer(func), LinearRegression())
-
-        table, kept = ev.greedy_transform_cv(build, ['squared'], X, y, folds, 'r2')
-        self.assertEqual(kept, ['squared'])
-
 
 class FigureTests(unittest.TestCase):
     def test_figures_are_saved(self):

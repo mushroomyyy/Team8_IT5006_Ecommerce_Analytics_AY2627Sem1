@@ -69,6 +69,18 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(merged['package_version_conflicts'], ['numpy'])
         self.assertEqual(set(merged['tasks']), {'classification', 'regression'})
 
+    def test_transformations_section_states_the_prespecified_design(self):
+        task = self.tasks[0]
+        pd.DataFrame({'feature': ['a', 'b'], 'skew_raw': [1.7, 11.2]}).to_csv(
+            task.directory / 'skewness_train.csv', index=False)
+        task.metadata['linear_transforms'] = {'log_cols': ['a', 'b'], 'cyclic': True, 'merge_mixed_route': True,
+                                              'squared_cols': [], 'rule': 'pre-specified'}
+        text = '\n'.join(sm._transforms(task))
+        self.assertIn('`a`, `b`', text)
+        self.assertIn('from 1.7 to 11.2', text)
+        self.assertIn('No squared terms', text)
+        self.assertIn('Rule: pre-specified', text)
+
     def test_md_table_escapes_pipes(self):
         self.assertIn('a/b', sm.md_table(['h'], [['a|b']]))
 

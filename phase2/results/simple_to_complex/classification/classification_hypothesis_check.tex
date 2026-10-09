@@ -7,34 +7,34 @@
 \toprule
 hypothesis & feature & model & expected\_sign & term & coef & p\_value & observed\_sign & verdict \\
 \midrule
-time & is\_weekend\_approval & C1 & + & is\_weekend\_approval & -0.071 & 0.0088 & - & disagree \\
-time & is\_black\_friday\_period & C1 & + & is\_black\_friday\_period & 0.233 & 0.0 & + & agree \\
-time & is\_december\_peak & C1 & + & is\_december\_peak & 0.122 & 0.0 & + & agree \\
-workload & orders\_approved\_prev\_7d & C1 & + & log\_orders\_approved\_prev\_7d & 0.093 & 0.0002 & + & agree \\
-workload & approval\_lag\_hours & C1 & + & log\_approval\_lag\_hours & 0.119 & 0.0015 & + & agree \\
-order & order\_item\_count & C1 & + & order\_item\_count & -0.088 & 0.0002 & - & disagree \\
-order & order\_seller\_count & C1 & + & order\_seller\_count & -0.157 & 0.0013 & - & disagree \\
-order & order\_product\_weight\_g\_sum & C1 & + & log\_order\_product\_weight\_g\_sum & -0.001 & 0.9706 & - & not significant \\
+time & is\_weekend\_approval & C1 & + & is\_weekend\_approval & -0.071 & 0.0083 & - & disagree \\
+time & is\_black\_friday\_period & C1 & + & is\_black\_friday\_period & 0.234 & 0.0 & + & agree \\
+time & is\_december\_peak & C1 & + & is\_december\_peak & 0.114 & 0.0 & + & agree \\
+workload & orders\_approved\_prev\_7d & C1 & + & log\_orders\_approved\_prev\_7d & 0.09 & 0.0004 & + & agree \\
+workload & approval\_lag\_hours & C1 & + & log\_approval\_lag\_hours & 0.151 & 0.0 & + & agree \\
+order & order\_item\_count & C1 & + & order\_item\_count & -0.091 & 0.0002 & - & disagree \\
+order & order\_seller\_count & C1 & + & order\_seller\_count & -0.16 & 0.001 & - & disagree \\
+order & order\_product\_weight\_g\_sum & C1 & + & log\_order\_product\_weight\_g\_sum & -0.01 & 0.7436 & - & not significant \\
 order & order\_product\_volume\_cm3\_sum & C1 & + & log\_order\_product\_volume\_cm3\_sum & 0.101 & 0.0002 & + & agree \\
-distance & seller\_dist\_km\_mean & C1 & + & log\_seller\_dist\_km\_mean & 0.125 & 0.0004 & + & agree \\
-distance & seller\_state\_count & C1 & + & seller\_state\_count & -1.17 & 0.9907 & - & not identified \\
-payment & payment\_installments\_max & C1 & + & payment\_installments\_max & 0.011 & 0.5864 & + & not significant \\
-payment & payment\_value\_sum & C1 & + & log\_payment\_value\_sum & 0.095 & 0.0444 & + & agree \\
-promise & promised\_lead\_days & C1 & - & promised\_lead\_days & -0.5 & 0.0 & - & agree \\
+distance & seller\_dist\_km\_mean & C1 & + & log\_seller\_dist\_km\_mean & 0.08 & 0.0186 & + & agree \\
+distance & seller\_state\_count & C1 & + & seller\_state\_count & -1.21 & 0.9928 & - & not identified \\
+payment & payment\_installments\_max & C1 & + & payment\_installments\_max & 0.011 & 0.5642 & + & not significant \\
+payment & payment\_value\_sum & C1 & + & log\_payment\_value\_sum & 0.156 & 0.0001 & + & agree \\
+promise & promised\_lead\_days & C1 & - & promised\_lead\_days & -0.439 & 0.0 & - & agree \\
 time & is\_weekend\_approval & C2 & + & nan & nan & nan &  & not in model \\
 time & is\_black\_friday\_period & C2 & + & nan & nan & nan &  & not in model \\
 time & is\_december\_peak & C2 & + & nan & nan & nan &  & not in model \\
 workload & orders\_approved\_prev\_7d & C2 & + & nan & nan & nan &  & not in model \\
 workload & approval\_lag\_hours & C2 & + & nan & nan & nan &  & not in model \\
 order & order\_item\_count & C2 & + & nan & nan & nan &  & not in model \\
-order & order\_seller\_count & C2 & + & order\_seller\_count & -0.237 & 0.0 & - & disagree \\
+order & order\_seller\_count & C2 & + & nan & nan & nan &  & not in model \\
 order & order\_product\_weight\_g\_sum & C2 & + & nan & nan & nan &  & not in model \\
 order & order\_product\_volume\_cm3\_sum & C2 & + & nan & nan & nan &  & not in model \\
 distance & seller\_dist\_km\_mean & C2 & + & nan & nan & nan &  & not in model \\
 distance & seller\_state\_count & C2 & + & nan & nan & nan &  & not in model \\
 payment & payment\_installments\_max & C2 & + & nan & nan & nan &  & not in model \\
 payment & payment\_value\_sum & C2 & + & nan & nan & nan &  & not in model \\
-promise & promised\_lead\_days & C2 & - & promised\_lead\_days & -0.381 & 0.0 & - & agree \\
+promise & promised\_lead\_days & C2 & - & promised\_lead\_days & -0.347 & 0.0 & - & agree \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
