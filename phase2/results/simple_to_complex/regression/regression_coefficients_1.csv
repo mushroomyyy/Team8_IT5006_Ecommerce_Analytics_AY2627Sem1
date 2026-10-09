@@ -1,3 +1,2 @@
 Term,Basis,Days per unit,95% CI per unit,Days per 1 SD,95% CI per 1 SD,p-value
-promised_lead_days,per 1 unit,-0.445,-0.457 to -0.434,-3.318,-3.403 to -3.234,<0.001
-sq_promised_lead_days,n/a,,,,,<0.001
+promised_lead_days,per 1 unit,-0.494,-0.508 to -0.480,-3.679,-3.785 to -3.573,<0.001

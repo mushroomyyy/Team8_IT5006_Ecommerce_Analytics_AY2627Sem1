@@ -249,7 +249,7 @@ def frame_markdown(frame):
 def top_effects(table, spec, n=8):
     """Largest standardised effects (per 1 SD where defined, else per unit or vs reference level).
 
-    Ranked by |log odds ratio| or |days|. Terms without an effect (sine/cosine and squared terms,
+    Ranked by |log odds ratio| or |days|. Terms without an effect (sine/cosine terms,
     unidentified terms) are skipped; callers list those separately.
     """
     prefix = 'OR' if spec.effect_is_ratio else 'Days'
@@ -305,14 +305,28 @@ def _row_counts(task):
 
 def _transforms(task):
     meta = task.metadata['linear_transforms']
-    table = task.table(f'{task.spec.name}_transform_cv', 'Transformation')
-    keep = [c for c in table.columns if c not in ('groups',)]
-    names = {'step': 'Decision step', 'design': 'Design', 'kept': 'Kept'}
-    table = table[keep].rename(columns=names)
-    text = (f"Groups kept: {', '.join(meta['groups_kept'])}. Log columns: {', '.join(meta['log_cols'])}. "
-            f"Squared columns: {', '.join(meta['squared_cols'])}. Mixed route folded into All interstate: "
-            f"{meta['merge_mixed_route']}.")
-    return [text, '', frame_markdown(table)]
+    logged = ', '.join(f'`{c}`' for c in meta['log_cols'])
+    skew = task.csv('skewness_train.csv').set_index('feature')['skew_raw'].loc[meta['log_cols']]
+    mixed = ('- **Mixed route** is folded into All interstate (every mixed-route order has an interstate leg).'
+             if meta['merge_mixed_route'] else '- Mixed route is kept as its own level.')
+    return ['Every linear model uses the same pre-specified design, fixed from the predictors\' distributions '
+            'and the cyclic nature of month and weekday. None of it is tuned on the outcome.', '',
+            f"- **log1p on {len(meta['log_cols'])} skewed inputs:** {logged}. They are non-negative with long right "
+            f'tails (|skew| from {skew.abs().min():.1f} to {skew.abs().max():.1f} on Train). log1p compresses the tail so a few extreme orders do not dominate a '
+            'linear fit, handles zeros, and gives per-doubling effects. Only the predictors\' distribution on Train '
+            'was used, never the outcome, so there is no selection optimism; pre-specifying transformations is '
+            'recommended by Harrell, *Regression Modeling Strategies*.',
+            '- **Sine and cosine for month and weekday.** They are cyclic (December is next to January, Sunday '
+            'next to Monday); a plain number imposes a false straight-line order and a jump at the wrap-around. '
+            'Dummies would be exactly collinear with the weekend and December flags, and a sine/cosine pair '
+            'captures a smooth cycle in two columns.',
+            mixed,
+            '- **No squared terms.** Choosing polynomial terms by looking at the outcome would be another '
+            'data-driven selection step. Each coefficient stays a single, interpretable slope, and remaining '
+            'nonlinearity is judged by the Random Forest stage. The curvature plots in the notebooks are a '
+            'diagnostic only.', '',
+            f"Rule: {meta['rule']}. Variable selection is the only outcome-driven step. "
+            'The Random Forest uses the raw features.']
 
 
 def _stepwise(task):
@@ -424,7 +438,7 @@ def task_section(task, chapter, root):
     prefix = f'{spec.name}_'
     blocks = [
         ('Row counts per split', _row_counts(task)),
-        ('Transforms kept (linear models), with CV evidence', _transforms(task)),
+        ('Transformations (pre-specified, linear models)', _transforms(task)),
         ('Stepwise path, chosen step and selected variables', _stepwise(task)),
         ('Selection overlap: CV-stepwise, BIC, AIC and Lasso', _overlap(task)),
         ('Random Forest search and sensitivity', _rf_search(task)),

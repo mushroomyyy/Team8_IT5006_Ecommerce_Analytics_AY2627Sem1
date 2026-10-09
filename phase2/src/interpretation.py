@@ -86,7 +86,7 @@ def coefficient_table(result, task, preprocessor, cat_cols=(), alpha=0.05):
     change in a numeric column, or for a category versus its reference. The `effect_*`
     columns convert them: odds ratios for classification, days for regression. Per-unit
     effects use the raw scale (for log1p inputs: per doubling; for dummies: versus the
-    reference). Sine/cosine and squared terms have no per-unit reading (NaN).
+    reference). Sine/cosine terms have no per-unit reading (NaN).
     """
     scales = encoded_scales(preprocessor)
     unit_of = {term: unit for unit, terms in unit_columns(preprocessor, list(cat_cols)).items()
@@ -108,7 +108,7 @@ def coefficient_table(result, task, preprocessor, cat_cols=(), alpha=0.05):
         elif term not in scales.index:
             kind, basis = 'categorical', 'vs reference level'
         else:
-            kind = ('log' if term.startswith('log_') else 'squared' if term.startswith('sq_')
+            kind = ('log' if term.startswith('log_')
                     else 'cyclic' if term.endswith(('_sin', '_cos')) else 'numeric')
             basis = {'log': 'per doubling', 'numeric': 'per 1 unit'}.get(kind, 'n/a')
         row.update(kind=kind, per_unit_basis=basis)
