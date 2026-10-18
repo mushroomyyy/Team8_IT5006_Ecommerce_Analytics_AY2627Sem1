@@ -1,0 +1,9 @@
+# Match the checked-in pipeline serialization environment. Python 3.13.5.
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.18.1
+scikit-learn==1.9.1
+joblib==1.6.0
+fastapi==0.146.0
+pydantic==2.14.1
+uvicorn==0.54.0
