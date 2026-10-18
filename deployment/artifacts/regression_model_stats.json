@@ -1,0 +1,63 @@
+{
+  "model_code": "R1",
+  "model_version": "phase2-r1-ols-2026-10-09",
+  "target": "days from the promised delivery date",
+  "training_population": "Phase 2 history with known outcomes before 2018-06-02",
+  "train_rows": 62841,
+  "random_state": 42,
+  "serialization": {
+    "scikit_learn": "1.9.1",
+    "python": "3.13.4"
+  },
+  "features": {
+    "numeric": [
+      "order_approved_day_of_week",
+      "order_approved_day_of_month",
+      "order_approved_month",
+      "order_item_count",
+      "order_seller_count",
+      "order_frieght_value_sum",
+      "order_product_weight_g_sum",
+      "order_product_category_count",
+      "seller_dist_km_mean",
+      "seller_state_count",
+      "payment_value_sum",
+      "promised_lead_days",
+      "approval_lag_hours",
+      "order_product_volume_cm3_sum",
+      "order_product_photos_mean",
+      "freight_to_price_ratio",
+      "payment_installments_max",
+      "is_weekend_approval",
+      "is_black_friday_period",
+      "is_december_peak",
+      "orders_approved_prev_7d"
+    ],
+    "categorical": [
+      "customer_state",
+      "route_type",
+      "payment_combination"
+    ]
+  },
+  "linear_transforms": {
+    "log_cols": [
+      "payment_value_sum",
+      "order_frieght_value_sum",
+      "order_product_weight_g_sum",
+      "order_product_volume_cm3_sum",
+      "approval_lag_hours",
+      "seller_dist_km_mean",
+      "freight_to_price_ratio",
+      "orders_approved_prev_7d"
+    ],
+    "cyclic": true,
+    "merge_mixed_route": true
+  },
+  "evaluation": {
+    "validation_rmse": 8.205,
+    "june_test_rmse": 7.369,
+    "june_test_mae": 5.81,
+    "june_reference_rf_rmse": 7.953,
+    "source": "phase2/results/simple_to_complex/regression/regression_model_comparison_5.csv"
+  }
+}
