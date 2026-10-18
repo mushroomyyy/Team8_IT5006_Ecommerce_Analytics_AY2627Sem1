@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from deployment.classification_service import ARTIFACTS, ClassificationService, load_stats
 
@@ -36,7 +37,48 @@ class ClassificationTests(unittest.TestCase):
         self.assertAlmostEqual(metadata["export_verification"]["june_ap"],
                                run["headline_june"]["C3"]["avg_precision"], places=10)
         self.assertAlmostEqual(metadata["evaluation"]["June"]["avg_precision"],
-                               run["headline_june"]["C3"]["avg_precision"], places=9)
+                               run["headline_june"]["C3"]["avg_precision"], places=15)
+        metrics = pd.read_csv(root / "phase2/results/simple_to_complex/classification/model_results_long.csv")
+        expected = metrics[metrics["model"].eq("C3")].set_index("split").drop(columns="model").to_dict(orient="index")
+        self.assertEqual(metadata["evaluation"], expected)
+        self.assertEqual(metadata["fingerprints"]["notebook_normalized"], run["fingerprints"]["C3"])
+        self.assertEqual(metadata["fingerprints"]["notebook_reference"], run["fingerprints"]["C3"])
+
+    def test_replay_is_feature_only_and_spans_june(self):
+        replay = json.loads((ARTIFACTS / "classification_june_orders.json").read_text())
+        outcomes = json.loads((ARTIFACTS / "classification_june_outcomes.json").read_text())
+        columns = set(self.service.metadata["features"]["numeric"] + self.service.metadata["features"]["categorical"] + ["order_id"])
+        rows = [row for day_rows in replay["days"].values() for row in day_rows]
+        self.assertEqual(len(rows), 6164)
+        self.assertEqual(len({row["order_id"] for row in rows}), len(rows))
+        for row in rows:
+            self.assertEqual(set(row), columns)
+        self.assertEqual(set(outcomes["outcomes"]), {row["order_id"] for row in rows})
+        self.assertTrue(outcomes["display_only"])
+        self.assertEqual(sum(value is None for value in outcomes["outcomes"].values()), 9)
+        sample_ids = {row["order_id"] for row in self.samples}
+        self.assertEqual(len(sample_ids), 30)
+        represented_days = [day for day, day_rows in replay["days"].items()
+                            if any(row["order_id"] in sample_ids for row in day_rows)]
+        self.assertEqual(len(represented_days), 30)
+
+    def test_ranges_baseline_and_score_reference(self):
+        meta = self.service.metadata
+        for name in meta["features"]["numeric"]:
+            ranges = meta["numeric_ranges"][name]
+            self.assertLessEqual(ranges["min"], ranges["p01"])
+            self.assertLessEqual(ranges["p01"], ranges["median"])
+            self.assertLessEqual(ranges["median"], ranges["p99"])
+            self.assertLessEqual(ranges["p99"], ranges["max"])
+            self.assertIn(ranges["type"], ("integer", "binary", "continuous"))
+            self.assertEqual(meta["baseline_features"][name], ranges["median"])
+        distribution = meta["june_score_distribution"]
+        scores = distribution["sorted_scores"]
+        self.assertEqual(len(scores), 6164)
+        self.assertEqual(scores, sorted(scores))
+        self.assertEqual(sum(bin_["count"] for bin_ in distribution["histogram"]), 6164)
+        self.assertEqual(distribution["top_10_percent_boundary"], float(np.quantile(scores, .9)))
+        self.assertEqual(set(meta["global_importance"]), {"Validation", "June"})
 
     def test_service_preserves_full_precision_probabilities(self):
         frame = self.service.validate_features(self.features)

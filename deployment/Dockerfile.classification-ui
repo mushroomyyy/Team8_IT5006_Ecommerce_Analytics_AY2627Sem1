@@ -1,0 +1,11 @@
+FROM python:3.13.5-slim
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PORT=10000 STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+COPY deployment/classification_ui_requirements.txt deployment/classification_ui_constraints.txt deployment/
+RUN pip install --no-cache-dir -r deployment/classification_ui_requirements.txt -c deployment/classification_ui_constraints.txt
+COPY deployment/classification_streamlit.py deployment/test_classification_ui.py deployment/
+COPY deployment/artifacts/classification_model_stats.json deployment/artifacts/
+COPY deployment/artifacts/classification_sample_orders.json deployment/artifacts/
+COPY .streamlit/config.toml .streamlit/config.toml
+EXPOSE 10000
+CMD ["sh", "-c", "python -m streamlit run deployment/classification_streamlit.py --server.address 0.0.0.0 --server.port ${PORT}"]

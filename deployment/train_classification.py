@@ -7,6 +7,7 @@ only for this offline export, not for the deployed API.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import platform
@@ -24,7 +25,7 @@ sys.path.insert(0, str(ROOT / "phase2"))
 from src import RANDOM_STATE  # noqa: E402
 from src.data import load_olist_data  # noqa: E402
 from src.datasets import RUN_DATE, build_task_data  # noqa: E402
-from src.evaluation import score_months, classification_eval_metrics  # noqa: E402
+from src.evaluation import score_months, classification_eval_metrics, fingerprint  # noqa: E402
 from src.features import add_extra_features, build_feature_table  # noqa: E402
 from src.rf_search import tuned_rf_pipeline  # noqa: E402
 
@@ -34,6 +35,11 @@ THRESHOLD_POLICY = (
     "Illustrative fixed 0.5 cutoff; not optimized for operational use. "
     "Top-10% evaluation ranks an entire cohort and is not this single-order cutoff."
 )
+
+
+def records(frame: pd.DataFrame) -> list[dict]:
+    """JSON-ready records without pandas' default ten-digit float rounding."""
+    return frame.astype(object).where(frame.notna(), None).to_dict(orient="records")
 
 
 def export(output_dir: Path = ARTIFACTS) -> dict:
@@ -57,14 +63,60 @@ def export(output_dir: Path = ARTIFACTS) -> dict:
     if not np.isclose(reproduced["avg_precision"], expected_ap, atol=1e-10, rtol=0):
         raise ValueError(f"June AP {reproduced['avg_precision']} differs from notebook {expected_ap}")
 
+    actual_fingerprint = fingerprint(model)
+    notebook_model = copy.deepcopy(model).set_params(classifier__n_jobs=-1)
+    normalized_fingerprint = fingerprint(notebook_model)
+    reference_fingerprint = source["fingerprints"]["C3"]
+    if normalized_fingerprint != reference_fingerprint:
+        raise AssertionError("Exported C3 fitted-state fingerprint differs from the notebook")
+
     metric_frame = pd.read_csv(RESULTS / "model_results_long.csv")
     evaluation = metric_frame[metric_frame["model"].eq("C3")].set_index("split").drop(columns="model")
-    evaluation = json.loads(evaluation.to_json(orient="index"))
+    evaluation = evaluation.to_dict(orient="index")
     history_ids = set(data.history_df["order_id"])
-    sample_rows = final_df.set_index("order_id").loc[june["order_id"].head(30)]
-    if history_ids.intersection(sample_rows.index):
-        raise ValueError("Demonstration orders overlap the refit population")
-    samples = json.loads(sample_rows[data.feature_cols].reset_index().to_json(orient="records"))
+    june_rows = final_df.set_index("order_id").loc[june["order_id"]].copy()
+    june_rows = june_rows.sort_values(["order_approved_dt", "order_id"])
+    # One deterministic randomly chosen order per approval date, never using labels.
+    sample_rows = june_rows.groupby("order_approved_dt", group_keys=False).sample(n=1, random_state=42)
+    if len(sample_rows) < 30:
+        remainder = june_rows.drop(index=sample_rows.index).sample(n=30-len(sample_rows), random_state=42)
+        sample_rows = pd.concat([sample_rows, remainder])
+    sample_rows = sample_rows.sort_values(["order_approved_dt", "order_id"]).iloc[:30]
+    if history_ids.intersection(june_rows.index):
+        raise ValueError("June demonstration/replay orders overlap the refit population")
+    samples = records(sample_rows[data.feature_cols].reset_index())
+    numeric_ranges = {}
+    for name in data.num_cols:
+        values = data.history_df[name].dropna().astype(float)
+        kind = "binary" if name.startswith("is_") else (
+            "integer" if name.endswith("_count") or name.startswith("order_approved_")
+            or name in ("payment_installments_max", "orders_approved_prev_7d", "promised_lead_days")
+            else "continuous")
+        numeric_ranges[name] = {
+            "min": float(values.min()), "max": float(values.max()),
+            "p01": float(values.quantile(.01)), "p99": float(values.quantile(.99)),
+            "median": float(values.median()), "type": kind,
+        }
+    baseline = {name: details["median"] for name, details in numeric_ranges.items()}
+    baseline.update({name: data.history_df[name].mode().iloc[0] for name in data.cat_cols})
+    scores = june["predicted_probability"].to_numpy(dtype=float)
+    counts, edges = np.histogram(scores, bins=30)
+    score_distribution = {
+        "n_orders": len(scores),
+        "sorted_scores": sorted(scores.tolist()),
+        "histogram": [{"lower": float(edges[i]), "upper": float(edges[i+1]), "count": int(count)}
+                      for i, count in enumerate(counts)],
+        "quantiles": {str(q): float(np.quantile(scores, q)) for q in (0, .01, .1, .25, .5, .75, .9, .95, .99, 1)},
+        "top_10_percent_boundary": float(np.quantile(scores, .9)),
+        "boundary_policy": "90th percentile of held-out June model scores only; no outcome-based threshold selection. Ties may yield more than 10% at or above the boundary.",
+        "late_rate": float(june["actual_label"].mean()),
+        "late_rate_note": "Historical context only; June outcomes never select samples, thresholds or model parameters.",
+    }
+    global_importance = {}
+    for split in ("Validation", "June"):
+        path = RESULTS / f"rf_permutation_importance_{split.lower()}.csv"
+        if path.exists():
+            global_importance[split] = records(pd.read_csv(path))
     metadata = {
         "model_code": "C3", "model_version": "phase2-c3-rf-2018-06-02",
         "target": "late delivery according to the Phase 2 as-of label policy",
@@ -76,7 +128,13 @@ def export(output_dir: Path = ARTIFACTS) -> dict:
         "training_order_ids_sha256": hashlib.sha256("\n".join(sorted(history_ids)).encode()).hexdigest(),
         "features": {"numeric": data.num_cols, "categorical": data.cat_cols},
         "categories": {c: sorted(data.history_df[c].dropna().unique().tolist()) for c in data.cat_cols},
-        "preprocessing": "Raw numeric median imputation and reference-coded one-hot encoding; unseen categories ignored",
+        "preprocessing": "Raw numeric median imputation and reference-coded one-hot encoding. API rejects null and unknown categorical values before encoding.",
+        "numeric_ranges": numeric_ranges,
+        "baseline_features": baseline,
+        "june_score_distribution": score_distribution,
+        "global_importance": global_importance,
+        "fingerprints": {"artifact": actual_fingerprint, "notebook_normalized": normalized_fingerprint,
+                         "notebook_reference": reference_fingerprint},
         "serialization": {"python": platform.python_version(), "scikit_learn": sklearn.__version__,
                           "numpy": np.__version__, "pandas": pd.__version__, "joblib": joblib.__version__},
         "evaluation": evaluation,
@@ -94,6 +152,14 @@ def export(output_dir: Path = ARTIFACTS) -> dict:
         raise AssertionError("Serialization changed predictions")
     (output_dir / "classification_model_stats.json").write_text(json.dumps(metadata, indent=2) + "\n")
     (output_dir / "classification_sample_orders.json").write_text(json.dumps(samples, indent=2) + "\n")
+    replay = {"model_version": metadata["model_version"], "days": {}}
+    for day, rows in june_rows.groupby("order_approved_dt", sort=True):
+        replay["days"][day.strftime("%Y-%m-%d")] = records(rows[data.feature_cols].reset_index())
+    outcomes = {"model_version": metadata["model_version"], "display_only": True,
+                "usage": "Realised outcomes for historical display only; never used for fitting, tuning, sample selection or threshold selection.",
+                "outcomes": {str(row.order_id): (None if pd.isna(row.actual_label) else int(row.actual_label)) for row in june.itertuples()}}
+    (output_dir / "classification_june_orders.json").write_text(json.dumps(replay, separators=(",", ":")) + "\n")
+    (output_dir / "classification_june_outcomes.json").write_text(json.dumps(outcomes, separators=(",", ":")) + "\n")
     print(f"Saved {artifact}; {len(data.history_df):,} refit rows; June AP {reproduced['avg_precision']:.12f}")
     return metadata
 
