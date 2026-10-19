@@ -1,10 +1,7 @@
-"""Production entry point for Streamlit Community Cloud."""
+"""Production entry point for the model deployment UI."""
 
+import sys
 from pathlib import Path
-import os
-import runpy
 
-
-os.environ["OLIST_HOSTED_RELEASE"] = "1"
-shared_app = Path(__file__).resolve().parents[1] / "phase1_eda_dashboard" / "app.py"
-runpy.run_path(shared_app, run_name="__main__")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from deployment.streamlit_app import *  # noqa: F401,F403,E402

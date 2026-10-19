@@ -1,0 +1,8 @@
+# Root development environment. Phase-specific files remain available for
+# smaller installs: phase2/requirements.txt and deployment/requirements.txt.
+-r deployment/requirements.txt
+statsmodels>=0.14,<1
+imbalanced-learn>=0.14,<1
+matplotlib>=3.8,<4
+jupyter>=1.0
+nbconvert>=7
