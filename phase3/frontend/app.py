@@ -298,10 +298,17 @@ def daily_page(api_url):
     if orders:
         frame = pd.DataFrame(orders)
         columns = ['rank', 'order_id', 'late_probability', 'recommendation', 'promised_delivery_date', 'predicted_days_from_promise']
-        display = frame[[c for c in columns if c in frame]]
+        display = frame[[c for c in columns if c in frame]].copy()
+        display['promised_delivery_date'] = display['promised_delivery_date'].str[:10]
         st.subheader('Risk-ranked eligible orders')
         st.caption('Follow-up recommended marks the selected review workload. Other orders are not guaranteed on time. Regression reports days relative to promise (positive = late, negative = early), after bounding approval-to-delivery duration to 0–45 days when possible; it does not change ranking.')
-        st.dataframe(display, hide_index=True, width='stretch', column_config={'late_probability': st.column_config.NumberColumn('Estimated late risk', format='percent'), 'predicted_days_from_promise': st.column_config.NumberColumn('Estimated days from promise', format='%.2f')})
+        st.dataframe(display, hide_index=True, width='stretch', column_config={
+            'rank': st.column_config.NumberColumn('Rank', width='small'),
+            'order_id': st.column_config.TextColumn('Order ID', width='medium'),
+            'late_probability': st.column_config.NumberColumn('C3 risk', format='percent', width='small'),
+            'recommendation': st.column_config.TextColumn('Follow-up', width='medium'),
+            'promised_delivery_date': st.column_config.TextColumn('Promised date', width='small'),
+            'predicted_days_from_promise': st.column_config.NumberColumn('R1 days ±', format='%.2f', width='small', help='Estimated days from promise: positive late, negative early.')})
         st.download_button('Download prioritised worklist', display.to_csv(index=False), f'worklist_{day}.csv', 'text/csv')
         order_id = st.selectbox('Inspect a ranked order', frame.order_id.tolist())
         selected = next(row for row in orders if row['order_id'] == order_id)
