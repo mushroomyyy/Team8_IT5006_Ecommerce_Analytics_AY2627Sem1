@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: team8-delivery-api
+    runtime: docker
+    plan: free
+    branch: classification-deployment
+    dockerfilePath: ./phase3/Dockerfile.api
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 10000

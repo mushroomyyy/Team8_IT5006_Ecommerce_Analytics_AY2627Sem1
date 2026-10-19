@@ -1,70 +1,63 @@
 # IT5006 E-Commerce Analytics — AY2026/27 Semester 1
 
-Group 8 models delivery performance for approved Olist e-commerce orders. The
-project contains an exploratory dashboard, a reproducible Phase 2 modelling
-pipeline, and a regression deployment slice.
+Group 8 analyses delivery performance for approved Olist e-commerce orders.
+The project includes exploratory analysis, reproducible modelling and an
+integrated operations application built with FastAPI and Streamlit.
 
-## Repository map
-
-| Area | Purpose |
+| Area | Contents |
 |---|---|
-| `Olist_CSV/` | Local Olist source tables used by the modelling pipeline |
-| `phase1_eda_dashboard/` | Phase 1 exploratory Streamlit dashboard |
-| `phase2/` | Final modelling notebooks, reusable source modules, tests and report exports |
-| `deployment/` | FastAPI backend, R1 model packaging, Streamlit operations UI and deployment guide |
-| `streamlit_release/` | Streamlit hosting entry point |
-| `docs/` | Repository structure and deployment notes |
+| [`phase1_eda_dashboard/`](phase1_eda_dashboard/README.md) | Phase 1 exploratory dashboard |
+| `streamlit_release/` | Phase 1 hosted entry point and bundled data |
+| `phase2/` | Modelling notebooks, shared source, results and reproducibility |
+| [`phase3/`](phase3/README.md) | Integrated API, Streamlit frontend, fitted models, tests and guides |
+| `deployment/` | Historical location; current code lives in Phase 3 |
 
-The existing `phase2/` paths are intentional: notebooks and source modules
-use them for relative imports and data resolution. See
-[`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md) for details.
+Selected models are **C3 tuned Random Forest** for late-delivery risk and **R1
+all-feature OLS** for signed days from the promised date, using a capped delivery
+time target. Fitted preprocessing travels with each model.
 
-## Selected models
+## Phase 3 operations application
 
-The Phase 2 report selects:
+**Every morning, operations receives a prioritised list of yesterday's approved
+orders, supported by classification risk and regression estimates.**
 
-- **C3 tuned Random Forest** for classification: late-delivery risk.
-- **R1 all-feature OLS** for regression: days before or after the promised date.
-
-The current deployment branch implements the regression slice first. Its
-regression-derived operational flag marks a prediction above zero days as
-`follow_up`; it is not a replacement for the C3 classification probability.
-
-## Quick start
+The main Streamlit page simulates 2 June–1 July 2018. It applies eligibility as of
+the displayed cutoff and ranks yesterday's approvals by C3 risk. A configurable
+30% review proportion starts the demo; it is not a validated universal policy.
+R1 supplies supporting delivery estimates. A separate single-order page
+illustrates the same API. Historical outcomes remain hidden until explicitly revealed.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+python3.13 -m venv .venv-phase3
+source .venv-phase3/bin/activate
+python -m pip install -r phase3/requirements-test.txt
+python -m uvicorn phase3.backend.api:app --host 127.0.0.1 --port 8002
 ```
 
-Run the Phase 2 tests:
+In another activated shell:
 
 ```bash
-python -m unittest discover phase2 -p 'test_*.py'
+DELIVERY_API_URL=http://127.0.0.1:8002 python -m streamlit run phase3/frontend/app.py
 ```
 
-Build the regression artifact and run the local UI:
+Open the Streamlit address printed in the terminal. Local Swagger:
+http://127.0.0.1:8002/docs. **Public API/frontend URLs are not yet verified.**
+See the [application guide](phase3/README.md), [model/simulation contracts](phase3/docs/TECHNICAL.md),
+[hosting setup](phase3/docs/DEPLOYMENT.md), and [verification record](phase3/docs/VERIFICATION.md).
+
+## Reproducibility and tests
+
+Phase 2 notebooks and source paths remain intact. Raw Olist data is needed for
+reproduction/export, but not Phase 3 inference. The bundled ZIP remains at
+`streamlit_release/data/olist_csv.zip`.
 
 ```bash
-python -m deployment.train_regression
-python -m streamlit run deployment/streamlit_app.py
+python -m unittest discover -s phase3/tests -t . -v
+python -m unittest discover -s phase2 -p 'test_*.py'
 ```
 
-Run the API and open Swagger UI:
-
-```bash
-python -m uvicorn deployment.api:app --reload --port 8000
-```
-
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-- Health check: `http://localhost:8000/health`
-
-For Render commands and model packaging details, see
-[`deployment/README.md`](deployment/README.md).
-
-## Phase 1
-
-The Olist exploratory dashboard and its setup instructions are in
-[`phase1_eda_dashboard/README.md`](phase1_eda_dashboard/README.md).
+Install root `requirements.txt` for the full notebook/development environment;
+Phase 3 provides smaller backend and frontend dependency sets for hosting.
+The [Phase 1 instructions](phase1_eda_dashboard/README.md) remain the entry point
+for the exploratory dashboard. The final report and presentation are maintained
+separately by the team.
