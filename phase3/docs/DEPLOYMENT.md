@@ -5,6 +5,27 @@ The API is live and verified at https://team8-delivery-api.onrender.com
 2026 to a free Singapore web service. Public Streamlit deployment remains pending
 at Andrew’s request. Deploy only the `classification-deployment` branch.
 
+## Current branch and deployment flow
+
+The live Render service is configured to build **`classification-deployment`**,
+not `main`. This was checked in Render Settings: branch `classification-deployment`,
+auto-deploy **On Commit**, Dockerfile `./phase3/Dockerfile.api`, build context `.`,
+and health check `/health`. The checked-in `render.yaml` agrees with those settings.
+
+A normal push to that branch starts a Docker build and deploy. Render checks
+`/health` before the new version becomes live. A commit containing `[skip render]`
+does not trigger an auto-deploy; documentation/frontend-only updates can therefore
+be ahead of the running API commit while its backend code remains identical.
+The running API was deployed from `f440907`; subsequent frontend and documentation
+commits did not require another API build.
+
+All current work remains on `classification-deployment`. When the team is ready,
+GitHub **Squash and merge** can place a single readable integration commit on
+`main` without rewriting the active branch now. Merging does not change the Render
+branch setting: switch Render to `main` and update `render.yaml` as a separate,
+explicit deployment step after that merge. No main merge or hosting-branch switch
+has been performed.
+
 ## Render FastAPI service
 
 `render.yaml` defines a Docker web service. In the Render dashboard, connect
