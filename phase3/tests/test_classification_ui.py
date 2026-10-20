@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import requests
+import streamlit as st
 from streamlit.testing.v1 import AppTest
 
 from phase3.frontend.orchestration import cached_worklist
@@ -188,6 +189,24 @@ class ClassificationUiTests(unittest.TestCase):
         self.app.run(timeout=20)
         self.assertTrue(any('backend unavailable' in e.value for e in self.app.error))
         self.assertFalse(self.app.session_state['api_connected'])
+        self.assertFalse(self.app.exception)
+
+    def test_cold_start_note_timeout_budget_and_retry_after_inactivity(self):
+        self.assertTrue(any('50 seconds or more' in note.value and 'After inactivity' in note.value for note in self.app.info))
+        self.assertTrue(self.app.session_state['api_connected'])
+        with patch('streamlit.spinner', wraps=st.spinner) as spinner:
+            self.app.run(timeout=20)
+        self.assertTrue(any('Checking / waking' in call.args[0] and call.kwargs.get('show_time') for call in spinner.call_args_list))
+        for call in self.get.call_args_list + self.post.call_args_list:
+            self.assertEqual(call.kwargs['timeout'], (10, 120))
+        self.get.side_effect = requests.Timeout('Service still waking')
+        self.app.run(timeout=20)
+        self.assertFalse(self.app.session_state['api_connected'])
+        self.assertTrue(any('Retry API connection' in note.value and '50 seconds or more' in note.value for note in self.app.info))
+        self.assertFalse(self.app.exception)
+        self.get.side_effect = self.get_response
+        self.widget('button', 'Retry API connection').click().run(timeout=20)
+        self.assertTrue(self.app.session_state['api_connected'])
         self.assertFalse(self.app.exception)
 
     def test_model_or_service_changes_invalidate_worklist_cache(self):

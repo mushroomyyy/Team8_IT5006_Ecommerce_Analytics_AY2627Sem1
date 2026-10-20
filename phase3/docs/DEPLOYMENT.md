@@ -38,7 +38,7 @@ python -m uvicorn phase3.backend.api:app --host 0.0.0.0 --port "$PORT"
 ```
 
 After deployment, use the actual HTTPS URL to verify `/health`, `/docs`, single
-and batch prediction, date bounds and the absence of the removed demo/explanation endpoints. Verify the daily
+and batch prediction and the absence of the removed demo/explanation endpoints. Verify date boundaries and the daily
 worklist through Streamlit’s Python layer against the live `/predict/batch` service. Check cold startup from a
 sleeping state and observe logs/memory. A localhost success is not live verification.
 
@@ -63,7 +63,7 @@ be committed. Example settings are in `frontend/.streamlit/secrets.toml.example`
 
 Verify both pages against the deployed API: navigation, prediction, downloads,
 outcome reveal/reset, invalid input and timeout feedback. The frontend gives a
-60-second request timeout and startup guidance for a sleeping backend.
+10-second connection / 120-second read timeout and startup guidance for a sleeping backend.
 
 A Docker frontend alternative is available as `phase3/Dockerfile.ui` with the
 same API URL environment variable and assigned `PORT`.

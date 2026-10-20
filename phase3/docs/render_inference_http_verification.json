@@ -1,0 +1,23 @@
+{
+  "base_url": "https://team8-delivery-api.onrender.com",
+  "health": {
+    "status": "ok",
+    "model_loaded": true,
+    "models": {
+      "classification": "phase2-c3-rf-2018-06-02",
+      "regression": "phase2-r1-ols-2026-10-09"
+    }
+  },
+  "api_version": "2.1.0",
+  "checks": [
+    "health",
+    "model-info",
+    "single-batch numerical equivalence (1e-12 tolerance)",
+    "independent-integrated model equivalence",
+    "invalid single/empty batch 422",
+    "removed demo and explanation routes 404",
+    "inference-only OpenAPI/metadata",
+    "Swagger"
+  ],
+  "elapsed_seconds": 2.196
+}

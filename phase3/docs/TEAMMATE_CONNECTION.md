@@ -29,8 +29,9 @@ The response contains `classification.late_probability` and
 the promise; negative means earlier. The regression target uses a 45-day delivery
 cap. Risk is a ranking score, not a guarantee or a fixed classification decision.
 Invalid requests return 422; batch row errors retain their input index/ID. Handle
-connection failures, non-200 responses and timeouts explicitly. Allow 60 seconds for
-requests because a sleeping free Render service may need time to wake.
+connection failures, non-200 responses and timeouts explicitly. The supplied frontend allows 10 seconds to connect and 120 seconds to read a
+response. Its first connection after inactivity may take 50 seconds or more while
+the prediction service wakes; it displays a timed spinner and retry guidance.
 
 ## Run our Streamlit application
 

@@ -1,6 +1,6 @@
 # Verification record
 
-Verified locally on 19 October 2026 (Singapore), Python 3.13.5.
+Local checks: 19–20 October 2026 (Singapore), Python 3.13.5. Latest split and UI checks: 20 October.
 
 ## Streamlit / inference split — 20 October 2026
 
@@ -9,16 +9,29 @@ Verified locally on 19 October 2026 (Singapore), Python 3.13.5.
 - All eligible rows are scored before selecting the top configurable percentage
   for human follow-up. The setting is labelled **Follow-up proportion (%)**.
 - `/samples`, `/simulation`, `/worklist`, `/outcomes` and `/explain` are removed
-  from API2.1.0; the sensitivity UI is removed too.
-- **60 current Phase3 tests pass**, including strict validation, numerical model
+  from API 2.1.0; the sensitivity UI is removed too.
+- **61 current Phase 3 tests pass**, including strict validation, numerical model
   equivalence, temporal policy, HTTP row-error mapping, cache behavior, outcome
   reveal without rescoring, CSV precision and API isolation from frontend/data.
 - Both clean Docker images build. The API image copies only backend code and four
   model/metadata files. The frontend image has historical JSON and Python helpers,
   without fitted model artifacts.
 - The fitted model bytes and fixed daily-policy retrospective results are unchanged.
-- Live API2.1 redeployment and the refreshed frontend-to-live checks are recorded
-  below when completed. Public Streamlit deployment remains pending by request.
+- API 2.1.0 is live at https://team8-delivery-api.onrender.com from commit
+  `f44090701a66c330bb6ff628353e67dbcddd601e` (20 October 2026).
+  [Current HTTPS verification](render_inference_http_verification.json) passed:
+  both models healthy, single/batch numerical equivalence, independent/integrated
+  agreement, invalid single/empty-batch 422 errors, removed route 404 responses,
+  inference-only OpenAPI/metadata and Swagger. Full sequence took 2.196 seconds; Render reported a 1m02s deployment.
+- Local Streamlit container at http://127.0.0.1:18523 is connected directly to
+  the live HTTPS model API. Firefox verified the worklist, explicit outcome reveal,
+  date navigation/outcome reset and selection-count rounding. The first day has
+  147 eligible/scored rows and 45 follow-up recommendations; second day 164/50; a fresh third day against API 2.1 has 156/47.
+- The UI explains that the first connection after inactivity may take 50 seconds
+  or more, shows a timed waking/connection spinner and supports retry. HTTP
+  connection/read timeouts are 10/120 seconds; no startup upper bound is promised.
+- Public Streamlit deployment remains pending at Andrew’s request. Teammates can
+  connect without Render account access using [the hookup guide](TEAMMATE_CONNECTION.md).
 
 ## Initial integration checks (before the boundary refactor)
 
@@ -72,7 +85,7 @@ coverage is **80/137 = 58.39%**. These pooled daily results describe this histor
 policy only. June informed model selection and is not untouched policy validation.
 Zero denominators and unknown labels remain explicit in daily records.
 
-## Initial API2.0 deployment verified — 20 October 2026
+## Initial API 2.0 deployment verified — 20 October 2026
 
 - API: https://team8-delivery-api.onrender.com
 - Swagger: https://team8-delivery-api.onrender.com/docs

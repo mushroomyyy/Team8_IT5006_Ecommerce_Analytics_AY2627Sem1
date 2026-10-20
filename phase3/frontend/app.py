@@ -177,7 +177,10 @@ def prepare_upload(incoming,feature_cols):
 
 def show_error(exc):
     st.error(f'Unable to complete this request: {exc}')
-    st.info('Check the API URL and retry. A sleeping Render service may need up to a minute to start.')
+    if isinstance(exc, requests.Timeout):
+        st.info('The prediction service may still be waking after inactivity. Select Retry API connection, then try again. Startup can take 50 seconds or more.')
+    else:
+        st.info('Check the API URL and select Retry API connection. After inactivity, the prediction service may take 50 seconds or more to wake.')
 
 
 def result_panel(result, stats, api_url, features):
@@ -380,15 +383,13 @@ def main():
     api_url = os.environ.get('DELIVERY_API_URL', os.environ.get('CLASSIFICATION_API_URL', 'http://127.0.0.1:8002'))
     st.sidebar.title('Delivery Watch')
     st.sidebar.caption('Operations & logistics · Historical simulation')
+    st.sidebar.info('After inactivity, the prediction service may take 50 seconds or more to wake. Please wait; later requests are usually faster.')
     if st.sidebar.button('Retry API connection'):
         model_info.clear()
         cached_worklist.clear()
     try:
-        if st.session_state.get('api_connected'):
+        with st.spinner('Checking / waking the prediction service. After inactivity this may take 50 seconds or more…', show_time=True):
             api_request(api_url, '/health'); metadata = model_info(api_url)
-        else:
-            with st.spinner('Connecting / waking up the API. A sleeping service can take up to a minute…'):
-                api_request(api_url, '/health'); metadata = model_info(api_url)
         service_identity = (api_url, model_versions(metadata))
         if st.session_state.get('prediction_service') != service_identity:
             st.session_state.pop('last_result', None)

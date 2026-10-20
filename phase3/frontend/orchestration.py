@@ -44,8 +44,8 @@ def snapshot_revision():
 
 
 def api_request(api_url, endpoint, payload=None):
-    response = (requests.get(f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}", timeout=60)
-                if payload is None else requests.post(f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}", json=payload, timeout=60))
+    response = (requests.get(f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}", timeout=(10, 120))
+                if payload is None else requests.post(f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}", json=payload, timeout=(10, 120)))
     if not response.ok:
         try:
             detail = response.json().get('detail', response.text)
