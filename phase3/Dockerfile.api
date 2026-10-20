@@ -5,6 +5,6 @@ COPY phase3/requirements-api.txt phase3/constraints-api.txt phase3/
 RUN pip install --no-cache-dir -r phase3/requirements-api.txt -c phase3/constraints-api.txt
 COPY phase3/__init__.py phase3/__init__.py
 COPY phase3/backend/ phase3/backend/
-COPY phase3/artifacts/ phase3/artifacts/
+COPY phase3/artifacts/classification_c3_rf.joblib phase3/artifacts/regression_r1_ols.joblib phase3/artifacts/classification_model_stats.json phase3/artifacts/regression_model_stats.json phase3/artifacts/
 EXPOSE 10000
 CMD ["sh", "-c", "python -m uvicorn phase3.backend.api:app --host 0.0.0.0 --port ${PORT}"]

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import unittest
-from copy import deepcopy
+import json
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import patch
 
@@ -175,6 +176,32 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(frame["customer_state"].dtype, object)
         self.assertEqual(list(frame), METADATA["features"]["numeric"] + METADATA["features"]["categorical"])
 
+    def test_removed_demo_and_explanation_routes_are_absent(self):
+        paths = self.client.get("/openapi.json").json()["paths"]
+        for endpoint in ("/samples", "/simulation", "/worklist", "/outcomes", "/explain"):
+            self.assertNotIn(endpoint, paths)
+            response = self.client.post(endpoint, json={"features": FEATURES}) if endpoint == "/explain" else self.client.get(endpoint)
+            self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.client.get("/openapi.json").json()["info"]["version"], "2.1.0")
+
+    def test_metadata_filters_demo_policy_fields_without_mutating_bundle(self):
+        metadata = {**METADATA, "threshold": .5, "threshold_policy": "legacy", "june_score_distribution": {"sorted_scores": [.1]},
+                    "global_importance": {}, "baseline_features": {}, "numeric_ranges": {}, "evaluation": {"June": {}},
+                    "train_rows": 100}
+        with patch.object(FakeService, "metadata", metadata):
+            for endpoint in ("/model-info", "/model-info/classification", "/model-info/regression"):
+                response = self.client.get(endpoint)
+                self.assertEqual(response.status_code, 200)
+                result = response.json()
+                if endpoint == "/model-info":
+                    result = result["classification"]
+                for field in api.OMITTED_METADATA_FIELDS:
+                    self.assertNotIn(field, result)
+                for field in ("evaluation", "numeric_ranges", "features", "categories", "train_rows"):
+                    self.assertEqual(result[field], metadata[field])
+            self.assertIn("threshold", FakeService.metadata)
+            self.assertIn("june_score_distribution", FakeService.metadata)
+
 
 class UnavailableTests(unittest.TestCase):
     def test_failed_load_exposes_unavailable_health_and_predictions(self):
@@ -188,24 +215,19 @@ class UnavailableTests(unittest.TestCase):
 
 @unittest.skipUnless(DEFAULT_ARTIFACT.exists(), "Train the classification artifact to run integration checks")
 class PackagedModelApiTests(unittest.TestCase):
-    def test_real_samples_batch_explain_and_drift(self):
+    def test_real_samples_batch_and_drift(self):
         with TestClient(api.app) as client:
             metadata = client.get("/model-info").json()["classification"]
-            samples = client.get("/samples").json()
-            self.assertEqual(samples["model_version"], metadata["model_version"])
-            features = {k: v for k, v in samples["samples"][0].items() if k != "order_id"}
+            samples = json.loads((Path(__file__).resolve().parents[1] / "frontend/data/classification_sample_orders.json").read_text())
+            features = {k: v for k, v in samples[0].items() if k != "order_id"}
             single = client.post("/predict", json={"features": features}).json()
             batch = client.post("/predict/batch", json={"rows": [{"features": features}]}).json()
             self.assertEqual(batch["successful_rows"], 1)
             self.assertEqual(single, batch["results"][0]["prediction"])
             self.assertEqual(single["classification"], client.post("/predict/classification", json={"features": features}).json())
             self.assertEqual(single["regression"], client.post("/predict/regression", json={"features": features}).json())
-            explanation = client.post("/explain", json={"features": features})
-            self.assertEqual(explanation.status_code, 200, explanation.text)
-            self.assertEqual({item["feature"] for item in explanation.json()["sensitivities"]}, set(features))
             prediction = client.post("/predict", json={"features": {**features, "payment_value_sum": 1e8}}).json()
             self.assertIn("payment_value_sum", [warning["feature"] for warning in prediction["classification"]["drift_warnings"]])
-            self.assertEqual(client.post("/explain", json={"features": {**features, "customer_state": None}}).status_code, 422)
             self.assertEqual(client.get("/health").status_code, 200)
 
 

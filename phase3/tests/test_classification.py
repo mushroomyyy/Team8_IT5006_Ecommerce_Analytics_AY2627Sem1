@@ -14,11 +14,14 @@ import pandas as pd
 from phase3.backend.classification_service import ARTIFACTS, ClassificationService, load_stats
 
 
+DATA = Path(__file__).resolve().parents[1] / "frontend" / "data"
+
+
 class ClassificationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.service = ClassificationService()
-        cls.samples = json.loads((ARTIFACTS / "classification_sample_orders.json").read_text())
+        cls.samples = json.loads((DATA / "classification_sample_orders.json").read_text())
         cls.features = {key: value for key, value in cls.samples[0].items() if key != "order_id"}
 
     def test_export_matches_notebook_specification_and_evaluation(self):
@@ -46,8 +49,8 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(metadata["fingerprints"]["notebook_reference"], run["fingerprints"]["C3"])
 
     def test_replay_is_feature_only_and_spans_june(self):
-        replay = json.loads((ARTIFACTS / "classification_june_orders.json").read_text())
-        outcomes = json.loads((ARTIFACTS / "classification_june_outcomes.json").read_text())
+        replay = json.loads((DATA / "classification_june_orders.json").read_text())
+        outcomes = json.loads((DATA / "classification_june_outcomes.json").read_text())
         columns = set(self.service.metadata["features"]["numeric"] + self.service.metadata["features"]["categorical"] + ["order_id"])
         rows = [row for day_rows in replay["days"].values() for row in day_rows]
         self.assertEqual(len(rows), 6164)
@@ -91,7 +94,7 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(result["model_code"], "C3")
 
     def test_entire_june_scores_preserve_artifact_and_reference(self):
-        replay = json.loads((ARTIFACTS / "classification_june_orders.json").read_text())
+        replay = json.loads((DATA / "classification_june_orders.json").read_text())
         rows = [row for orders in replay["days"].values() for row in orders]
         features = [{k: v for k, v in row.items() if k != "order_id"} for row in rows]
         frame = pd.DataFrame(features, columns=self.service.feature_cols)

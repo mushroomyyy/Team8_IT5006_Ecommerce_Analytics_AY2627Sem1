@@ -13,17 +13,16 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from phase3.backend.classification_service import ClassificationService,ARTIFACTS
 from phase3.backend.model_service import ModelService
-from phase3.backend.simulation import build_worklist,retrospective
+from phase3.frontend.simulation import build_worklist,retrospective
 import pandas as pd
 
 
 def evaluate():
     c,r=ClassificationService(),ModelService()
-    snapshots=json.loads((ARTIFACTS/'simulation_orders.json').read_text())
-    outcomes=json.loads((ARTIFACTS/'simulation_outcomes.json').read_text())['outcomes']
-    def validate(row):
-        c.validate_features(row);r.validate_features(row)
-    def score(rows):
+    snapshots=json.loads((ROOT/'phase3/frontend/data/simulation_orders.json').read_text())
+    outcomes=json.loads((ROOT/'phase3/frontend/data/simulation_outcomes.json').read_text())['outcomes']
+    def score(batch):
+        rows = [item["features"] for item in batch]
         cf=pd.concat([c.validate_features(x) for x in rows],ignore_index=True)
         rf=pd.concat([r.validate_features(x) for x in rows],ignore_index=True)
         return [{'classification':c.format_prediction(float(cv),x),'regression':r.format_prediction(float(rv),x)}
@@ -32,7 +31,7 @@ def evaluate():
     pooled={group:{key:0 for key in ['total','known','unknown','late']} for group in ['all','eligible','selected']}
     for n in range(30):
         current=date(2018,6,2)+timedelta(days=n)
-        worklist=build_worklist(snapshots,current,.3,1,score,validate)
+        worklist=build_worklist(snapshots,current,.3,1,score)
         metrics=retrospective(worklist,outcomes)['metrics']
         days.append({'simulation_date':str(current),'counts':worklist['counts'],'exclusion_reasons':worklist['exclusion_reasons'],'metrics':metrics})
         for group in pooled:

@@ -1,6 +1,25 @@
 # Phase 3 application integration and deployment handoff
 
-Updated: 19 October 2026. This records Andrew's agreed implementation scope. It supersedes earlier deployment proposals in the conversation, including proposals to keep regression separate or to write the final report in this session. Historical Phase 2 handoffs are background, not the current model-selection or deployment instructions.
+Updated: 20 October 2026. This records Andrew's agreed implementation scope. It supersedes earlier deployment proposals in the conversation, including proposals to keep regression separate or to write the final report in this session. Historical Phase 2 handoffs are background, not the current model-selection or deployment instructions.
+
+## Architecture update authorised 20 October 2026
+
+Andrew requested the historical demo and daily worklist orchestration move into
+Streamlit's server-side Python code. Render now hosts fitted-model inference,
+validation, health and model metadata only (plus aggregate monitoring).
+`/samples`, `/simulation`, `/worklist`, `/outcomes` and `/explain` are removed.
+`/explain` is removed from the UI too rather than relocated. Streamlit loads
+packaged historical snapshots, applies cutoff eligibility, sends **all eligible
+orders** to `/predict/batch`, ranks the returned risk scores and selects the top
+configurable proportion for human follow-up. It computes retrospective metrics
+locally only after explicit reveal. No fitted preprocessing or model artifact is
+loaded by Streamlit. This update supersedes earlier endpoint/data-placement
+instructions below; historical operational/temporal rules remain unchanged.
+The UI calls the selection setting **Follow-up proportion (%)**, initially 30%.
+It is a follow-up workload setting, never an input sampling rate.
+
+Public Streamlit deployment remains pending at Andrew's request; verify the local
+Streamlit application against the live Render API instead.
 
 ## Objective and boundaries
 

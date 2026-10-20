@@ -26,12 +26,13 @@ from phase3.backend.transforms import ExpandColumns
 
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACTS = ROOT / "phase3/artifacts"
+DEMO_DATA = ROOT / "phase3/frontend/data"
 
 
 class PackagingTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.replay = json.loads((ARTIFACTS / "classification_june_orders.json").read_text())
+        cls.replay = json.loads((DEMO_DATA / "classification_june_orders.json").read_text())
         cls.frame = pd.DataFrame([row for day in cls.replay["days"].values() for row in day])
         cls.packaging = json.loads((ARTIFACTS / "regression_packaging.json").read_text())
 
@@ -99,7 +100,7 @@ from phase3.backend.classification_service import ClassificationService
 from phase3.backend.model_service import ModelService
 import json
 from pathlib import Path
-sample = json.loads((Path(ClassificationService().artifact_path).parent / "classification_sample_orders.json").read_text())[0]
+sample = json.loads((Path(ClassificationService().artifact_path).parents[1] / "frontend/data/classification_sample_orders.json").read_text())[0]
 sample.pop("order_id", None)
 ClassificationService().predict(sample)
 ModelService().predict(sample)
@@ -112,8 +113,8 @@ assert not any(n == "src" or n.startswith("src.") or n == "phase2" or n.startswi
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
     def test_simulation_artifacts_separate_labels_and_final_status(self):
-        snapshot = json.loads((ARTIFACTS / "simulation_orders.json").read_text())
-        outcomes = json.loads((ARTIFACTS / "simulation_outcomes.json").read_text())
+        snapshot = json.loads((DEMO_DATA / "simulation_orders.json").read_text())
+        outcomes = json.loads((DEMO_DATA / "simulation_outcomes.json").read_text())
         ids = []
         for batch in snapshot["days"].values():
             for order in batch:
@@ -129,6 +130,9 @@ assert not any(n == "src" or n.startswith("src.") or n == "phase2" or n.startswi
         manifest = json.loads((ARTIFACTS / "manifest.json").read_text())
         expected = {p.name for p in ARTIFACTS.iterdir() if p.suffix in {".json", ".joblib"} and p.name != "manifest.json"}
         self.assertEqual(set(manifest["artifacts"]), expected)
+        self.assertEqual(set(manifest["frontend_data"]), {p.name for p in DEMO_DATA.glob("*.json")})
+        for name, digest in manifest["frontend_data"].items():
+            self.assertEqual(hashlib.sha256((DEMO_DATA / name).read_bytes()).hexdigest(), digest, name)
         for name, digest in manifest["artifacts"].items():
             self.assertEqual(hashlib.sha256((ARTIFACTS / name).read_bytes()).hexdigest(), digest, name)
 

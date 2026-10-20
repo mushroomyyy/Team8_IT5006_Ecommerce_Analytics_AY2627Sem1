@@ -7,6 +7,16 @@ import io
 import json
 import math
 import os
+from pathlib import Path
+import sys
+
+# Streamlit runs this file directly in Cloud, Docker and AppTest.
+_repo_root = str(Path(__file__).resolve().parents[2])
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
+from phase3.frontend.orchestration import (api_request, cached_worklist, load_demo_orders,
+    load_demo_samples, model_versions, reveal_outcomes, snapshot_revision)
+from phase3.frontend.simulation import configuration, SimulationDataError
 
 import pandas as pd
 import requests
@@ -54,19 +64,7 @@ UPLOAD_OUTPUT_COLUMNS = {'late_probability','is_predicted_late','threshold','thr
                          'raw_days_from_promise','late_by_days','early_by_days','clipping_applied','clipping_policy','target','score_interpretation'}
 
 
-def api_request(api_url, endpoint, payload=None):
-    response = (requests.get(f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}", timeout=60)
-                if payload is None else requests.post(f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}", json=payload, timeout=60))
-    if not response.ok:
-        try:
-            detail = response.json().get('detail', response.text)
-        except ValueError:
-            detail = response.text
-        raise ValueError(f'API returned {response.status_code}: {detail}')
-    return response.json()
-
-
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=0, show_spinner=False)
 def model_info(api_url):
     return api_request(api_url, '/model-info')
 
@@ -178,7 +176,7 @@ def prepare_upload(incoming,feature_cols):
 
 
 def show_error(exc):
-    st.error(f'API request failed: {exc}')
+    st.error(f'Unable to complete this request: {exc}')
     st.info('Check the API URL and retry. A sleeping Render service may need up to a minute to start.')
 
 
@@ -194,17 +192,6 @@ def result_panel(result, stats, api_url, features):
     st.info('C3 risk ranks orders; R1 estimates timing relative to the promise. The models can disagree. A low score does not guarantee on-time delivery.')
     for warning in classification.get('drift_warnings', []):
         st.warning(warning.get('message', str(warning)) if isinstance(warning, dict) else str(warning))
-    if st.button('Why this score?', key='explain_score'):
-        try:
-            with st.spinner('Comparing features with training baselines…'):
-                st.session_state['explanation'] = api_request(api_url, '/explain', {'features': features})
-        except (ValueError, requests.RequestException) as exc:
-            show_error(exc)
-    if st.session_state.get('explanation'):
-        explanation = st.session_state['explanation']
-        st.caption('Sensitivity to resetting each feature to its training baseline; not a causal explanation. Correlated inputs can affect interpretation.')
-        drivers = explanation.get('drivers', explanation.get('sensitivities', []))
-        st.dataframe(pd.DataFrame(drivers), hide_index=True, width='stretch')
 
 
 def check_order(api_url, stats, samples):
@@ -219,7 +206,7 @@ def check_order(api_url, stats, samples):
     sample = sample.get('features', sample)
     if st.session_state.get('last_sample') != sample_id:
         for key in list(st.session_state):
-            if key.startswith('input_') or key in ('last_result', 'last_features', 'explanation'):
+            if key.startswith('input_') or key in ('last_result', 'last_features'):
                 del st.session_state[key]
         st.session_state['last_sample'] = sample_id
     left, right = st.columns([3, 2])
@@ -243,8 +230,7 @@ def check_order(api_url, stats, samples):
                     result = api_request(api_url, '/predict', {'features': features})
                 st.session_state['last_result'] = result
                 st.session_state['last_features'] = features
-                st.session_state.pop('explanation', None)
-            except (ValueError, requests.RequestException) as exc:
+            except (ValueError, requests.RequestException, SimulationDataError) as exc:
                 show_error(exc)
     with right:
         with st.container(border=True):
@@ -263,10 +249,10 @@ def percent(value):
     return 'Not defined' if value is None else f'{value:.1%}'
 
 
-def daily_page(api_url):
+def daily_page(api_url, metadata):
     st.title('Morning delivery follow-up')
     st.write('Imagine today is a day in June or early July 2018. Which orders approved yesterday should operations follow up on? Each day is a separate batch.')
-    config = api_request(api_url, '/simulation')
+    config = configuration(load_demo_orders())
     minimum, maximum = date.fromisoformat(config['minimum_date']), date.fromisoformat(config['maximum_date'])
     if 'simulation_day' not in st.session_state:
         st.session_state['simulation_day'] = date.fromisoformat(config['default_date'])
@@ -275,15 +261,15 @@ def daily_page(api_url):
     day = picker.date_input('Simulated current date', min_value=minimum, max_value=maximum, key='simulation_day')
     following.button('Next day', disabled=day >= maximum, on_click=navigate_day, args=(1,))
     policy = st.columns(2)
-    review = policy[0].slider('Review proportion (%)', 0, 100, 30, step=5)
+    review = policy[0].slider('Follow-up proportion (%)', 0, 100, 30, step=5)
     remaining = policy[1].number_input('Minimum days remaining before promise', min_value=0, max_value=365, value=1, step=1)
-    st.caption('Demo assumptions: review 30% of eligible orders by default; exclude promises due within one day by default (eligible promises must be strictly more than the selected minimum days away). These settings are configurable operational assumptions, not a validated universal policy. Selection rounds up; ties use order ID.')
-    query = f'?simulation_date={day.isoformat()}&review_proportion={review / 100}&minimum_days_remaining={remaining}'
+    st.caption(f'All eligible orders are scored. Select the top {review}% by risk for human follow-up; 30% is the initial demo workload. Exclude promises due within one day by default (eligible promises must be strictly more than the selected minimum days away). These are configurable operational assumptions, not a validated universal policy. Selection rounds up; ties use order ID.')
+    query = (api_url, model_versions(metadata), day.isoformat(), review, remaining, snapshot_revision())
     if st.session_state.get('worklist_policy') != query:
         st.session_state['worklist_policy'] = query
         st.session_state.pop('revealed_outcomes', None)
     with st.spinner('Building the worklist as of the simulation cutoff…'):
-        result = api_request(api_url, '/worklist' + query)
+        result = cached_worklist(api_url, model_versions(metadata), day, review / 100, remaining, snapshot_revision())
     st.subheader(f"Simulated today: {result['simulation_date']}")
     st.write(f"**Scoring cutoff:** {result['cutoff']} · {config['timezone']}  |  **Previous approval batch:** {result['batch_date']}")
     st.caption('Batch: orders approved on the previous calendar day.')
@@ -324,7 +310,7 @@ def daily_page(api_url):
     st.subheader('Retrospective evaluation')
     st.caption('Eventual outcomes are hidden by default and were unavailable at this cutoff. Changing the date or policy hides them again.')
     if st.button('Reveal eventual outcomes', key='reveal_outcomes'):
-        st.session_state['revealed_outcomes'] = api_request(api_url, '/outcomes' + query)
+        st.session_state['revealed_outcomes'] = reveal_outcomes(result)
     if st.session_state.get('revealed_outcomes'):
         historical = st.session_state['revealed_outcomes']
         metrics = historical['metrics']
@@ -396,15 +382,21 @@ def main():
     st.sidebar.caption('Operations & logistics · Historical simulation')
     if st.sidebar.button('Retry API connection'):
         model_info.clear()
+        cached_worklist.clear()
     try:
         if st.session_state.get('api_connected'):
             api_request(api_url, '/health'); metadata = model_info(api_url)
         else:
             with st.spinner('Connecting / waking up the API. A sleeping service can take up to a minute…'):
                 api_request(api_url, '/health'); metadata = model_info(api_url)
+        service_identity = (api_url, model_versions(metadata))
+        if st.session_state.get('prediction_service') != service_identity:
+            st.session_state.pop('last_result', None)
+            st.session_state.pop('last_features', None)
+            st.session_state['prediction_service'] = service_identity
         st.session_state['api_connected'] = True
         st.sidebar.success('API connected · C3 + R1')
-    except (ValueError, requests.RequestException) as exc:
+    except (ValueError, requests.RequestException, SimulationDataError) as exc:
         st.session_state['api_connected'] = False
         st.sidebar.error('API unavailable'); show_error(exc)
         st.sidebar.caption(api_url); return
@@ -414,16 +406,16 @@ def main():
     page = st.sidebar.radio('Workspace', ['Daily simulation', 'Single-order API demo', 'Batch API demo', 'Models and guidance'], key='workspace')
     try:
         stats = metadata['classification']
-        if page == 'Daily simulation': daily_page(api_url)
+        if page == 'Daily simulation': daily_page(api_url, metadata)
         elif page == 'Single-order API demo':
-            data = api_request(api_url, '/samples')
+            data = load_demo_samples()
             samples = data.get('samples', []) if isinstance(data, dict) else data
             extra = st.session_state.get('worklist_selected')
             if extra and extra['order_id'] not in [r['order_id'] for r in samples]: samples.append(extra)
             check_order(api_url, stats, samples)
         elif page == 'Batch API demo': batch_upload(api_url, stats)
         else: guidance(metadata)
-    except (ValueError, requests.RequestException) as exc:
+    except (ValueError, requests.RequestException, SimulationDataError) as exc:
         show_error(exc)
     st.caption('C3 + R1 · HTTP API · Historical simulation')
 

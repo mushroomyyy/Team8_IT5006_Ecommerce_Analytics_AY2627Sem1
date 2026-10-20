@@ -4,8 +4,6 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from math import ceil
 
-from .feature_validation import FeatureValidationError
-
 
 class SimulationDataError(RuntimeError):
     """Packaged snapshot is malformed or internally inconsistent."""
@@ -38,10 +36,14 @@ def configuration(data):
             "limitations": data.get("limitations", [])}
 
 
-def build_worklist(data, simulation_date, review_proportion, minimum_days_remaining, score_rows, validate_row=None):
+def build_worklist(data, simulation_date, review_proportion, minimum_days_remaining, score_rows):
     minimum_date = max(MINIMUM_DATE, snapshot_date(data.get("model_available_date", str(MINIMUM_DATE))))
     if not minimum_date <= simulation_date <= MAXIMUM_DATE:
         raise ValueError(f"simulation_date must be between {minimum_date} and {MAXIMUM_DATE}")
+    if isinstance(review_proportion, bool) or not isinstance(review_proportion, (int, float)) or not 0 <= review_proportion <= 1:
+        raise ValueError("review_proportion must be between 0 and 1")
+    if isinstance(minimum_days_remaining, bool) or not isinstance(minimum_days_remaining, int) or not 0 <= minimum_days_remaining <= 365:
+        raise ValueError("minimum_days_remaining must be an integer between 0 and 365")
     cutoff = datetime.combine(simulation_date, datetime.min.time())
     batch_date = simulation_date - timedelta(days=1)
     eligible, excluded, reasons = [], [], {}
@@ -56,11 +58,6 @@ def build_worklist(data, simulation_date, review_proportion, minimum_days_remain
             exclusions.append("missing_promised_delivery_date")
         elif (promise - simulation_date).days <= minimum_days_remaining:
             exclusions.append("insufficient_time_remaining")
-        if validate_row is not None:
-            try:
-                validate_row(row["features"])
-            except FeatureValidationError:
-                exclusions.append("invalid_model_inputs")
         if exclusions:
             for reason in exclusions:
                 reasons[reason] = reasons.get(reason, 0) + 1
@@ -68,11 +65,16 @@ def build_worklist(data, simulation_date, review_proportion, minimum_days_remain
                              "exclusion_reasons": exclusions})
         else:
             eligible.append(row)
-    predictions = score_rows([row["features"] for row in eligible]) if eligible else []
+    predictions = score_rows([{ "order_id": row["order_id"], "features": row["features"]} for row in eligible]) if eligible else []
     if len(predictions) != len(eligible):
         raise SimulationDataError("Prediction count does not match eligible order count")
     ranked = []
     for row, prediction in zip(eligible, predictions):
+        if prediction is None:
+            excluded.append({"order_id": row["order_id"], "promised_delivery_date": row.get("promised_delivery_date"),
+                             "exclusion_reasons": ["invalid_model_inputs"]})
+            reasons["invalid_model_inputs"] = reasons.get("invalid_model_inputs", 0) + 1
+            continue
         ranked.append({"order_id": row["order_id"], "promised_delivery_date": row["promised_delivery_date"],
                        "features": row["features"], **prediction,
                        "late_probability": prediction["classification"]["late_probability"],

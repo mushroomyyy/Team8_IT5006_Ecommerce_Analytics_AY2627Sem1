@@ -33,8 +33,6 @@ def verify(base):
     start = time.perf_counter()
     health = call('/health')
     metadata = call('/model-info')
-    if not call('/samples')['samples']:
-        raise RuntimeError('Demonstration samples unavailable')
     # Invented input values: no identifiers or copied transaction records sent.
     features = {
         'order_approved_day_of_week': 5, 'order_approved_day_of_month': 1, 'order_approved_month': 6,
@@ -53,28 +51,33 @@ def verify(base):
         raise RuntimeError('Single/batch predictions differ')
     if 'is_predicted_late' in single['classification'] or 'threshold' in single['classification']:
         raise RuntimeError('Unexpected threshold policy in classification result')
-    config = call('/simulation')
-    for day in (config['minimum_date'], config['maximum_date']):
-        worklist = call('/worklist?simulation_date='+day)
-        if 'actual_label' in json.dumps(worklist) or 'delivered_at' in json.dumps(worklist):
-            raise RuntimeError('Future outcome/timestamp exposed in operational response')
-        counts = worklist['counts']
-        if counts['total'] != counts['eligible']+counts['excluded']:
-            raise RuntimeError('Worklist count mismatch')
-        historical = call('/outcomes?simulation_date='+day)
-        if not historical['display_only']:
-            raise RuntimeError('Retrospective outcome notice missing')
-    for path, payload in [('/worklist?simulation_date=2018-06-01', None), ('/predict', {'features': {}})]:
+    for task in ('classification', 'regression'):
+        independent = call('/predict/' + task, {'features': features})
+        if not equivalent(single[task], independent):
+            raise RuntimeError('Independent and integrated model outputs differ')
+    for path, payload, expected in [
+        ('/predict', {'features': {}}, 422),
+        ('/predict/batch', {'rows': []}, 422),
+        ('/samples', None, 404), ('/simulation', None, 404),
+        ('/worklist', None, 404), ('/outcomes', None, 404),
+        ('/explain', {'features': features}, 404),
+    ]:
         try:
             call(path, payload)
         except HTTPError as exc:
-            if exc.code != 422: raise
+            if exc.code != expected: raise
         else:
-            raise RuntimeError('Invalid request was not rejected')
+            raise RuntimeError(f'{path} did not return expected {expected}')
+    schema = call('/openapi.json')
+    if any(path in schema['paths'] for path in ('/samples', '/simulation', '/worklist', '/outcomes', '/explain')):
+        raise RuntimeError('Removed demonstration/explanation route remains in OpenAPI')
+    if any(name in metadata['classification'] for name in ('threshold', 'june_score_distribution', 'baseline_features')):
+        raise RuntimeError('Historical demo policy remains in inference metadata')
     with urlopen(base+'/docs', timeout=90) as docs:
         if docs.status != 200: raise RuntimeError('Swagger unavailable')
-    return {'base_url': base, 'health': health, 'checks': ['health', 'model-info', 'samples', 'single-batch numerical equivalence (1e-12 tolerance)',
-            'both date boundaries', 'outcome separation', 'retrospective endpoint', 'invalid date/input 422', 'Swagger'],
+    return {'base_url': base, 'health': health, 'api_version': schema['info']['version'], 'checks': ['health', 'model-info', 'single-batch numerical equivalence (1e-12 tolerance)',
+            'independent-integrated model equivalence', 'invalid single/empty batch 422',
+            'removed demo and explanation routes 404', 'inference-only OpenAPI/metadata', 'Swagger'],
             'elapsed_seconds': round(time.perf_counter()-start, 3)}
 
 if __name__ == '__main__':

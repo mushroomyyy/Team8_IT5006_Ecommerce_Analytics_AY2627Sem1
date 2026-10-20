@@ -21,10 +21,10 @@ time target. Fitted preprocessing travels with each model.
 **Every morning, operations receives a prioritised list of yesterday's approved
 orders, supported by classification risk and regression estimates.**
 
-The main Streamlit page simulates 2 June–1 July 2018. It applies eligibility as of
-the displayed cutoff and ranks yesterday's approvals by C3 risk. A configurable
-30% review proportion starts the demo; it is not a validated universal policy.
-R1 supplies supporting delivery estimates. A separate single-order page
+The main Streamlit page simulates 2 June–1 July 2018. Its Python server applies eligibility as of
+the displayed cutoff and ranks yesterday's approvals by C3 risk. All eligible orders are scored. A configurable
+30% follow-up proportion initially selects the highest-risk orders for human follow-up; it is not a validated universal policy.
+Render provides C3/R1 inference; Streamlit handles demo data, eligibility and ranking. R1 supplies supporting delivery estimates. A separate single-order page
 illustrates the same API. Historical outcomes remain hidden until explicitly revealed.
 
 ```bash

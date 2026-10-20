@@ -2,7 +2,8 @@
 
 Every morning, operations receives a prioritised list of yesterday's approved
 orders, supported by C3 classification risk and R1 regression estimates.
-The Streamlit frontend calls one FastAPI service over HTTP.
+Streamlit’s server-side Python code loads the historical demo, applies eligibility
+and ranks results returned by one FastAPI model-inference service over HTTP.
 
 ## Run locally
 
@@ -35,10 +36,11 @@ test environment can resolve both; it also includes HTTP test support.
    Dates range from 2 June to 1 July 2018, scoring the previous day's approvals.
 2. Move with the date picker or **Previous day / Next day**. The cutoff is
    midnight at the start of the simulated date in the source's local wall time.
-3. Set the review proportion (30% initially) and minimum days remaining
+3. Set the follow-up proportion (30% initially) and minimum days remaining
    (1 initially). These are demonstration assumptions, not validated policies.
 4. Inspect totals, eligible/excluded counts and reasons. Follow up the selected
-   rows, ranked by C3 risk. R1 is supporting information, not a second filter.
+   rows, ranked by C3 risk. R1 is supporting information, not a second filter. All eligible orders are scored;
+   the proportion selects the top X% by risk for human follow-up.
 5. Inspect an order or download the worklist. **Not selected** does not mean
    guaranteed on-time delivery.
 6. Reveal retrospective outcomes explicitly to inspect historical selected late
@@ -50,9 +52,9 @@ test environment can resolve both; it also includes HTTP test support.
 
 | Folder | Purpose |
 |---|---|
-| `backend/` | Independent model services, strict validation, daily policy and FastAPI routes |
-| `frontend/` | HTTP-only Streamlit interface |
-| `artifacts/` | Fitted pipelines, metadata, engineered June snapshots and separate outcomes |
+| `backend/` | Independent fitted-model services, strict input validation and inference routes |
+| `frontend/` | Streamlit UI, server-side historical orchestration, daily policy and packaged demo data |
+| `artifacts/` | Fitted pipelines, metadata and packaging provenance; no historical order rows |
 | `export/` | Offline export/packaging utilities; never run at web startup |
 | `tests/` | Model, API, temporal policy, packaging and Streamlit checks |
 | `docs/` | Deployment, model contracts, verification and archived prototype guide |
@@ -78,3 +80,14 @@ The Render API is live and verified at https://team8-delivery-api.onrender.com
 the daily worklist passed HTTPS checks on 20 October 2026. Streamlit public
 deployment is pending at Andrew’s request; configure it with this API URL when ready.
 See the verification record for checks actually performed.
+
+For teammate connection details and a complete test request, see
+[TEAMMATE_CONNECTION.md](docs/TEAMMATE_CONNECTION.md).
+
+## API boundary
+
+Render serves `/health`, `/model-info`, `/predict`, `/predict/batch`, independent
+model routes and aggregate monitoring. Historical dates, orders, outcomes and
+follow-up policy live only in Streamlit’s Python layer. The old demo endpoints
+and `/explain` have been removed. Streamlit does not load models or reproduce
+fitted preprocessing.

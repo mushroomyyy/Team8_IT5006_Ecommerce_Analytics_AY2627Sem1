@@ -8,7 +8,6 @@ from typing import Any
 
 import joblib
 import numpy as np
-import pandas as pd
 
 from .feature_validation import validate_features
 
@@ -53,27 +52,6 @@ class ClassificationService:
 
     def predict(self, features: dict[str, Any]) -> dict[str, Any]:
         return self.prediction_from_frame(self.validate_features(features), features)
-
-    def explain(self, features):
-        frame = self.validate_features(features)
-        original = float(self.probabilities(frame)[0])
-        baselines = self.metadata["baseline_features"]
-        # Independent one-feature perturbations intentionally preserve all other
-        # inputs. They are sensitivity probes, not valid alternative order dates.
-        rows = []
-        for name in self.feature_cols:
-            row = frame.iloc[0].to_dict()
-            row[name] = baselines[name]
-            rows.append(row)
-        changed = pd.DataFrame(rows, columns=self.feature_cols)
-        changed[self.metadata["features"]["categorical"]] = changed[self.metadata["features"]["categorical"]].astype(object)
-        scores = self.probabilities(changed)
-        effects = [{"feature": name, "baseline_value": baselines[name], "reset_probability": float(score),
-                    "probability_change": original - float(score)} for name, score in zip(self.feature_cols, scores)]
-        effects.sort(key=lambda item: abs(item["probability_change"]), reverse=True)
-        return {"late_probability": original, "sensitivities": effects,
-                "method": "One-feature reset to refit numeric median or categorical mode; sensitivity only, not causal. Perturbed rows may break calendar relationships.",
-                "model_version": self.metadata["model_version"]}
 
 
 def load_stats() -> dict[str, Any]:

@@ -18,6 +18,7 @@ from src.features import add_extra_features, build_feature_table
 from src.labels import attach_prediction_labels
 
 ARTIFACTS = ROOT / 'phase3/artifacts'
+DEMO_DATA = ROOT / 'phase3/frontend/data'
 
 
 def export():
@@ -54,10 +55,12 @@ def export():
                 'outcomes': {row.order_id: None if pd.isna(row.actual_label) else int(row.actual_label)
                              for row in labels.itertuples()}}
     for filename, payload in [('simulation_orders.json', snapshots), ('simulation_outcomes.json', outcomes)]:
-        (ARTIFACTS / filename).write_text(json.dumps(payload, separators=(',', ':'), allow_nan=False) + '\n')
+        DEMO_DATA.mkdir(parents=True, exist_ok=True)
+        (DEMO_DATA / filename).write_text(json.dumps(payload, separators=(',', ':'), allow_nan=False) + '\n')
     manifest = {'export': 'python -m phase3.export.export_simulation', 'approval_rows': len(rows),
                 'approval_days': len(snapshots['days']), 'model_available_date': snapshots['model_available_date'],
                 'artifacts': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(ARTIFACTS.iterdir()) if p.is_file() and p.suffix in {'.joblib', '.json'} and p.name != 'manifest.json'}}
+    manifest['frontend_data'] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(DEMO_DATA.glob('*.json'))}
     (ARTIFACTS / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(f'Exported {len(rows)} June approvals; retrospective outcomes kept separate')
 

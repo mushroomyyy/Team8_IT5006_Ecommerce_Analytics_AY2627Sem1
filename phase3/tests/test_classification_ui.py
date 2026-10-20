@@ -11,6 +11,7 @@ import pandas as pd
 import requests
 from streamlit.testing.v1 import AppTest
 
+from phase3.frontend.orchestration import cached_worklist
 from phase3.frontend.app import BINARY, COUNTS, INTEGERS, LABELS, model_info, prepare_upload, scored_upload_frame, validate_form
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,10 +30,27 @@ class ClassificationUiTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.stats = json.loads((ROOT / 'artifacts/classification_model_stats.json').read_text())
-        cls.samples = json.loads((ROOT / 'artifacts/classification_sample_orders.json').read_text())
+        cls.samples = json.loads((ROOT / 'frontend/data/classification_sample_orders.json').read_text())
 
     def setUp(self):
         model_info.clear()
+        cached_worklist.clear()
+        self.demo_data = {'minimum_date': '2018-06-02', 'maximum_date': '2018-07-01', 'default_date': '2018-06-02', 'model_available_date': '2018-06-02', 'timezone': 'America/Sao_Paulo', 'batch_definition': 'Previous day by approval date', 'limitations': ['Snapshot history is incomplete.'], 'days': {}}
+        orders = [{'order_id': r['order_id'], 'promised_delivery_date': '2018-06-20', 'features': {k: r[k] for k in self.stats['features']['numeric'] + self.stats['features']['categorical']}} for r in self.samples[:2]]
+        from copy import deepcopy
+        for day in ['2018-06-01', '2018-06-02']:
+            self.demo_data['days'][day] = deepcopy(orders)
+        self.json_reads = []
+        def demo_json(name):
+            self.json_reads.append(name)
+            if name == 'simulation_orders.json': return self.demo_data
+            if name == 'classification_sample_orders.json': return self.samples.copy()
+            if name == 'simulation_outcomes.json': return {'outcomes': {self.samples[0]['order_id']: 1, self.samples[1]['order_id']: None}}
+            raise AssertionError(name)
+        self.data_patch = patch('phase3.frontend.orchestration.read_demo_json', side_effect=demo_json)
+        self.data_patch.start(); self.addCleanup(self.data_patch.stop)
+        self.post_patch = patch('requests.post', side_effect=self.post_response)
+        self.post = self.post_patch.start(); self.addCleanup(self.post_patch.stop)
         self.get_patch = patch('requests.get', side_effect=self.get_response)
         self.get = self.get_patch.start()
         self.addCleanup(self.get_patch.stop)
@@ -43,19 +61,13 @@ class ClassificationUiTests(unittest.TestCase):
 
     def get_response(self, url, **kwargs):
         if url.endswith('/health'): return Response({'status': 'healthy', 'model_loaded': True})
-        if url.endswith('/model-info'): return Response({'classification': self.stats, 'regression': {'model_code': 'R1'}})
-        if url.endswith('/samples'): return Response({'samples': self.samples})
-        if url.endswith('/simulation'):
-            return Response({'minimum_date': '2018-06-02', 'maximum_date': '2018-07-01', 'default_date': '2018-06-02', 'model_available_date': '2018-06-01', 'timezone': 'America/Sao_Paulo', 'batch_definition': 'Previous day by approval date', 'limitations': ['Snapshot history is incomplete.']})
-        if '/worklist?' in url:
-            from urllib.parse import parse_qs, urlparse
-            from datetime import date, timedelta
-            params = parse_qs(urlparse(url).query)
-            day = params['simulation_date'][0]
-            orders = [{'order_id': r['order_id'], 'rank': i + 1, 'late_probability': .1 - .03 * i, 'follow_up_recommended': i == 0, 'recommendation': 'Follow-up recommended' if i == 0 else 'Routine monitoring', 'promised_delivery_date': '2018-06-20', 'predicted_days_from_promise': -2.5, 'features': {k: r[k] for k in self.stats['features']['numeric'] + self.stats['features']['categorical']}} for i, r in enumerate(self.samples[:2])]
-            return Response({'simulation_date': day, 'cutoff': day + 'T00:00:00', 'batch_date': str(date.fromisoformat(day) - timedelta(days=1)), 'counts': {'total': 3, 'eligible': 2, 'excluded': 1, 'selected': 1}, 'exclusion_reasons': {'already_delivered': 1}, 'orders': orders})
-        if '/outcomes?' in url:
-            return Response({'outcomes': {self.samples[0]['order_id']: 1, self.samples[1]['order_id']: None}, 'metrics': {'all': {'total': 3, 'known': 2, 'unknown': 1, 'late': 1}, 'eligible': {'total': 2, 'known': 1, 'unknown': 1, 'late': 1}, 'selected': {'total': 1, 'known': 1, 'unknown': 0, 'late': 1}, 'selected_late_rate': 1, 'eligible_late_coverage': 1, 'all_late_coverage': 1}})
+        if url.endswith('/model-info'): return Response({'classification': self.stats, 'regression': {'model_code': 'R1', 'model_version': 'r1-test'}})
+        raise AssertionError(f'Frontend must not call demonstration API routes: {url}')
+
+    def post_response(self, url, **kwargs):
+        if url.endswith('/predict/batch'):
+            return Response({'results': [{'index': i, 'order_id': row['order_id'], 'prediction': self.result(.1 - .03 * i)} for i, row in enumerate(kwargs['json']['rows'])]})
+        if url.endswith('/predict'): return Response(self.result())
         raise AssertionError(url)
 
     def widget(self, collection, label):
@@ -78,47 +90,36 @@ class ClassificationUiTests(unittest.TestCase):
         self.assertFalse(self.app.exception)
 
     def test_outcomes_hidden_reset_on_date_and_policy_changes(self):
-        self.assertFalse(any('/outcomes?' in call.args[0] for call in self.get.call_args_list))
+        self.assertNotIn('simulation_outcomes.json', self.json_reads)
         self.widget('button', 'Reveal eventual outcomes').click().run(timeout=20)
         self.assertTrue(any('Retrospective outcomes:' in w.value for w in self.app.warning))
-        self.widget('slider', 'Review proportion (%)').set_value(50).run(timeout=20)
+        self.widget('slider', 'Follow-up proportion (%)').set_value(50).run(timeout=20)
         self.assertFalse(any('Retrospective outcomes:' in w.value for w in self.app.warning))
         self.widget('button', 'Reveal eventual outcomes').click().run(timeout=20)
         self.widget('button', 'Next day').click().run(timeout=20)
         self.assertFalse(any('Retrospective outcomes:' in w.value for w in self.app.warning))
         self.assertFalse(self.app.exception)
 
-    def test_policy_parameters_and_unknown_denominators(self):
-        self.widget('slider', 'Review proportion (%)').set_value(40).run(timeout=20)
+    def test_policy_and_unknown_denominators_without_rescoring_on_reveal(self):
+        self.widget('slider', 'Follow-up proportion (%)').set_value(40).run(timeout=20)
         self.widget('number_input', 'Minimum days remaining before promise').set_value(3).run(timeout=20)
+        calls = self.post.call_count
         self.widget('button', 'Reveal eventual outcomes').click().run(timeout=20)
-        url = next(c.args[0] for c in reversed(self.get.call_args_list) if '/outcomes?' in c.args[0])
-        self.assertIn('review_proportion=0.4', url)
-        self.assertIn('minimum_days_remaining=3', url)
+        self.assertEqual(self.post.call_count, calls)
+        self.assertIn('simulation_outcomes.json', self.json_reads)
         self.assertTrue(any('Unknown outcomes' in c.value for c in self.app.caption))
         table = next(d.value for d in self.app.dataframe if 'Population' in d.value.columns)
         self.assertEqual(list(table['Population']), ['all', 'eligible', 'selected'])
         self.assertEqual(list(table['unknown']), [1, 1, 0])
 
     def test_empty_day_and_failed_outcome_reveal(self):
-        original = self.get_response
-        def empty(url, **kwargs):
-            response = original(url, **kwargs)
-            if '/worklist?' in url:
-                response.payload['orders'] = []
-                response.payload['counts'] = {'total': 0, 'eligible': 0, 'excluded': 0, 'selected': 0}
-                response.payload['exclusion_reasons'] = {}
-            return response
-        self.get.side_effect = empty
-        self.app.run(timeout=20)
+        from datetime import date
+        self.app.date_input[0].set_value(date(2018, 7, 1)).run(timeout=20)
         self.assertTrue(any('No eligible orders' in i.value for i in self.app.info))
         self.assertFalse(self.app.exception)
-        def failure(url, **kwargs):
-            if '/outcomes?' in url: raise requests.Timeout('outcomes timeout')
-            return empty(url, **kwargs)
-        self.get.side_effect = failure
-        self.widget('button', 'Reveal eventual outcomes').click().run(timeout=20)
-        self.assertTrue(any('outcomes timeout' in e.value for e in self.app.error))
+        with patch('phase3.frontend.orchestration.read_demo_json', side_effect=ValueError('outcomes unavailable')):
+            self.widget('button', 'Reveal eventual outcomes').click().run(timeout=20)
+        self.assertTrue(any('outcomes unavailable' in e.value for e in self.app.error))
         self.assertFalse(self.app.exception)
 
     def test_open_worklist_order(self):
@@ -189,14 +190,18 @@ class ClassificationUiTests(unittest.TestCase):
         self.assertFalse(self.app.session_state['api_connected'])
         self.assertFalse(self.app.exception)
 
-    def test_sensitivity_uses_http(self):
-        self.single()
-        with patch('requests.post', return_value=Response(self.result())):
-            self.widget('button', 'Predict delivery').click().run(timeout=20)
-        with patch('requests.post', return_value=Response({'sensitivities': [{'feature': 'payment_value_sum', 'probability_change': .01}]})) as post:
-            self.widget('button', 'Why this score?').click().run(timeout=20)
-        self.assertTrue(post.call_args.args[0].endswith('/explain'))
-        self.assertFalse(self.app.exception)
+    def test_model_or_service_changes_invalidate_worklist_cache(self):
+        first_calls = self.post.call_count
+        self.app.run(timeout=20)
+        self.assertEqual(self.post.call_count, first_calls)
+        self.stats = {**self.stats, 'model_version': 'updated-model'}
+        self.app.run(timeout=20)
+        self.assertGreater(self.post.call_count, first_calls)
+        self.assertNotIn('simulation_outcomes.json', self.json_reads)
+        current_calls = self.post.call_count
+        with patch.dict(os.environ, {'DELIVERY_API_URL': 'https://another-inference-api.example'}):
+            self.app.run(timeout=20)
+        self.assertGreater(self.post.call_count, current_calls)
 
     def test_all_missing_and_huge_values_validate_without_crash(self):
         features = {k: self.samples[0][k] for k in self.stats['features']['numeric'] + self.stats['features']['categorical']}

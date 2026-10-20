@@ -21,7 +21,7 @@ web service manually:
 | Environment | `PORT=10000` (assigned Render port is honoured) |
 
 The image installs pinned compatible dependencies, copies only runtime code and
-fitted/demo artifacts, and starts `uvicorn phase3.backend.api:app` on `0.0.0.0:$PORT`.
+fitted model artifacts and metadata, and starts `uvicorn phase3.backend.api:app` on `0.0.0.0:$PORT`.
 It does not train models or require raw data. The blueprint requests a free plan;
 check account availability before choosing any paid alternative.
 
@@ -38,7 +38,8 @@ python -m uvicorn phase3.backend.api:app --host 0.0.0.0 --port "$PORT"
 ```
 
 After deployment, use the actual HTTPS URL to verify `/health`, `/docs`, single
-and batch prediction, date bounds and `/worklist`. Check cold startup from a
+and batch prediction, date bounds and the absence of the removed demo/explanation endpoints. Verify the daily
+worklist through Streamlit’s Python layer against the live `/predict/batch` service. Check cold startup from a
 sleeping state and observe logs/memory. A localhost success is not live verification.
 
 ## Streamlit Community Cloud
@@ -53,7 +54,10 @@ beside the entry point. Set the app secret:
 DELIVERY_API_URL = "https://team8-delivery-api.onrender.com"
 ```
 
-The app also reads this environment variable locally. `CLASSIFICATION_API_URL`
+The app also reads this environment variable locally. Its Python layer loads
+`phase3/frontend/data/`, filters yesterday’s batch as of the cutoff, calls
+`/predict/batch` for every eligible row, and ranks the returned risks. No model
+artifacts or fitted preprocessing are included in the frontend image. `CLASSIFICATION_API_URL`
 is a compatibility fallback. Neither URL is a secret, but credentials must never
 be committed. Example settings are in `frontend/.streamlit/secrets.toml.example`.
 

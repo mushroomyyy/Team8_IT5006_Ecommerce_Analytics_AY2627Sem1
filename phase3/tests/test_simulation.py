@@ -1,20 +1,16 @@
 """Policy boundary checks that would catch future-information leakage."""
 from copy import deepcopy
+from unittest.mock import patch
+from phase3.frontend.orchestration import score_demo_rows
 from datetime import date
 import unittest
 
-from fastapi.testclient import TestClient
-from phase3.backend import api
-from phase3.backend.simulation import build_worklist, retrospective, SimulationDataError
-from phase3.backend.feature_validation import FeatureValidationError
-from phase3.backend.model_service import ModelService
-from phase3.backend.classification_service import ClassificationService, ARTIFACTS
+from phase3.frontend.simulation import build_worklist, retrospective, SimulationDataError
 import json
-import numpy as np
 
 
 def score(rows):
-    return [{"classification": {"late_probability": row.get("score", .1)},
+    return [{"classification": {"late_probability": row["features"].get("score", .1)},
              "regression": {"predicted_days_from_promise": -2.}} for row in rows]
 
 
@@ -61,10 +57,9 @@ class PolicyTests(unittest.TestCase):
                 self.run_policy(day=day)
 
     def test_invalid_feature_exclusion_model_availability_and_scorer_count(self):
-        def validate(row):
-            if row["score"] == .3:
-                raise FeatureValidationError("bad feature")
-        result = build_worklist(self.data, date(2018, 6, 2), .3, 1, score, validate)
+        def with_invalid(rows):
+            return [None if row['order_id'] == 'c' else score([row])[0] for row in rows]
+        result = build_worklist(self.data, date(2018, 6, 2), .3, 1, with_invalid)
         self.assertEqual(result["counts"]["eligible"], 4)
         self.assertEqual(result["exclusion_reasons"]["invalid_model_inputs"], 1)
         self.assertNotIn("c", [row["order_id"] for row in result["orders"]])
@@ -93,52 +88,49 @@ class PolicyTests(unittest.TestCase):
         self.assertIsNone(empty["eligible_late_coverage"])
 
 
-class RegressionTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.model = ModelService()
-        cls.features = json.loads((ARTIFACTS / "classification_sample_orders.json").read_text())[0]
-        cls.features = {k: v for k, v in cls.features.items() if k != "order_id"}
 
-    def test_precision_and_phase2_clipping(self):
-        model = self.model
-        raw = float(model.model.predict(model.validate_features(self.features))[0])
-        result = model.predict(self.features)
-        self.assertEqual(result["raw_days_from_promise"], raw)
-        promise = self.features["promised_lead_days"]
-        self.assertEqual(result["predicted_days_from_promise"], float(np.clip(raw, -promise, 45-promise)))
-        for raw, expected in ((-100., -promise), (100., 45-promise)):
-            self.assertEqual(model.format_prediction(raw, self.features)["predicted_days_from_promise"], expected)
-        result = model.predict({**self.features, "promised_lead_days": None})
-        self.assertFalse(result["clipping_applied"])
-        self.assertEqual(result["predicted_days_from_promise"], result["raw_days_from_promise"])
+class HttpOrchestrationTests(unittest.TestCase):
+    def setUp(self):
+        self.rows = [{'order_id': 'a', 'features': {'score': .1}}, {'order_id': 'b', 'features': {'score': .2}}]
+        self.results = [{'index': i, 'order_id': row['order_id'], 'prediction': score([row])[0]} for i, row in enumerate(self.rows)]
 
-    def test_both_services_share_strict_validation(self):
-        for model in (self.model, ClassificationService()):
-            for override in ({"payment_value_sum": "10"}, {"customer_state": None}, {"order_status": "delivered"}, {"is_weekend_approval": 2}):
-                with self.subTest(model=type(model).__name__, override=override), self.assertRaises(ValueError):
-                    model.predict({**self.features, **override})
+    def test_validation422_only_becomes_exclusion_and_remote_errors_abort(self):
+        results = deepcopy(self.results)
+        results[0] = {'index': 0, 'order_id': 'a', 'status_code': 422, 'error': 'invalid features'}
+        with patch('phase3.frontend.orchestration.api_request', return_value={'results': results}):
+            self.assertEqual(score_demo_rows('https://api', self.rows), [None, self.results[1]['prediction']])
+        for status in [500, 503, None]:
+            results[0]['status_code'] = status
+            with self.subTest(status=status), patch('phase3.frontend.orchestration.api_request', return_value={'results': results}), self.assertRaises(SimulationDataError):
+                score_demo_rows('https://api', self.rows)
 
+    def test_results_require_exact_count_index_identity_and_finite_outputs(self):
+        broken = []
+        broken.append(self.results[:1])
+        broken.append(list(reversed(self.results)))
+        for change in ({'order_id': 'other'}, {'index': 2}, {'prediction': {'classification': {'late_probability': float('nan')}, 'regression': {'predicted_days_from_promise': 1}}}):
+            entries = deepcopy(self.results)
+            entries[0].update(change)
+            broken.append(entries)
+        for results in broken:
+            with self.subTest(results=results), patch('phase3.frontend.orchestration.api_request', return_value={'results': results}), self.assertRaises(SimulationDataError):
+                score_demo_rows('https://api', self.rows)
 
-class DailyApiTests(unittest.TestCase):
-    def test_policy_parameter_validation_and_outcomes_separation(self):
-        with TestClient(api.app) as client:
-            for params in ({"simulation_date": "2018-06-01"}, {"simulation_date": "2018-07-02"},
-                           {"review_proportion": -1}, {"review_proportion": 1.1},
-                           {"minimum_days_remaining": -1}, {"minimum_days_remaining": 1.5}, {"simulation_date": "bad"}):
-                self.assertEqual(client.get("/worklist", params=params).status_code, 422)
-            config = client.get("/simulation").json()
-            self.assertEqual(config["minimum_date"], "2018-06-02")
-            response = client.get("/worklist")
-            self.assertEqual(response.status_code, 200, response.text)
-            self.assertNotIn("delivered_at", response.text)
-            self.assertNotIn('"outcomes"', response.text)
-            reveal = client.get("/outcomes")
-            self.assertEqual(reveal.status_code, 200, reveal.text)
-            self.assertTrue(reveal.json()["display_only"])
-            self.assertEqual(reveal.json()["metrics"]["all"]["total"], response.json()["counts"]["total"])
-            self.assertEqual(client.get("/worklist").json(), response.json())
+    def test_preeligibility_sends_only_eligible_features_and_batch_identity(self):
+        data = {'days': {'2018-06-01': [order('ok'), order('due', promise='2018-06-02'), order('past', delivery='2018-06-01T23:59:59')]}, 'timezone': 'local', 'batch_definition': 'approval_date'}
+        def response(url, endpoint, payload):
+            self.assertEqual(endpoint, '/predict/batch')
+            self.assertEqual([r['order_id'] for r in payload['rows']], ['ok'])
+            return {'results': [{'index': 0, 'order_id': 'ok', 'prediction': score(payload['rows'])[0]}]}
+        with patch('phase3.frontend.orchestration.api_request', side_effect=response):
+            result = build_worklist(data, date(2018, 6, 2), .3, 1, lambda rows: score_demo_rows('https://api', rows))
+        self.assertEqual(result['counts'], {'total': 3, 'eligible': 1, 'selected': 1, 'excluded': 2})
+
+    def test_invalid_policy_rejected_before_scoring(self):
+        data = {'days': {}, 'timezone': 'local', 'batch_definition': 'approval_date'}
+        for proportion, remaining in [(-1, 1), (1.1, 1), (float('nan'), 1), (.3, -1), (.3, 1.5), (.3, True)]:
+            with self.subTest(proportion=proportion, remaining=remaining), self.assertRaises(ValueError):
+                build_worklist(data, date(2018, 6, 2), proportion, remaining, lambda _: self.fail('should not score'))
 
 
-if __name__ == "__main__":
-    unittest.main()
+if __name__ == '__main__': unittest.main()

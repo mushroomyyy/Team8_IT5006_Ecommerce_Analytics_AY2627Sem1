@@ -3,24 +3,42 @@
 ## Architecture
 
 ```text
-Streamlit -> HTTP FastAPI -> C3 fitted preprocessing + Random Forest
-                         -> R1 fitted preprocessing + OLS
-                         -> daily as-of eligibility and deterministic risk ranking
-Retrospective outcomes -> explicit outcome endpoint only
+Browser -> Streamlit Python server
+           -> packaged historical inputs -> cutoff eligibility
+           -> POST /predict/batch -> Render fitted C3 + R1 pipelines
+           <- predictions         <- fitted preprocessing + inference
+           -> risk ranking, top-X% follow-up, worklist and downloads
+Explicit outcome reveal -> separate local outcome file -> retrospective metrics
 ```
 
-The frontend never deserializes models or reads artifacts. Both services share
-24 engineered approval-time features (21 numeric, 3 categorical). Query
-`GET /model-info` for names, trained categories, ranges and model provenance.
+Streamlit is the application middle layer, not merely a browser page. It handles
+historical demo data, date navigation, eligibility, ranking and retrospective
+metrics in its Python server. Every eligible order is scored; **Follow-up
+proportion (%)** determines how many highest-risk orders are recommended for human
+follow-up. The default 30% is a workload assumption, never a sample of inputs.
+No fitted model or preprocessing is loaded by Streamlit.
+
+Render provides only inference, input validation, health, metadata and aggregate
+monitoring. Both services share 24 engineered approval-time features (21 numeric,
+3 categorical). Query `GET /model-info` for names, categories, ranges and provenance.
 The misspelling `order_frieght_value_sum` is part of the existing model contract.
 No future delivery values or outcomes are model inputs.
 
 `POST /predict` and `/predict/batch` return both model outputs. Independent
 `/predict/classification`, `/predict/regression` and `/model-info/<task>` routes
-keep the two models usable separately. `/health` succeeds only when both load.
-`/explain` provides one-feature sensitivity resets, not causal explanations.
-`/logs/summary` holds bounded process-local aggregates without order IDs or inputs;
-simulation/explanation probes do not enter these direct prediction counters.
+keep models usable separately. `/health` succeeds only when both load.
+`/logs/summary` holds bounded process-local aggregates without order IDs or inputs.
+`/samples`, `/simulation`, `/worklist`, `/outcomes` and `/explain` are removed.
+There is no sensitivity/explanation UI: independent feature resets could create
+inconsistent calendar values and do not provide causal or intervention guidance.
+
+The frontend batches up to 1,000 eligible rows per inference request and checks
+row identity, counts and finite outputs. Only explicit API row422 errors become
+`invalid_model_inputs` exclusions. Inference failures/timeouts abort the worklist
+with useful errors, rather than silently excluding valid orders. Operational
+results are cached by service URL, model versions, date, follow-up settings and
+snapshot revision; retrospective outcomes are outside that cache and loaded only
+on explicit reveal. Changing date or policy hides revealed outcomes again.
 
 ## Selected fitted models
 
@@ -46,9 +64,10 @@ works without Phase 2 imports. `regression_packaging.json` records source and
 packaged SHA256 hashes and exact pre/post serialization equality for all 6,164
 June rows. `manifest.json` hashes the current packaged files.
 
-Metadata inside the original fitted artifacts remains provenance: old threshold
-fields do not define the integrated application's policy. The deployed classifier
-response contains risk and input-range warnings, without late/not-late decisions.
+Metadata inside the original fitted artifacts remains provenance. Legacy threshold
+fields, monthly score distributions, baselines and importance tables are excluded
+from HTTP model metadata. The classifier response contains risk and input-range
+warnings, without late/not-late decisions.
 
 The historical refit was available on 2 June 2018, using known outcomes strictly
 before that date and approvals from 18 April 2017 through 17 April 2018, with a
@@ -85,16 +104,18 @@ Phase 2 cohort results, not a promise for the implemented daily filtered policy.
   cannot be reconstructed. This is a historical simulation with those limitations.
 
 Snapshots are exported offline from the same Phase 2 feature builder and source
-orders. `simulation_orders.json` has engineered features, approval, promise and
-delivery timestamps for as-of logic, never final status. Delivery timestamps are
-private to the server; worklist outputs omit them. `simulation_outcomes.json` is
-separate and never read for eligibility or scoring. Its labels follow Phase 2's
+orders. `frontend/data/simulation_orders.json` has engineered features, approval, promise
+and delivery timestamps for as-of logic, never final status. These stay in the
+Streamlit Python server; only order identifiers and engineered features are sent
+to Render. Displayed worklist rows omit delivery timestamps.
+`frontend/data/simulation_outcomes.json` is separate and never read for eligibility
+or scoring. Its labels follow Phase 2's
 approval-day-plus-45-days inclusive evaluation rule, preserving unknowns.
 
 ## Retrospective daily evaluation
 
-Outcomes remain hidden until an explicit action calls `/outcomes` with the same
-policy parameters. Metrics report totals, known, unknown and late counts for
+Outcomes remain hidden until an explicit action in Streamlit reads the separate outcome file and evaluates
+the **same already-scored worklist**, without another prediction request. Metrics report totals, known, unknown and late counts for
 **all**, **eligible** and **selected** populations. Selected late rate uses known
 selected outcomes; eligible coverage uses known late eligible orders; all-order
 coverage uses all known late orders, including excluded orders. Zero denominators
@@ -124,38 +145,33 @@ professor deployment examples were reviewed instead.
 
 ## API examples
 
-A single prediction and a mixed valid/invalid batch, using packaged sample inputs:
-
-```python
-import json
-from urllib.request import Request, urlopen
-
-base = 'http://127.0.0.1:8002'  # replace with the verified Render HTTPS URL
-sample = json.load(urlopen(base + '/samples'))['samples'][0]
-features = {k: v for k, v in sample.items() if k != 'order_id'}
-def post(path, payload):
-    request = Request(base + path, data=json.dumps(payload).encode(),
-                      headers={'Content-Type': 'application/json'})
-    return json.load(urlopen(request, timeout=90))
-
-single = post('/predict', {'features': features})
-print(single['classification']['late_probability'])
-print(single['regression']['predicted_days_from_promise'])
-batch = post('/predict/batch', {'rows': [
-    {'order_id': sample['order_id'], 'features': features},
-    {'order_id': 'invalid-example', 'features': {}},
-]})
-print(batch['successful_rows'])  # 1; invalid row carries a 422 error
-```
-
-A daily request with explicit assumptions:
+The documented inference request accepts exactly the feature names listed by
+`/model-info`. A complete synthetic example is in
+[`../scripts/verify_http.py`](../scripts/verify_http.py); it submits no real order
+identifiers or copied transaction records. To verify a local or deployed API:
 
 ```bash
-curl 'http://127.0.0.1:8002/worklist?simulation_date=2018-06-02&review_proportion=0.3&minimum_days_remaining=1'
-curl 'http://127.0.0.1:8002/outcomes?simulation_date=2018-06-02&review_proportion=0.3&minimum_days_remaining=1'
+python phase3/scripts/verify_http.py https://team8-delivery-api.onrender.com
 ```
 
-The second call explicitly reveals retrospective outcomes. Its population counts
-and rates are separate from the operational worklist. Run
-`python phase3/scripts/verify_http.py https://ACTUAL-API-URL` after deployment to
-check health, Swagger, both date boundaries, invalid requests and single/batch equality.
+The verifier checks integrated vs independent model outputs, single/batch numerical
+equivalence, invalid single/empty-batch422 errors, Swagger and404 responses for
+removed demo/explanation paths. Last-bit linear algebra differences are compared
+with `rtol=atol=1e-12`.
+
+A minimal client, given a valid 24-feature dictionary:
+
+```python
+import requests
+base = 'https://team8-delivery-api.onrender.com'
+response = requests.post(base + '/predict', json={'features': features}, timeout=60)
+response.raise_for_status()
+result = response.json()
+print(result['classification']['late_probability'])
+print(result['regression']['predicted_days_from_promise'])
+```
+
+For multiple orders, submit `{'rows': [{'order_id': 'synthetic-1',
+'features': features}]}` to `/predict/batch`. Results retain input index and ID;
+invalid rows carry errors without changing the alignment of valid predictions.
+Historical dates and outcome reveal are Streamlit operations, not API endpoints.

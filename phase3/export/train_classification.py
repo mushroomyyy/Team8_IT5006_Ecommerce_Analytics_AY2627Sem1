@@ -152,15 +152,17 @@ def export(output_dir: Path = ARTIFACTS) -> dict:
     if not np.array_equal(model.predict_proba(X_check), reloaded.predict_proba(X_check)):
         raise AssertionError("Serialization changed predictions")
     (output_dir / "classification_model_stats.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    (output_dir / "classification_sample_orders.json").write_text(json.dumps(samples, indent=2) + "\n")
+    samples_dir = ROOT / "phase3/frontend/data"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+    (samples_dir / "classification_sample_orders.json").write_text(json.dumps(samples, indent=2) + "\n")
     replay = {"model_version": metadata["model_version"], "days": {}}
     for day, rows in june_rows.groupby("order_approved_dt", sort=True):
         replay["days"][day.strftime("%Y-%m-%d")] = records(rows[data.feature_cols].reset_index())
     outcomes = {"model_version": metadata["model_version"], "display_only": True,
                 "usage": "Realised outcomes for historical display only; never used for fitting, tuning, sample selection or threshold selection.",
                 "outcomes": {str(row.order_id): (None if pd.isna(row.actual_label) else int(row.actual_label)) for row in june.itertuples()}}
-    (output_dir / "classification_june_orders.json").write_text(json.dumps(replay, separators=(",", ":")) + "\n")
-    (output_dir / "classification_june_outcomes.json").write_text(json.dumps(outcomes, separators=(",", ":")) + "\n")
+    (samples_dir / "classification_june_orders.json").write_text(json.dumps(replay, separators=(",", ":")) + "\n")
+    (samples_dir / "classification_june_outcomes.json").write_text(json.dumps(outcomes, separators=(",", ":")) + "\n")
     print(f"Saved {artifact}; {len(data.history_df):,} refit rows; June AP {reproduced['avg_precision']:.12f}")
     return metadata
 

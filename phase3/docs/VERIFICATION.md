@@ -2,7 +2,25 @@
 
 Verified locally on 19 October 2026 (Singapore), Python 3.13.5.
 
-## Completed
+## Streamlit / inference split — 20 October 2026
+
+- Historical data, cutoff eligibility, ranking, follow-up policy and retrospective
+  metrics now execute in Streamlit’s Python server. Render is inference-only.
+- All eligible rows are scored before selecting the top configurable percentage
+  for human follow-up. The setting is labelled **Follow-up proportion (%)**.
+- `/samples`, `/simulation`, `/worklist`, `/outcomes` and `/explain` are removed
+  from API2.1.0; the sensitivity UI is removed too.
+- **60 current Phase3 tests pass**, including strict validation, numerical model
+  equivalence, temporal policy, HTTP row-error mapping, cache behavior, outcome
+  reveal without rescoring, CSV precision and API isolation from frontend/data.
+- Both clean Docker images build. The API image copies only backend code and four
+  model/metadata files. The frontend image has historical JSON and Python helpers,
+  without fitted model artifacts.
+- The fitted model bytes and fixed daily-policy retrospective results are unchanged.
+- Live API2.1 redeployment and the refreshed frontend-to-live checks are recorded
+  below when completed. Public Streamlit deployment remains pending by request.
+
+## Initial integration checks (before the boundary refactor)
 
 - Regression branch merged into `classification-deployment`; original dirty work
   backed up before integration and retained in moved sources/artifacts/archives.
@@ -54,7 +72,7 @@ coverage is **80/137 = 58.39%**. These pooled daily results describe this histor
 policy only. June informed model selection and is not untouched policy validation.
 Zero denominators and unknown labels remain explicit in daily records.
 
-## Live Render API verified — 20 October 2026
+## Initial API2.0 deployment verified — 20 October 2026
 
 - API: https://team8-delivery-api.onrender.com
 - Swagger: https://team8-delivery-api.onrender.com/docs
@@ -84,6 +102,6 @@ Zero denominators and unknown labels remain explicit in daily records.
 
 ## Screenshots
 
-Current integrated UI screenshots are under [screenshots/](screenshots/).
+Integrated UI screenshots are under [screenshots/](screenshots/).
 The superseded classification-only guide and five original improved screenshots
 are deliberately archived under [archive/classification-only/](archive/classification-only/).
