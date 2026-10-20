@@ -1,0 +1,23 @@
+{
+  "base_url": "https://team8-delivery-api.onrender.com",
+  "health": {
+    "status": "ok",
+    "model_loaded": true,
+    "models": {
+      "classification": "phase2-c3-rf-2018-06-02",
+      "regression": "phase2-r1-ols-2026-10-09"
+    }
+  },
+  "checks": [
+    "health",
+    "model-info",
+    "samples",
+    "single-batch numerical equivalence (1e-12 tolerance)",
+    "both date boundaries",
+    "outcome separation",
+    "retrospective endpoint",
+    "invalid date/input 422",
+    "Swagger"
+  ],
+  "elapsed_seconds": 73.232
+}

@@ -41,7 +41,7 @@ DELIVERY_API_URL=http://127.0.0.1:8002 python -m streamlit run phase3/frontend/a
 ```
 
 Open the Streamlit address printed in the terminal. Local Swagger:
-http://127.0.0.1:8002/docs. **Public API/frontend URLs are not yet verified.**
+http://127.0.0.1:8002/docs. **Live API:** https://team8-delivery-api.onrender.com ([Swagger](https://team8-delivery-api.onrender.com/docs)). The Streamlit frontend is built and locally verified; public frontend deployment is pending.
 See the [application guide](phase3/README.md), [model/simulation contracts](phase3/docs/TECHNICAL.md),
 [hosting setup](phase3/docs/DEPLOYMENT.md), and [verification record](phase3/docs/VERIFICATION.md).
 

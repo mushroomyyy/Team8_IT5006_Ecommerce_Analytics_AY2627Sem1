@@ -1,7 +1,9 @@
 # Deploy API first, then Streamlit
 
-No verified public URLs are recorded yet. Do not substitute a teaching-example
-URL for an actual deployment. Deploy only the `classification-deployment` branch.
+The API is live and verified at https://team8-delivery-api.onrender.com
+([Swagger](https://team8-delivery-api.onrender.com/docs)), deployed on 20 October
+2026 to a free Singapore web service. Public Streamlit deployment remains pending
+at Andrew’s request. Deploy only the `classification-deployment` branch.
 
 ## Render FastAPI service
 
@@ -48,7 +50,7 @@ models and Phase 2 notebook dependencies. Streamlit normally discovers this file
 beside the entry point. Set the app secret:
 
 ```toml
-DELIVERY_API_URL = "https://YOUR-VERIFIED-RENDER-SERVICE.onrender.com"
+DELIVERY_API_URL = "https://team8-delivery-api.onrender.com"
 ```
 
 The app also reads this environment variable locally. `CLASSIFICATION_API_URL`
@@ -89,3 +91,15 @@ docker run --rm -e PORT=10000 -e DELIVERY_API_URL=http://host.docker.internal:18
 
 Account blockers and checks actually performed are tracked in
 [VERIFICATION.md](VERIFICATION.md).
+
+## Streamlit publishing permissions
+
+Streamlit Community Cloud requires GitHub repository **admin** permission to
+deploy. If Andrew has only collaborator/write permission, Jordan must deploy
+from this repository or explicitly grant admin access. Repository write access
+alone does not establish publishing permission. See [Streamlit’s official account
+connection guide](https://docs.streamlit.io/deploy/streamlit-community-cloud/get-started/connect-your-github-account).
+
+For documentation/evidence-only commits, `[skip render]` in the commit message
+avoids restarting the already verified API; runtime/model changes must deploy and
+be verified normally. See [Render deploy documentation](https://render.com/docs/deploys#skipping-an-auto-deploy).

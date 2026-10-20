@@ -5,10 +5,22 @@ Uses the standard library only. Never records raw input data or credentials.
 """
 from __future__ import annotations
 import json
+import math
 import sys
 import time
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
+
+
+def equivalent(left, right):
+    """Allow last-bit BLAS differences while rejecting material output changes."""
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(equivalent(left[k], right[k]) for k in left)
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(equivalent(a, b) for a, b in zip(left, right))
+    if isinstance(left, (int, float)) and not isinstance(left, bool) and isinstance(right, (int, float)) and not isinstance(right, bool):
+        return math.isclose(left, right, rel_tol=1e-12, abs_tol=1e-12)
+    return type(left) is type(right) and left == right
 
 
 def verify(base):
@@ -21,11 +33,23 @@ def verify(base):
     start = time.perf_counter()
     health = call('/health')
     metadata = call('/model-info')
-    sample = call('/samples')['samples'][0]
-    features = {key: value for key, value in sample.items() if key != 'order_id'}
+    if not call('/samples')['samples']:
+        raise RuntimeError('Demonstration samples unavailable')
+    # Invented input values: no identifiers or copied transaction records sent.
+    features = {
+        'order_approved_day_of_week': 5, 'order_approved_day_of_month': 1, 'order_approved_month': 6,
+        'order_item_count': 1, 'order_seller_count': 1, 'order_frieght_value_sum': 12.5,
+        'order_product_weight_g_sum': 800.0, 'order_product_category_count': 1,
+        'seller_dist_km_mean': 350.0, 'seller_state_count': 1, 'payment_value_sum': 100.0,
+        'promised_lead_days': 20, 'approval_lag_hours': 2.0, 'order_product_volume_cm3_sum': 1000.0,
+        'order_product_photos_mean': 3.0, 'freight_to_price_ratio': 0.12, 'payment_installments_max': 1,
+        'is_weekend_approval': 0, 'is_black_friday_period': 0, 'is_december_peak': 0,
+        'orders_approved_prev_7d': 1000, 'customer_state': 'SP',
+        'route_type': '1. All interstate', 'payment_combination': 'credit_card',
+    }
     single = call('/predict', {'features': features})
-    batch = call('/predict/batch', {'rows': [{'features': features, 'order_id': sample['order_id']}]})
-    if single != batch['results'][0]['prediction']:
+    batch = call('/predict/batch', {'rows': [{'features': features, 'order_id': 'synthetic-verification'}]})
+    if not equivalent(single, batch['results'][0]['prediction']):
         raise RuntimeError('Single/batch predictions differ')
     if 'is_predicted_late' in single['classification'] or 'threshold' in single['classification']:
         raise RuntimeError('Unexpected threshold policy in classification result')
@@ -49,7 +73,7 @@ def verify(base):
             raise RuntimeError('Invalid request was not rejected')
     with urlopen(base+'/docs', timeout=90) as docs:
         if docs.status != 200: raise RuntimeError('Swagger unavailable')
-    return {'base_url': base, 'health': health, 'checks': ['health', 'model-info', 'samples', 'single-batch exact equality',
+    return {'base_url': base, 'health': health, 'checks': ['health', 'model-info', 'samples', 'single-batch numerical equivalence (1e-12 tolerance)',
             'both date boundaries', 'outcome separation', 'retrospective endpoint', 'invalid date/input 422', 'Swagger'],
             'elapsed_seconds': round(time.perf_counter()-start, 3)}
 

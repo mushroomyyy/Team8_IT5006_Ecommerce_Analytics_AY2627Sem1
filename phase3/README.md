@@ -73,6 +73,8 @@ source data, Phase 2 modules, offline training utilities and tests.
 
 ## Deployment status
 
-No public API/frontend URL is verified yet. Render account access is required
-before publishing; after the API is verified, configure Streamlit with its HTTPS
-URL. See the verification record for checks actually performed.
+The Render API is live and verified at https://team8-delivery-api.onrender.com
+([Swagger](https://team8-delivery-api.onrender.com/docs)). Both model endpoints and
+the daily worklist passed HTTPS checks on 20 October 2026. Streamlit public
+deployment is pending at Andrew’s request; configure it with this API URL when ready.
+See the verification record for checks actually performed.

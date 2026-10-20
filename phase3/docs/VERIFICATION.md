@@ -54,18 +54,33 @@ coverage is **80/137 = 58.39%**. These pooled daily results describe this histor
 policy only. June informed model selection and is not untouched policy validation.
 Zero denominators and unknown labels remain explicit in daily records.
 
-## Live deployment not yet verified
+## Live Render API verified — 20 October 2026
 
-- Render dashboard currently opens its sign-in page. No authenticated hosting
-  access/API credential is available in this chat. `render.yaml`, Dockerfiles and
-  startup configuration are ready; deploy the API first after account access.
-- Streamlit Community Cloud also opens its sign-in page. After Render verification,
-  configure `DELIVERY_API_URL` and deploy `phase3/frontend/app.py`.
-- No public API/frontend URLs have been invented or claimed verified. Real HTTPS
-  checks, hosted startup/cold-start, practical service resource limits and final
-  connected frontend checks remain pending account access.
+- API: https://team8-delivery-api.onrender.com
+- Swagger: https://team8-delivery-api.onrender.com/docs
+- Service `team8-delivery-api`, free 0.1 CPU / 512 MB plan, Singapore region.
+- Initial deployed source: `cd430e715fa798358436f1f5d1f725ead5256fba` on
+  `classification-deployment`; initial Render deployment succeeded in 1m22s.
+- Verified over public HTTPS: both models loaded, health, metadata, samples,
+  Swagger, integrated single/batch prediction, both simulation date boundaries,
+  retrospective endpoint, no future delivery timestamps in worklist, and 422
+  responses for invalid date/input. The verification sequence took 39.704 seconds
+  including requests during initial startup. This is not per-prediction latency.
+- Independent comparison of hosted vs local fitted outputs is recorded in
+  [render_model_equivalence.json](render_model_equivalence.json). The final synthetic-input
+  endpoint verification is saved in [render_http_verification.json](render_http_verification.json)
+  and took 73.232 seconds for the full sequence. Small floating
+  differences from platform/BLAS arithmetic are checked with numerical tolerance.
+- The default 2 June worklist returns 147 total/eligible, zero excluded and 45
+  selected orders. R1 output is signed capped days from promise; C3 is a risk score.
+- Python on this Mac initially lacked a usable default CA store. Verification used
+  the installed certifi trusted CA bundle, with TLS certificate checking enabled.
+- Initial hosted application startup and prediction succeeded. Idle-to-awake
+  cold-start timing and sustained resource/load limits have not been measured.
+- **Streamlit public deployment is pending at Andrew’s explicit request.** Its
+  code and local verification remain complete; no public frontend URL is claimed.
 - The separate course technical HTML guide was not found; the verified course
-  PDF and professor examples were reviewed. This does not block local implementation.
+  PDF and professor examples were reviewed.
 
 ## Screenshots
 

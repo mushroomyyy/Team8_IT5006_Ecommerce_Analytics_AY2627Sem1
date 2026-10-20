@@ -3,6 +3,7 @@ services:
     name: team8-delivery-api
     runtime: docker
     plan: free
+    region: singapore
     branch: classification-deployment
     dockerfilePath: ./phase3/Dockerfile.api
     dockerContext: .
