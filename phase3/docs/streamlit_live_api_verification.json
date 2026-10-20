@@ -1,0 +1,33 @@
+{
+  "verified_at_utc": "2026-10-20T00:22:39.654339+00:00",
+  "frontend_url": "http://127.0.0.1:18523",
+  "backend_url": "https://team8-delivery-api.onrender.com",
+  "browser": "Mozilla Firefox",
+  "api_version": "2.1.0",
+  "checks": [
+    "daily worklist uses live /predict/batch",
+    "all eligible scored before follow-up selection",
+    "explicit outcome reveal",
+    "date navigation hides revealed outcomes",
+    "fresh third-day batch after inference-only redeployment",
+    "selected order transferred to single-order page and scored by live API",
+    "single-order result14.1percent risk and-20.19days matched worklist",
+    "cold-start notice visible; request timeout and retry covered by frontend tests",
+    "CSV workflow precision/round-trip covered by frontend tests"
+  ],
+  "observed_daily_counts": {
+    "2018-06-02": {
+      "eligible": 147,
+      "selected": 45
+    },
+    "2018-06-03": {
+      "eligible": 164,
+      "selected": 50
+    },
+    "2018-06-04": {
+      "eligible": 156,
+      "selected": 47
+    }
+  },
+  "public_frontend_deployment": "Pending at user request"
+}

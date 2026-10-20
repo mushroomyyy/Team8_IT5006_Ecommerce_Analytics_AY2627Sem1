@@ -1,0 +1,20 @@
+{
+  "export": "python -m phase3.export.export_simulation",
+  "approval_rows": 6164,
+  "approval_days": 30,
+  "model_available_date": "2018-06-02",
+  "artifacts": {
+    "classification_c3_rf.joblib": "17577aa8c96c0f456b55ab8f7417bc5f2916d7f698e5a15c35926743ceb42682",
+    "classification_model_stats.json": "e7516ea5f9207026c7f0f30695470a6323834437ad58bbe5b3c66603f56bbed3",
+    "regression_model_stats.json": "020b811d7a3d93d89ce47c965e0eae7d293030601860ffa96fff76ed6cab61e2",
+    "regression_packaging.json": "9ce9a8e69fcdaa04233367da70035577cb7a61e66aa47ad95c773135394b8bd0",
+    "regression_r1_ols.joblib": "a45bfc26bcacba91aa5d0667594d5fc8e487c129fddf8fa3a9a78e98653f9a44"
+  },
+  "frontend_data": {
+    "classification_june_orders.json": "4c8315d656dee7397b931eb1bdef6524c3a1386305a9bfab5c4c6dcba852e854",
+    "classification_june_outcomes.json": "d9dadb0bdd84b3487e7e309e20bb43b30e6cda77428d0ab15e479e019dfd99e8",
+    "classification_sample_orders.json": "da0a44bd7c37e79a6404fb53d61c4e6d141531b2d4d100249106eaceb13d45b9",
+    "simulation_orders.json": "7beba956f0f33589054d8e5b9b9cfaec296c301f358f2515659f33492b573c88",
+    "simulation_outcomes.json": "a5583ce1585f626071877d2d23dbfbca4b2a59838a3be3fe7112a74a489e6d2f"
+  }
+}

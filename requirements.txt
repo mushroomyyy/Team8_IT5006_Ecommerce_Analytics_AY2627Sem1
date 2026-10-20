@@ -1,0 +1,5 @@
+# Full local development environment. Hosting uses phase-specific dependency files.
+-r phase3/requirements-api.txt
+-r phase3/requirements-ui.txt
+-r phase2/requirements.txt
+httpx==0.28.1

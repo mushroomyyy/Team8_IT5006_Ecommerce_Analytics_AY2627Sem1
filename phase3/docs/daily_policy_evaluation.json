@@ -1,0 +1,1024 @@
+{
+  "notice": "Retrospective evaluation of preset daily policy; June guided model selection and is not untouched policy validation.",
+  "policy": {
+    "review_proportion": 0.3,
+    "minimum_days_remaining": 1,
+    "rounding": "ceil each day",
+    "ranking": "C3 descending, order ID ascending"
+  },
+  "pooled": {
+    "all": {
+      "total": 6164,
+      "known": 6155,
+      "unknown": 9,
+      "late": 137
+    },
+    "eligible": {
+      "total": 6164,
+      "known": 6155,
+      "unknown": 9,
+      "late": 137
+    },
+    "selected": {
+      "total": 1863,
+      "known": 1855,
+      "unknown": 8,
+      "late": 80
+    },
+    "selected_late_rate": 0.0431266846361186,
+    "eligible_late_coverage": 0.583941605839416,
+    "all_late_coverage": 0.583941605839416
+  },
+  "days": [
+    {
+      "simulation_date": "2018-06-02",
+      "counts": {
+        "total": 147,
+        "eligible": 147,
+        "excluded": 0,
+        "selected": 45
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 147,
+          "known": 146,
+          "unknown": 1,
+          "late": 1
+        },
+        "eligible": {
+          "total": 147,
+          "known": 146,
+          "unknown": 1,
+          "late": 1
+        },
+        "selected": {
+          "total": 45,
+          "known": 44,
+          "unknown": 1,
+          "late": 1
+        },
+        "selected_late_rate": 0.022727272727272728,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
+      }
+    },
+    {
+      "simulation_date": "2018-06-03",
+      "counts": {
+        "total": 164,
+        "eligible": 164,
+        "excluded": 0,
+        "selected": 50
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 164,
+          "known": 164,
+          "unknown": 0,
+          "late": 1
+        },
+        "eligible": {
+          "total": 164,
+          "known": 164,
+          "unknown": 0,
+          "late": 1
+        },
+        "selected": {
+          "total": 50,
+          "known": 50,
+          "unknown": 0,
+          "late": 0
+        },
+        "selected_late_rate": 0.0,
+        "eligible_late_coverage": 0.0,
+        "all_late_coverage": 0.0
+      }
+    },
+    {
+      "simulation_date": "2018-06-04",
+      "counts": {
+        "total": 156,
+        "eligible": 156,
+        "excluded": 0,
+        "selected": 47
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 156,
+          "known": 155,
+          "unknown": 1,
+          "late": 1
+        },
+        "eligible": {
+          "total": 156,
+          "known": 155,
+          "unknown": 1,
+          "late": 1
+        },
+        "selected": {
+          "total": 47,
+          "known": 46,
+          "unknown": 1,
+          "late": 0
+        },
+        "selected_late_rate": 0.0,
+        "eligible_late_coverage": 0.0,
+        "all_late_coverage": 0.0
+      }
+    },
+    {
+      "simulation_date": "2018-06-05",
+      "counts": {
+        "total": 178,
+        "eligible": 178,
+        "excluded": 0,
+        "selected": 54
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 178,
+          "known": 177,
+          "unknown": 1,
+          "late": 1
+        },
+        "eligible": {
+          "total": 178,
+          "known": 177,
+          "unknown": 1,
+          "late": 1
+        },
+        "selected": {
+          "total": 54,
+          "known": 53,
+          "unknown": 1,
+          "late": 0
+        },
+        "selected_late_rate": 0.0,
+        "eligible_late_coverage": 0.0,
+        "all_late_coverage": 0.0
+      }
+    },
+    {
+      "simulation_date": "2018-06-06",
+      "counts": {
+        "total": 270,
+        "eligible": 270,
+        "excluded": 0,
+        "selected": 81
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 270,
+          "known": 269,
+          "unknown": 1,
+          "late": 9
+        },
+        "eligible": {
+          "total": 270,
+          "known": 269,
+          "unknown": 1,
+          "late": 9
+        },
+        "selected": {
+          "total": 81,
+          "known": 80,
+          "unknown": 1,
+          "late": 7
+        },
+        "selected_late_rate": 0.0875,
+        "eligible_late_coverage": 0.7777777777777778,
+        "all_late_coverage": 0.7777777777777778
+      }
+    },
+    {
+      "simulation_date": "2018-06-07",
+      "counts": {
+        "total": 218,
+        "eligible": 218,
+        "excluded": 0,
+        "selected": 66
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 218,
+          "known": 218,
+          "unknown": 0,
+          "late": 3
+        },
+        "eligible": {
+          "total": 218,
+          "known": 218,
+          "unknown": 0,
+          "late": 3
+        },
+        "selected": {
+          "total": 66,
+          "known": 66,
+          "unknown": 0,
+          "late": 2
+        },
+        "selected_late_rate": 0.030303030303030304,
+        "eligible_late_coverage": 0.6666666666666666,
+        "all_late_coverage": 0.6666666666666666
+      }
+    },
+    {
+      "simulation_date": "2018-06-08",
+      "counts": {
+        "total": 232,
+        "eligible": 232,
+        "excluded": 0,
+        "selected": 70
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 232,
+          "known": 231,
+          "unknown": 1,
+          "late": 0
+        },
+        "eligible": {
+          "total": 232,
+          "known": 231,
+          "unknown": 1,
+          "late": 0
+        },
+        "selected": {
+          "total": 70,
+          "known": 69,
+          "unknown": 1,
+          "late": 0
+        },
+        "selected_late_rate": 0.0,
+        "eligible_late_coverage": null,
+        "all_late_coverage": null
+      }
+    },
+    {
+      "simulation_date": "2018-06-09",
+      "counts": {
+        "total": 198,
+        "eligible": 198,
+        "excluded": 0,
+        "selected": 60
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 198,
+          "known": 198,
+          "unknown": 0,
+          "late": 5
+        },
+        "eligible": {
+          "total": 198,
+          "known": 198,
+          "unknown": 0,
+          "late": 5
+        },
+        "selected": {
+          "total": 60,
+          "known": 60,
+          "unknown": 0,
+          "late": 2
+        },
+        "selected_late_rate": 0.03333333333333333,
+        "eligible_late_coverage": 0.4,
+        "all_late_coverage": 0.4
+      }
+    },
+    {
+      "simulation_date": "2018-06-10",
+      "counts": {
+        "total": 197,
+        "eligible": 197,
+        "excluded": 0,
+        "selected": 60
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 197,
+          "known": 197,
+          "unknown": 0,
+          "late": 10
+        },
+        "eligible": {
+          "total": 197,
+          "known": 197,
+          "unknown": 0,
+          "late": 10
+        },
+        "selected": {
+          "total": 60,
+          "known": 60,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected_late_rate": 0.06666666666666667,
+        "eligible_late_coverage": 0.4,
+        "all_late_coverage": 0.4
+      }
+    },
+    {
+      "simulation_date": "2018-06-11",
+      "counts": {
+        "total": 142,
+        "eligible": 142,
+        "excluded": 0,
+        "selected": 43
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 142,
+          "known": 142,
+          "unknown": 0,
+          "late": 3
+        },
+        "eligible": {
+          "total": 142,
+          "known": 142,
+          "unknown": 0,
+          "late": 3
+        },
+        "selected": {
+          "total": 43,
+          "known": 43,
+          "unknown": 0,
+          "late": 0
+        },
+        "selected_late_rate": 0.0,
+        "eligible_late_coverage": 0.0,
+        "all_late_coverage": 0.0
+      }
+    },
+    {
+      "simulation_date": "2018-06-12",
+      "counts": {
+        "total": 256,
+        "eligible": 256,
+        "excluded": 0,
+        "selected": 77
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 256,
+          "known": 256,
+          "unknown": 0,
+          "late": 6
+        },
+        "eligible": {
+          "total": 256,
+          "known": 256,
+          "unknown": 0,
+          "late": 6
+        },
+        "selected": {
+          "total": 77,
+          "known": 77,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected_late_rate": 0.05194805194805195,
+        "eligible_late_coverage": 0.6666666666666666,
+        "all_late_coverage": 0.6666666666666666
+      }
+    },
+    {
+      "simulation_date": "2018-06-13",
+      "counts": {
+        "total": 292,
+        "eligible": 292,
+        "excluded": 0,
+        "selected": 88
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 292,
+          "known": 291,
+          "unknown": 1,
+          "late": 14
+        },
+        "eligible": {
+          "total": 292,
+          "known": 291,
+          "unknown": 1,
+          "late": 14
+        },
+        "selected": {
+          "total": 88,
+          "known": 87,
+          "unknown": 1,
+          "late": 7
+        },
+        "selected_late_rate": 0.08045977011494253,
+        "eligible_late_coverage": 0.5,
+        "all_late_coverage": 0.5
+      }
+    },
+    {
+      "simulation_date": "2018-06-14",
+      "counts": {
+        "total": 260,
+        "eligible": 260,
+        "excluded": 0,
+        "selected": 78
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 260,
+          "known": 260,
+          "unknown": 0,
+          "late": 9
+        },
+        "eligible": {
+          "total": 260,
+          "known": 260,
+          "unknown": 0,
+          "late": 9
+        },
+        "selected": {
+          "total": 78,
+          "known": 78,
+          "unknown": 0,
+          "late": 6
+        },
+        "selected_late_rate": 0.07692307692307693,
+        "eligible_late_coverage": 0.6666666666666666,
+        "all_late_coverage": 0.6666666666666666
+      }
+    },
+    {
+      "simulation_date": "2018-06-15",
+      "counts": {
+        "total": 241,
+        "eligible": 241,
+        "excluded": 0,
+        "selected": 73
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 241,
+          "known": 241,
+          "unknown": 0,
+          "late": 4
+        },
+        "eligible": {
+          "total": 241,
+          "known": 241,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected": {
+          "total": 73,
+          "known": 73,
+          "unknown": 0,
+          "late": 2
+        },
+        "selected_late_rate": 0.0273972602739726,
+        "eligible_late_coverage": 0.5,
+        "all_late_coverage": 0.5
+      }
+    },
+    {
+      "simulation_date": "2018-06-16",
+      "counts": {
+        "total": 188,
+        "eligible": 188,
+        "excluded": 0,
+        "selected": 57
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 188,
+          "known": 188,
+          "unknown": 0,
+          "late": 5
+        },
+        "eligible": {
+          "total": 188,
+          "known": 188,
+          "unknown": 0,
+          "late": 5
+        },
+        "selected": {
+          "total": 57,
+          "known": 57,
+          "unknown": 0,
+          "late": 3
+        },
+        "selected_late_rate": 0.05263157894736842,
+        "eligible_late_coverage": 0.6,
+        "all_late_coverage": 0.6
+      }
+    },
+    {
+      "simulation_date": "2018-06-17",
+      "counts": {
+        "total": 141,
+        "eligible": 141,
+        "excluded": 0,
+        "selected": 43
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 141,
+          "known": 141,
+          "unknown": 0,
+          "late": 6
+        },
+        "eligible": {
+          "total": 141,
+          "known": 141,
+          "unknown": 0,
+          "late": 6
+        },
+        "selected": {
+          "total": 43,
+          "known": 43,
+          "unknown": 0,
+          "late": 6
+        },
+        "selected_late_rate": 0.13953488372093023,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
+      }
+    },
+    {
+      "simulation_date": "2018-06-18",
+      "counts": {
+        "total": 135,
+        "eligible": 135,
+        "excluded": 0,
+        "selected": 41
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 135,
+          "known": 135,
+          "unknown": 0,
+          "late": 2
+        },
+        "eligible": {
+          "total": 135,
+          "known": 135,
+          "unknown": 0,
+          "late": 2
+        },
+        "selected": {
+          "total": 41,
+          "known": 41,
+          "unknown": 0,
+          "late": 1
+        },
+        "selected_late_rate": 0.024390243902439025,
+        "eligible_late_coverage": 0.5,
+        "all_late_coverage": 0.5
+      }
+    },
+    {
+      "simulation_date": "2018-06-19",
+      "counts": {
+        "total": 213,
+        "eligible": 213,
+        "excluded": 0,
+        "selected": 64
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 213,
+          "known": 213,
+          "unknown": 0,
+          "late": 3
+        },
+        "eligible": {
+          "total": 213,
+          "known": 213,
+          "unknown": 0,
+          "late": 3
+        },
+        "selected": {
+          "total": 64,
+          "known": 64,
+          "unknown": 0,
+          "late": 3
+        },
+        "selected_late_rate": 0.046875,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
+      }
+    },
+    {
+      "simulation_date": "2018-06-20",
+      "counts": {
+        "total": 288,
+        "eligible": 288,
+        "excluded": 0,
+        "selected": 87
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 288,
+          "known": 288,
+          "unknown": 0,
+          "late": 8
+        },
+        "eligible": {
+          "total": 288,
+          "known": 288,
+          "unknown": 0,
+          "late": 8
+        },
+        "selected": {
+          "total": 87,
+          "known": 87,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected_late_rate": 0.04597701149425287,
+        "eligible_late_coverage": 0.5,
+        "all_late_coverage": 0.5
+      }
+    },
+    {
+      "simulation_date": "2018-06-21",
+      "counts": {
+        "total": 213,
+        "eligible": 213,
+        "excluded": 0,
+        "selected": 64
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 213,
+          "known": 213,
+          "unknown": 0,
+          "late": 4
+        },
+        "eligible": {
+          "total": 213,
+          "known": 213,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected": {
+          "total": 64,
+          "known": 64,
+          "unknown": 0,
+          "late": 1
+        },
+        "selected_late_rate": 0.015625,
+        "eligible_late_coverage": 0.25,
+        "all_late_coverage": 0.25
+      }
+    },
+    {
+      "simulation_date": "2018-06-22",
+      "counts": {
+        "total": 213,
+        "eligible": 213,
+        "excluded": 0,
+        "selected": 64
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 213,
+          "known": 213,
+          "unknown": 0,
+          "late": 4
+        },
+        "eligible": {
+          "total": 213,
+          "known": 213,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected": {
+          "total": 64,
+          "known": 64,
+          "unknown": 0,
+          "late": 3
+        },
+        "selected_late_rate": 0.046875,
+        "eligible_late_coverage": 0.75,
+        "all_late_coverage": 0.75
+      }
+    },
+    {
+      "simulation_date": "2018-06-23",
+      "counts": {
+        "total": 170,
+        "eligible": 170,
+        "excluded": 0,
+        "selected": 51
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 170,
+          "known": 170,
+          "unknown": 0,
+          "late": 4
+        },
+        "eligible": {
+          "total": 170,
+          "known": 170,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected": {
+          "total": 51,
+          "known": 51,
+          "unknown": 0,
+          "late": 1
+        },
+        "selected_late_rate": 0.0196078431372549,
+        "eligible_late_coverage": 0.25,
+        "all_late_coverage": 0.25
+      }
+    },
+    {
+      "simulation_date": "2018-06-24",
+      "counts": {
+        "total": 195,
+        "eligible": 195,
+        "excluded": 0,
+        "selected": 59
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 195,
+          "known": 195,
+          "unknown": 0,
+          "late": 3
+        },
+        "eligible": {
+          "total": 195,
+          "known": 195,
+          "unknown": 0,
+          "late": 3
+        },
+        "selected": {
+          "total": 59,
+          "known": 59,
+          "unknown": 0,
+          "late": 2
+        },
+        "selected_late_rate": 0.03389830508474576,
+        "eligible_late_coverage": 0.6666666666666666,
+        "all_late_coverage": 0.6666666666666666
+      }
+    },
+    {
+      "simulation_date": "2018-06-25",
+      "counts": {
+        "total": 168,
+        "eligible": 168,
+        "excluded": 0,
+        "selected": 51
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 168,
+          "known": 167,
+          "unknown": 1,
+          "late": 2
+        },
+        "eligible": {
+          "total": 168,
+          "known": 167,
+          "unknown": 1,
+          "late": 2
+        },
+        "selected": {
+          "total": 51,
+          "known": 50,
+          "unknown": 1,
+          "late": 2
+        },
+        "selected_late_rate": 0.04,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
+      }
+    },
+    {
+      "simulation_date": "2018-06-26",
+      "counts": {
+        "total": 190,
+        "eligible": 190,
+        "excluded": 0,
+        "selected": 57
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 190,
+          "known": 190,
+          "unknown": 0,
+          "late": 7
+        },
+        "eligible": {
+          "total": 190,
+          "known": 190,
+          "unknown": 0,
+          "late": 7
+        },
+        "selected": {
+          "total": 57,
+          "known": 57,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected_late_rate": 0.07017543859649122,
+        "eligible_late_coverage": 0.5714285714285714,
+        "all_late_coverage": 0.5714285714285714
+      }
+    },
+    {
+      "simulation_date": "2018-06-27",
+      "counts": {
+        "total": 287,
+        "eligible": 287,
+        "excluded": 0,
+        "selected": 87
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 287,
+          "known": 287,
+          "unknown": 0,
+          "late": 6
+        },
+        "eligible": {
+          "total": 287,
+          "known": 287,
+          "unknown": 0,
+          "late": 6
+        },
+        "selected": {
+          "total": 87,
+          "known": 87,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected_late_rate": 0.04597701149425287,
+        "eligible_late_coverage": 0.6666666666666666,
+        "all_late_coverage": 0.6666666666666666
+      }
+    },
+    {
+      "simulation_date": "2018-06-28",
+      "counts": {
+        "total": 217,
+        "eligible": 217,
+        "excluded": 0,
+        "selected": 66
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 217,
+          "known": 217,
+          "unknown": 0,
+          "late": 2
+        },
+        "eligible": {
+          "total": 217,
+          "known": 217,
+          "unknown": 0,
+          "late": 2
+        },
+        "selected": {
+          "total": 66,
+          "known": 66,
+          "unknown": 0,
+          "late": 1
+        },
+        "selected_late_rate": 0.015151515151515152,
+        "eligible_late_coverage": 0.5,
+        "all_late_coverage": 0.5
+      }
+    },
+    {
+      "simulation_date": "2018-06-29",
+      "counts": {
+        "total": 254,
+        "eligible": 254,
+        "excluded": 0,
+        "selected": 77
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 254,
+          "known": 253,
+          "unknown": 1,
+          "late": 7
+        },
+        "eligible": {
+          "total": 254,
+          "known": 253,
+          "unknown": 1,
+          "late": 7
+        },
+        "selected": {
+          "total": 77,
+          "known": 77,
+          "unknown": 0,
+          "late": 4
+        },
+        "selected_late_rate": 0.05194805194805195,
+        "eligible_late_coverage": 0.5714285714285714,
+        "all_late_coverage": 0.5714285714285714
+      }
+    },
+    {
+      "simulation_date": "2018-06-30",
+      "counts": {
+        "total": 196,
+        "eligible": 196,
+        "excluded": 0,
+        "selected": 59
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 196,
+          "known": 195,
+          "unknown": 1,
+          "late": 7
+        },
+        "eligible": {
+          "total": 196,
+          "known": 195,
+          "unknown": 1,
+          "late": 7
+        },
+        "selected": {
+          "total": 59,
+          "known": 58,
+          "unknown": 1,
+          "late": 6
+        },
+        "selected_late_rate": 0.10344827586206896,
+        "eligible_late_coverage": 0.8571428571428571,
+        "all_late_coverage": 0.8571428571428571
+      }
+    },
+    {
+      "simulation_date": "2018-07-01",
+      "counts": {
+        "total": 145,
+        "eligible": 145,
+        "excluded": 0,
+        "selected": 44
+      },
+      "exclusion_reasons": {},
+      "metrics": {
+        "all": {
+          "total": 145,
+          "known": 145,
+          "unknown": 0,
+          "late": 0
+        },
+        "eligible": {
+          "total": 145,
+          "known": 145,
+          "unknown": 0,
+          "late": 0
+        },
+        "selected": {
+          "total": 44,
+          "known": 44,
+          "unknown": 0,
+          "late": 0
+        },
+        "selected_late_rate": 0.0,
+        "eligible_late_coverage": null,
+        "all_late_coverage": null
+      }
+    }
+  ]
+}

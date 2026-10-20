@@ -1,0 +1,9 @@
+{
+  "source_branch": "origin/model-deployment-r1",
+  "source_artifact_sha256": "648572734fbacfff30dd7001c1a0fbfd75b035b6ccdfff49bac6931cf5725736",
+  "packaged_artifact_sha256": "a45bfc26bcacba91aa5d0667594d5fc8e487c129fddf8fa3a9a78e98653f9a44",
+  "change": "Only custom transformer class import path rebound to phase3.backend.transforms. No fitting, parameter or preprocessing changes.",
+  "equivalence": "Exact array equality before/after rebinding and after serialization",
+  "verified_rows": 6164,
+  "runtime_class": "phase3.backend.transforms.ExpandColumns"
+}

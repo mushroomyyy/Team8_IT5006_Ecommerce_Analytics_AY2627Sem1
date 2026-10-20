@@ -1,0 +1,11 @@
+.git
+.venv*
+**/__pycache__
+Olist_CSV
+phase2
+phase1_eda_dashboard
+streamlit_release
+*.ipynb
+phase3/docs
+phase3/tests
+phase3/export
