@@ -116,7 +116,7 @@ with prediction_tab:
 
 with stats_tab:
     st.subheader("Model performance & monitoring")
-    st.info("These metrics come from held-out Phase 2 evaluation, not from predictions made in this app.")
+    st.info("Historical evaluation results are shown separately from predictions made through this app.")
     metric_cols = st.columns(4)
     metric_cols[0].metric("Validation RMSE", f"{stats['evaluation']['validation_rmse']:.2f} days")
     metric_cols[1].metric("June Test RMSE", f"{stats['evaluation']['june_test_rmse']:.2f} days")
@@ -124,6 +124,43 @@ with stats_tab:
     metric_cols[3].metric("Training rows", f"{stats['train_rows']:,}")
     st.write({"Model": stats["model_code"], "Version": stats["model_version"],
               "Best parameters": stats["best_params"]})
+
+    monthly = stats.get("monthly_champions", {})
+    regression_champions = pd.DataFrame(monthly.get("regression", []))
+    classification_champions = pd.DataFrame(monthly.get("classification", []))
+    if not regression_champions.empty:
+        st.markdown("#### Monthly Phase 2 champion results")
+        st.caption(
+            "These results come from Andrew's `regression-champion-45d` branch "
+            "(published commit fb95b0c). They document the monthly benchmark; "
+            "the live artifact above remains the packaged R1 model."
+        )
+        st.dataframe(
+            regression_champions.rename(columns={
+                "period": "Period", "selected_model": "Selected model",
+                "configuration": "Configuration", "holdout_mae": "Holdout MAE (days)",
+                "cv_mae": "CV MAE (days)"
+            }), hide_index=True, use_container_width=True,
+        )
+        chart = regression_champions.rename(columns={
+            "period": "Period", "holdout_mae": "Holdout MAE (days)"
+        })
+        st.plotly_chart(
+            px.bar(chart, x="Period", y="Holdout MAE (days)", color="selected_model",
+                   title="Monthly regression champion holdout MAE",
+                   labels={"selected_model": "Selected model"}),
+            use_container_width=True,
+        )
+
+    if not classification_champions.empty:
+        st.markdown("#### Monthly classification champion results")
+        st.dataframe(
+            classification_champions.rename(columns={
+                "period": "Period", "selected_model": "Selected model",
+                "configuration": "Configuration", "holdout_ap": "Holdout AP",
+                "holdout_f1": "Holdout F1", "inference_ap": "Inference AP"
+            }), hide_index=True, use_container_width=True,
+        )
 
     comparison_path = ROOT / "phase2/results/simple_to_complex/regression/regression_model_comparison_5.csv"
     comparison = pd.read_csv(comparison_path)
@@ -133,4 +170,5 @@ with stats_tab:
     chart["June RMSE"] = chart["June"]
     st.plotly_chart(px.bar(chart, x="Code", y="June RMSE", title="June (Test) RMSE by model",
                            labels={"June RMSE": "RMSE (days)"}), use_container_width=True)
-    st.caption("R1 is deployed because the Phase 2 report selects it as the regression model; the tuned RF is retained as a challenger in the evaluation results.")
+    st.caption("Historical tables are not updated by live predictions. Prediction counts can be added once persistent request logging is enabled in the API.")
+

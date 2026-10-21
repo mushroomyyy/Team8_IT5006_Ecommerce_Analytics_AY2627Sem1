@@ -1,8 +1,11 @@
 # Regression deployment
 
-This folder contains the first deployment slice for Phase 2: the selected
-all-feature OLS regression model (`R1`). Classification is intentionally not
-wired in yet.
+This folder contains the regression deployment slice for Phase 2: the selected
+all-feature OLS regression model (`R1`). It also publishes Andrew's monthly
+classification and regression champion results in the Streamlit Model Stats
+tab. Those tables are historical evaluation results; they are not presented as
+live deployed models because the teammate branch does not contain serialized
+model artifacts yet.
 
 ## Build the model artifact
 
@@ -36,7 +39,7 @@ streamlit run deployment/streamlit_app.py
 ```
 
 The app supports historical-order samples and manual feature entry. The Model
-Stats tab displays held-out Validation/June metrics and charts from Phase 2;
+Stats tab displays held-out metrics and monthly champion tables from Phase 2;
 it does not mix those historical results with live app predictions.
 
 ## Render
@@ -59,3 +62,4 @@ Training during build keeps the binary artifact reproducible and avoids
 committing a large generated model file to Git. If build time is too long for
 the chosen Render plan, commit the generated joblib artifact and remove the
 training command from the build step.
+

@@ -62,4 +62,9 @@ class ModelService:
 
 def load_stats() -> dict[str, Any]:
     path = Path(__file__).resolve().parent / "artifacts" / "regression_model_stats.json"
-    return json.loads(path.read_text()) if path.exists() else {}
+    stats = json.loads(path.read_text()) if path.exists() else {}
+    champion_path = path.parent / "monthly_champion_results.json"
+    if champion_path.exists():
+        stats["monthly_champions"] = json.loads(champion_path.read_text())
+    return stats
+
