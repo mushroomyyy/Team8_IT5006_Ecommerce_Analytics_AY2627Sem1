@@ -81,7 +81,8 @@ Phase 2 cohort results, not a promise for the implemented daily filtered policy.
 
 ## Daily simulation
 
-- Current dates: **2 June–1 July 2018**; batch date: previous calendar day.
+- Current dates: **2 June–30 August 2018**; batch date: previous calendar day.
+  June guided model selection; July and August are frozen-model monitoring months.
   The cohort is approved orders, not purchase dates or a cumulative unresolved queue.
 - Source timestamps have no offset. Treat them as Brazilian local wall time
   (America/Sao_Paulo convention), without conversion to Singapore/UTC.
@@ -175,3 +176,29 @@ For multiple orders, submit `{'rows': [{'order_id': 'synthetic-1',
 'features': features}]}` to `/predict/batch`. Results retain input index and ID;
 invalid rows carry errors without changing the alignment of valid predictions.
 Historical dates and outcome reveal are Streamlit operations, not API endpoints.
+
+## Frontend request handling
+
+- Each simulated day is scored once through `/predict/batch` (chunks of 100,
+  5 s / 60 s timeouts) and cached per API URL, model versions, date and data
+  revision. The follow-up proportion and minimum days re-rank locally without
+  API calls. Scored rows are every order undelivered at the cutoff with a
+  promise date, a superset of the eligible rows for any minimum-days setting.
+- The score cache is a process-wide dictionary rather than `st.cache_data`, so a
+  refreshed page or a second viewer never waits on another session's request.
+- The API is checked once per session (and on Retry) by polling `/health` with
+  short calls, showing elapsed time instead of one long blocking request.
+
+## Month-end review
+
+- `phase3/scripts/score_replay.py` pre-scores all 18,960 June–August replay
+  orders with the packaged C3/R1 artifacts (identical to the deployed API per
+  `render_model_equivalence.json`) into `frontend/data/replay_scores.json`.
+- Each month replays every morning with the daily list rules; outcomes are
+  attached only after ranking. Comparisons: whole-month C3 ranking (Phase 2
+  style), random calls, and the same daily rules ranked by R1's predicted days
+  from promise.
+- `frontend/data/simulation_timing.json` holds R1's Phase 2 target per order
+  (`attach_regression_actuals`, 45-day cap, final canceled/unavailable excluded).
+  June reproduces the reported R1 RMSE 7.369 and MAE 5.81.
+

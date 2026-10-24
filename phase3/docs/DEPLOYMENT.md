@@ -82,8 +82,10 @@ is a compatibility fallback. Neither URL is a secret, but credentials must never
 be committed. Example settings are in `frontend/.streamlit/secrets.toml.example`.
 
 Verify both pages against the deployed API: navigation, prediction, downloads,
-outcome reveal/reset, invalid input and timeout feedback. The frontend gives a
-10-second connection / 120-second read timeout and startup guidance for a sleeping backend.
+outcome reveal/reset, invalid input and timeout feedback. The frontend wakes a
+sleeping backend with short `/health` checks (5 s connect, 10 s read, up to 120 s in
+total) and shows the elapsed wait. Scoring calls use 5 s / 60 s timeouts on
+chunks of 100 orders, so no single request holds the page for minutes.
 
 A Docker frontend alternative is available as `phase3/Dockerfile.ui` with the
 same API URL environment variable and assigned `PORT`.
@@ -107,7 +109,7 @@ docker run --rm -e PORT=10000 -e DELIVERY_API_URL=http://host.docker.internal:18
 - 422 input errors: use `/model-info` trained categories and the exact feature
   schema. Numeric blanks are supported, categorical blanks are not.
 - Dates rejected: the frozen models are available from 2 June 2018; the final
-  supported current date is 1 July for the 30 June approval batch.
+  supported current date is 30 August for the 29 August approval batch.
 - Missing outcomes: unknown retrospective labels are intentional and excluded
   from rate denominators, not assigned an on-time outcome.
 - Streamlit imports backend libraries: verify the entry point and its adjacent

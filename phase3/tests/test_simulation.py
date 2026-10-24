@@ -1,11 +1,12 @@
 """Policy boundary checks that would catch future-information leakage."""
 from copy import deepcopy
 from unittest.mock import patch
-from phase3.frontend.orchestration import score_demo_rows
+from phase3.frontend import orchestration
+from phase3.frontend.orchestration import score_demo_rows, wait_for_service
 from datetime import date
 import unittest
 
-from phase3.frontend.simulation import build_worklist, retrospective, SimulationDataError
+from phase3.frontend.simulation import build_worklist, month_replay, month_summary, monthly_ranking, retrospective, SimulationDataError
 import json
 
 
@@ -51,8 +52,8 @@ class PolicyTests(unittest.TestCase):
     def test_proportions_empty_days_and_supported_dates(self):
         self.assertEqual(self.run_policy(0)["counts"]["selected"], 0)
         self.assertEqual(self.run_policy(1)["counts"]["selected"], 5)
-        self.assertEqual(self.run_policy(day=date(2018, 7, 1))["counts"]["total"], 0)
-        for day in (date(2018, 6, 1), date(2018, 7, 2)):
+        self.assertEqual(self.run_policy(day=date(2018, 8, 30))["counts"]["total"], 0)
+        for day in (date(2018, 6, 1), date(2018, 8, 31)):
             with self.assertRaises(ValueError):
                 self.run_policy(day=day)
 
@@ -86,6 +87,46 @@ class PolicyTests(unittest.TestCase):
         empty = retrospective(self.run_policy(0), {})["metrics"]
         self.assertIsNone(empty["selected_late_rate"])
         self.assertIsNone(empty["eligible_late_coverage"])
+
+    def test_month_replay_matches_daily_worklists_and_counts_unknowns(self):
+        scores = {row["order_id"]: [row["features"]["score"], -1.] for row in self.data["days"]["2018-06-01"]}
+        outcomes = {"c": 1, "a": None, "past": 1, "at": 0, "b": 1, "future": 0}
+        replay = month_replay(self.data, scores, outcomes, 1, "2018-06")
+        self.assertEqual(len(replay), 30)
+        self.assertEqual(len(month_replay(self.data, scores, outcomes, 1)), 90)  # 2 Jun to 30 Aug
+        first = month_summary(replay, .3)["days"][0]
+        expected = retrospective(self.run_policy(), outcomes)["metrics"]
+        self.assertEqual((first["eligible"], first["selected"], first["late_caught"], first["late_all"]),
+                         (expected["eligible"]["total"], expected["selected"]["total"], expected["selected"]["late"], expected["all"]["late"]))
+        pooled = month_summary(replay, .3)["pooled"]
+        self.assertEqual(pooled["selected_known"], 1)  # "a" is selected but unknown: excluded from the hit-rate denominator
+        self.assertEqual(month_summary(replay, 0)["pooled"]["all_late_coverage"], 0)
+        self.assertIsNone(month_summary(month_replay(self.data, scores, {}, 1, "2018-06"), 1)["pooled"]["all_late_coverage"])
+        with self.assertRaises(SimulationDataError):
+            month_replay(self.data, {}, outcomes, 1)
+
+    def test_timing_accuracy_matches_hand_calculation_and_month_filter(self):
+        from phase3.frontend.simulation import timing_accuracy
+        data = {"days": {"2018-06-01": [{"order_id": "x"}, {"order_id": "y"}], "2018-07-01": [{"order_id": "z"}], "2018-06-02": [{"order_id": "gone"}]}}
+        scores = {"x": [.9, -10.], "y": [.1, -4.], "z": [.5, 0.], "gone": [.2, -1.]}
+        actual = {"x": -12., "y": 2., "z": 3., "gone": None}  # canceled/unknown targets are skipped
+        june = timing_accuracy(data, scores, actual, {"x": 0, "y": 1}, "2018-06")
+        self.assertEqual(june["n"], 2)
+        self.assertAlmostEqual(june["mae"], 4.0)            # |2| and |-6|
+        self.assertAlmostEqual(june["rmse"], 20 ** 0.5)      # sqrt((4 + 36) / 2)
+        self.assertAlmostEqual(june["bias"], -2.0)
+        self.assertEqual((june["predicted_late_orders"], june["predicted_on_time_orders"]), (-4., -10.))
+        self.assertEqual([d["approval_date"] for d in june["days"]], ["2018-06-01"])
+        self.assertEqual(timing_accuracy(data, scores, actual, {})["n"], 3)
+        self.assertIsNone(timing_accuracy(data, scores, {}, {}))
+
+    def test_monthly_ranking_uses_whole_cohort(self):
+        scores = {"x": [.9, 0.], "y": [.5, 0.], "z": [.1, 0.]}
+        data = {"days": {"2018-06-01": [{"order_id": "x"}], "2018-06-02": [{"order_id": "y"}, {"order_id": "z"}]}}
+        result = monthly_ranking(data, scores, {"x": 0, "y": 1, "z": 1}, .5)
+        self.assertEqual((result["selected"], result["late_caught"], result["late_all"]), (2, 1, 2))
+        self.assertEqual(monthly_ranking(data, scores, {"x": 0, "y": 1, "z": 1}, 1, "2018-06")["total"], 3)
+        self.assertEqual(monthly_ranking(data, scores, {"x": 0, "y": 1, "z": 1}, 1, "2018-07")["total"], 0)
 
 
 
@@ -125,6 +166,43 @@ class HttpOrchestrationTests(unittest.TestCase):
         with patch('phase3.frontend.orchestration.api_request', side_effect=response):
             result = build_worklist(data, date(2018, 6, 2), .3, 1, lambda rows: score_demo_rows('https://api', rows))
         self.assertEqual(result['counts'], {'total': 3, 'eligible': 1, 'selected': 1, 'excluded': 2})
+
+    def test_scoring_candidates_cover_every_minimum_days_setting_without_delivered_rows(self):
+        from phase3.frontend.simulation import scoring_candidates
+        data = {'days': {'2018-06-01': [order('ok'), order('due', promise='2018-06-02'), order('missing', promise=None),
+                                        order('past', delivery='2018-06-01T23:59:59'), order('later', delivery='2018-06-05T00:00:00')]},
+                'timezone': 'local', 'batch_definition': 'approval_date'}
+        self.assertEqual([r['order_id'] for r in scoring_candidates(data, date(2018, 6, 2))], ['ok', 'due', 'later'])
+        for remaining in (0, 1, 7):
+            eligible = build_worklist(data, date(2018, 6, 2), 1, remaining, score)['orders']
+            self.assertLessEqual({r['order_id'] for r in eligible}, {'ok', 'due', 'later'})
+        with self.assertRaises(ValueError):
+            scoring_candidates(data, date(2018, 8, 31))
+
+    def test_batches_are_chunked_with_progress(self):
+        rows = [{'order_id': str(i), 'features': {'score': .1}} for i in range(250)]
+        def response(url, endpoint, payload):
+            return {'results': [{'index': i, 'order_id': r['order_id'], 'prediction': score([r])[0]} for i, r in enumerate(payload['rows'])]}
+        progress = []
+        with patch('phase3.frontend.orchestration.api_request', side_effect=response) as call:
+            self.assertEqual(len(score_demo_rows('https://api', rows, lambda done, total: progress.append((done, total)))), 250)
+        self.assertEqual([len(c.args[2]['rows']) for c in call.call_args_list], [100, 100, 50])
+        self.assertEqual(progress, [(0, 250), (100, 250), (200, 250), (250, 250)])
+
+    def test_wait_for_service_polls_briefly_then_gives_up(self):
+        import requests
+        attempts, waits = iter([requests.ConnectionError('asleep'), requests.Timeout('slow'), {'status': 'ok'}]), []
+        def health(*args, **kwargs):
+            item = next(attempts)
+            if isinstance(item, Exception): raise item
+            return item
+        with patch('phase3.frontend.orchestration.api_request', side_effect=health), patch('time.sleep') as sleep:
+            self.assertEqual(wait_for_service('https://api', lambda elapsed, exc: waits.append(type(exc).__name__)), {'status': 'ok'})
+        self.assertEqual(waits, ['ConnectionError', 'Timeout'])
+        self.assertEqual(sleep.call_count, 2)
+        with patch('phase3.frontend.orchestration.api_request', side_effect=requests.ConnectionError('down')), \
+             patch.object(orchestration, 'WAKE_BUDGET_SECONDS', 0), self.assertRaises(requests.Timeout):
+            wait_for_service('https://api')
 
     def test_invalid_policy_rejected_before_scoring(self):
         data = {'days': {}, 'timezone': 'local', 'batch_definition': 'approval_date'}

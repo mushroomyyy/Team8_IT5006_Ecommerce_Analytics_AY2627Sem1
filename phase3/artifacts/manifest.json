@@ -1,7 +1,7 @@
 {
   "export": "python -m phase3.export.export_simulation",
-  "approval_rows": 6164,
-  "approval_days": 30,
+  "approval_rows": 18960,
+  "approval_days": 88,
   "model_available_date": "2018-06-02",
   "artifacts": {
     "classification_c3_rf.joblib": "17577aa8c96c0f456b55ab8f7417bc5f2916d7f698e5a15c35926743ceb42682",
@@ -14,7 +14,9 @@
     "classification_june_orders.json": "4c8315d656dee7397b931eb1bdef6524c3a1386305a9bfab5c4c6dcba852e854",
     "classification_june_outcomes.json": "d9dadb0bdd84b3487e7e309e20bb43b30e6cda77428d0ab15e479e019dfd99e8",
     "classification_sample_orders.json": "da0a44bd7c37e79a6404fb53d61c4e6d141531b2d4d100249106eaceb13d45b9",
-    "simulation_orders.json": "7beba956f0f33589054d8e5b9b9cfaec296c301f358f2515659f33492b573c88",
-    "simulation_outcomes.json": "a5583ce1585f626071877d2d23dbfbca4b2a59838a3be3fe7112a74a489e6d2f"
+    "replay_scores.json": "52901fbba60f619b6ebba1d5ee1a15f893b051b0cdcfcffc1ef0ac859f1cd039",
+    "simulation_orders.json": "98bbaddab7e042f31fcabf0bcd6ca24c26c5223e58e558d2daf95560c8793c6d",
+    "simulation_outcomes.json": "a3ecbf8c282e86015e0550e5754eeee0b4f6d3fe928defb7d4d844d5a82d4ae6",
+    "simulation_timing.json": "85a264102ce7cb0ba6d49710d52f0c49794906429d41a0d0750711d86d2a1c31"
   }
 }

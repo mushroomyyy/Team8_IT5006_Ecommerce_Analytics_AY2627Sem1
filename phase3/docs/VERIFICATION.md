@@ -28,8 +28,8 @@ Local checks: 19–20 October 2026 (Singapore), Python 3.13.5. Latest split and 
   date navigation/outcome reset and selection-count rounding. The first day has
   147 eligible/scored rows and 45 follow-up recommendations; second day 164/50; a fresh third day against API 2.1 has 156/47.
 - The UI explains that the first connection after inactivity may take 50 seconds
-  or more, shows a timed waking/connection spinner and supports retry. HTTP
-  connection/read timeouts are 10/120 seconds; no startup upper bound is promised.
+  or more, shows the elapsed wait and supports retry. Health checks use 5/10 s
+  timeouts within a 120 s wake budget; scoring uses 5/60 s per 100-order chunk.
 - Public Streamlit deployment remains pending at Andrew’s request. Teammates can
   connect without Render account access using [the hookup guide](TEAMMATE_CONNECTION.md).
 
@@ -84,6 +84,29 @@ Daily rounding produces 1,863 selected orders, rather than the report's monthly
 coverage is **80/137 = 58.39%**. These pooled daily results describe this historical
 policy only. June informed model selection and is not untouched policy validation.
 Zero denominators and unknown labels remain explicit in daily records.
+
+## UI stability and month-end review — 24 October 2026
+
+- Reproduced the reported hang locally: a slow `/predict/batch` call plus the
+  shared `st.cache_data` lock left refreshed pages and other viewers waiting.
+  Fixed with per-day score caching outside `st.cache_data`, short timeouts,
+  chunked scoring with progress, and a clamped date range.
+- Replay extended to June–August (18,960 orders). June orders and outcomes are
+  byte-identical to the previous export.
+- Month-end review reproduces the documented daily June result (80/137 late
+  caught at 30%) and the report's monthly top-30% result (76/137).
+- R1 accuracy against the Phase 2 target: June RMSE 7.369 / MAE 5.81 (matches
+  the report), July 7.29 / 5.24, August 6.48 / 4.46.
+- Daily list at 30%, share of all known late orders caught:
+
+| Month | Late rate | C3 ranking | R1-buffer ranking | C3 ROC-AUC |
+|---|---:|---:|---:|---:|
+| June (selection) | 2.2% | 58.4% | 48.2% | 0.637 |
+| July (monitoring) | 5.2% | 39.9% | 43.1% | 0.544 |
+| August (monitoring) | 7.9% | 22.0% | 53.2% | 0.426 |
+
+- 71 Phase 3 tests pass. All pages checked in the browser at 1440×900 against
+  the live Render API.
 
 ## Initial API 2.0 deployment verified — 20 October 2026
 

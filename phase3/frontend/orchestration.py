@@ -1,16 +1,27 @@
 """Historical demo orchestration; fitted preprocessing and inference stay remote."""
 from __future__ import annotations
 
+from collections import OrderedDict
 import json
 import math
 from pathlib import Path
+import threading
+import time
 
 import requests
 import streamlit as st
 
-from .simulation import SimulationDataError, build_worklist, retrospective
+from .simulation import SimulationDataError, build_worklist, retrospective, scoring_candidates
 
 DATA = Path(__file__).resolve().parent / 'data'
+# Short per-call budgets: Streamlit cannot interrupt a request in flight, so no
+# single call may hold a run (or a refreshed page) for minutes.
+HEALTH_TIMEOUT = (5, 10)
+REQUEST_TIMEOUT = (5, 60)
+WAKE_BUDGET_SECONDS = 120
+WAKE_RETRY_SECONDS = 3
+BATCH_CHUNK = 100
+SCORE_CACHE_ENTRIES = 64
 
 
 def read_demo_json(name):
@@ -21,8 +32,14 @@ def read_demo_json(name):
         raise SimulationDataError(f'Historical demonstration data unavailable: {name}') from exc
 
 
-def load_demo_orders():
+@st.cache_resource(show_spinner=False, max_entries=2)
+def _orders_snapshot(revision):
+    # Shared read-only object: parsed once per file revision, never mutated by callers.
     return read_demo_json('simulation_orders.json')
+
+
+def load_demo_orders():
+    return _orders_snapshot(snapshot_revision())
 
 
 def load_demo_samples():
@@ -30,9 +47,16 @@ def load_demo_samples():
 
 
 def reveal_outcomes(worklist):
-    # Deliberately never called by input loading, scoring or cached_worklist.
+    # Deliberately never called by input loading, scoring or worklist building.
     outcomes = read_demo_json('simulation_outcomes.json')['outcomes']
     return retrospective(worklist, outcomes)
+
+
+def load_month_inputs():
+    """Pre-scored replay inputs and eventual outcomes, read only by the month-end review page."""
+    scored = read_demo_json('replay_scores.json')
+    return (scored, read_demo_json('simulation_outcomes.json')['outcomes'],
+            read_demo_json('simulation_timing.json')['actual_days_from_promise'])
 
 
 def snapshot_revision():
@@ -43,9 +67,9 @@ def snapshot_revision():
         raise SimulationDataError('Historical order snapshot unavailable') from exc
 
 
-def api_request(api_url, endpoint, payload=None):
-    response = (requests.get(f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}", timeout=(10, 120))
-                if payload is None else requests.post(f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}", json=payload, timeout=(10, 120)))
+def api_request(api_url, endpoint, payload=None, timeout=REQUEST_TIMEOUT):
+    url = f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}"
+    response = requests.get(url, timeout=timeout) if payload is None else requests.post(url, json=payload, timeout=timeout)
     if not response.ok:
         try:
             detail = response.json().get('detail', response.text)
@@ -55,11 +79,26 @@ def api_request(api_url, endpoint, payload=None):
     return response.json()
 
 
-def score_demo_rows(api_url, rows):
+def wait_for_service(api_url, on_wait=None):
+    """Poll /health with short calls until it answers; on_wait(elapsed, error) reports progress between attempts."""
+    started = time.monotonic()
+    while True:
+        try:
+            return api_request(api_url, '/health', timeout=HEALTH_TIMEOUT)
+        except (ValueError, requests.RequestException) as exc:
+            elapsed = time.monotonic() - started
+            if elapsed + WAKE_RETRY_SECONDS >= WAKE_BUDGET_SECONDS:
+                raise requests.Timeout(f'Prediction service did not respond within {WAKE_BUDGET_SECONDS} seconds ({exc})') from exc
+            if on_wait: on_wait(elapsed, exc)
+            time.sleep(WAKE_RETRY_SECONDS)
+
+
+def score_demo_rows(api_url, rows, on_progress=None):
     """Validate row alignment; only explicit API 422 rows become exclusions."""
     predictions = []
-    for start in range(0, len(rows), 1000):
-        batch = rows[start:start + 1000]
+    if on_progress and rows: on_progress(0, len(rows))
+    for start in range(0, len(rows), BATCH_CHUNK):
+        batch = rows[start:start + BATCH_CHUNK]
         response = api_request(api_url, '/predict/batch', {'rows': batch})
         results = response.get('results') if isinstance(response, dict) else None
         if not isinstance(results, list) or len(results) != len(batch):
@@ -85,6 +124,7 @@ def score_demo_rows(api_url, rows):
             except (KeyError, TypeError, ValueError, OverflowError) as exc:
                 raise SimulationDataError('API returned an invalid integrated prediction') from exc
             predictions.append(prediction)
+        if on_progress: on_progress(len(predictions), len(rows))
     return predictions
 
 
@@ -92,8 +132,44 @@ def model_versions(metadata):
     return tuple((name, metadata[name]['model_version']) for name in ('classification', 'regression'))
 
 
-@st.cache_data(ttl=300, max_entries=64, show_spinner=False)
-def cached_worklist(api_url, versions, simulation_date, review_proportion, minimum_days_remaining, revision):
-    """Cache only scored operational inputs keyed by service/models/date/policy/snapshot."""
+@st.cache_resource(show_spinner=False)
+def _score_store():
+    # Process-wide, lock-free score cache. Unlike st.cache_data it never makes a
+    # refreshed page wait on another session's request; at worst two sessions
+    # score the same day once each.
+    return OrderedDict(), threading.Lock()
+
+
+def clear_caches():
+    store, lock = _score_store()
+    with lock: store.clear()
+    _orders_snapshot.clear()
+
+
+def day_scores(api_url, versions, simulation_date, revision, on_progress=None):
+    """Scores for every row any eligibility setting could include; ranking and selection stay local."""
+    key = (api_url, versions, str(simulation_date), revision)
+    store, lock = _score_store()
+    with lock:
+        if key in store:
+            store.move_to_end(key)
+            return store[key]
+    # Superset of eligible rows for every minimum-days setting; scores use
+    # approval-time features only, so the cutoff rules are unchanged.
+    candidates = scoring_candidates(load_demo_orders(), simulation_date)
+    ids = [row['order_id'] for row in candidates]
+    if len(set(ids)) != len(ids):
+        raise SimulationDataError('Historical batch contains duplicate order IDs')
+    predictions = score_demo_rows(api_url, [{'order_id': row['order_id'], 'features': row['features']} for row in candidates], on_progress)
+    scores = dict(zip(ids, predictions))
+    with lock:
+        store[key] = scores
+        while len(store) > SCORE_CACHE_ENTRIES: store.popitem(last=False)
+    return scores
+
+
+def build_day_worklist(api_url, versions, simulation_date, review_proportion, minimum_days_remaining, revision, on_progress=None):
+    """Score once per day; changing the follow-up proportion or minimum days re-ranks locally without API calls."""
+    scores = day_scores(api_url, versions, simulation_date, revision, on_progress)
     return build_worklist(load_demo_orders(), simulation_date, review_proportion, minimum_days_remaining,
-                          lambda rows: score_demo_rows(api_url, rows))
+                          lambda rows: [scores[row['order_id']] for row in rows])

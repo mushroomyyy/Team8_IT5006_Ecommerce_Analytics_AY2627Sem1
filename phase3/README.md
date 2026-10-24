@@ -33,7 +33,8 @@ test environment can resolve both; it also includes HTTP test support.
 ## Use the application
 
 1. Open **Daily simulation**. Imagine the displayed current date is today.
-   Dates range from 2 June to 1 July 2018, scoring the previous day's approvals.
+   Dates range from 2 June to 30 August 2018, scoring the previous day's approvals.
+   June guided model selection; July and August are unseen monitoring months.
 2. Move with the date picker or **Previous day / Next day**. The cutoff is
    midnight at the start of the simulated date in the source's local wall time.
 3. Set the follow-up proportion (30% initially) and minimum days remaining
@@ -45,8 +46,14 @@ test environment can resolve both; it also includes HTTP test support.
    guaranteed on-time delivery.
 6. Reveal retrospective outcomes explicitly to inspect historical selected late
    rate and coverage. Outcomes are hidden initially and reset on date/policy changes.
-7. Use **Single-order API demo** to submit a sample or edit its engineered inputs.
+7. Open **Month-end review** and pick a month to see what the daily list would
+   have caught over the whole month, compared with a whole-month ranking, random
+   calls and a ranking by R1's buffer, plus R1's timing accuracy. This page uses
+   pre-computed scores and works while the API is asleep.
+8. Use **Single-order API demo** to submit a sample or edit its engineered inputs.
    This calls the same services as the worklist. Batch CSV scoring is also available.
+9. **Models and guidance** summarises both models, month-by-month performance and
+   live API monitoring from `/logs/summary`.
 
 ## Organisation
 
@@ -56,6 +63,7 @@ test environment can resolve both; it also includes HTTP test support.
 | `frontend/` | Streamlit UI, server-side historical orchestration, daily policy and packaged demo data |
 | `artifacts/` | Fitted pipelines, metadata and packaging provenance; no historical order rows |
 | `export/` | Offline export/packaging utilities; never run at web startup |
+| `scripts/` | `score_replay.py` (pre-scores the replay for Month-end review), `evaluate_daily.py`, `verify_http.py` |
 | `tests/` | Model, API, temporal policy, packaging and Streamlit checks |
 | `docs/` | Deployment, model contracts, verification and archived prototype guide |
 
@@ -77,12 +85,21 @@ source data, Phase 2 modules, offline training utilities and tests.
 
 The Render API is live and verified at https://team8-delivery-api.onrender.com
 ([Swagger](https://team8-delivery-api.onrender.com/docs)). Both model endpoints passed HTTPS checks on 20 October 2026; the local Streamlit
-worklist was verified against that HTTPS inference API. Streamlit public
-deployment is pending at Andrew’s request; configure it with this API URL when ready.
+worklist was verified against that HTTPS inference API. The Streamlit app is
+deployed on Streamlit Community Cloud from `main` with this API URL.
 See the verification record for checks actually performed.
 
 For teammate connection details and a complete test request, see
 [TEAMMATE_CONNECTION.md](docs/TEAMMATE_CONNECTION.md).
+
+## Refreshing packaged data
+
+Run from the repository root after changing the replay window or the models:
+
+```bash
+python -m phase3.export.export_simulation   # needs Olist_CSV/; writes orders, outcomes, R1 targets
+python phase3/scripts/score_replay.py       # pre-scores every replay order and updates the manifest
+```
 
 ## API boundary
 

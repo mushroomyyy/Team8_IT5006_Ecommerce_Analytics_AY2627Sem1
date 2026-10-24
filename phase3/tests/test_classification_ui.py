@@ -12,8 +12,9 @@ import requests
 import streamlit as st
 from streamlit.testing.v1 import AppTest
 
-from phase3.frontend.orchestration import cached_worklist
-from phase3.frontend.app import BINARY, COUNTS, INTEGERS, LABELS, model_info, prepare_upload, scored_upload_frame, validate_form
+from phase3.frontend import orchestration
+from phase3.frontend.orchestration import HEALTH_TIMEOUT, REQUEST_TIMEOUT, clear_caches
+from phase3.frontend.app import BINARY, COUNTS, INTEGERS, LABELS, replay_score_percentiles, model_info, month_results, prepare_upload, scored_upload_frame, validate_form
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -35,7 +36,9 @@ class ClassificationUiTests(unittest.TestCase):
 
     def setUp(self):
         model_info.clear()
-        cached_worklist.clear()
+        clear_caches()
+        replay_score_percentiles.clear()
+        month_results.clear()
         self.demo_data = {'minimum_date': '2018-06-02', 'maximum_date': '2018-07-01', 'default_date': '2018-06-02', 'model_available_date': '2018-06-02', 'timezone': 'America/Sao_Paulo', 'batch_definition': 'Previous day by approval date', 'limitations': ['Snapshot history is incomplete.'], 'days': {}}
         orders = [{'order_id': r['order_id'], 'promised_delivery_date': '2018-06-20', 'features': {k: r[k] for k in self.stats['features']['numeric'] + self.stats['features']['categorical']}} for r in self.samples[:2]]
         from copy import deepcopy
@@ -47,6 +50,9 @@ class ClassificationUiTests(unittest.TestCase):
             if name == 'simulation_orders.json': return self.demo_data
             if name == 'classification_sample_orders.json': return self.samples.copy()
             if name == 'simulation_outcomes.json': return {'outcomes': {self.samples[0]['order_id']: 1, self.samples[1]['order_id']: None}}
+            if name == 'simulation_timing.json': return {'actual_days_from_promise': {self.samples[0]['order_id']: 1.0, self.samples[1]['order_id']: -6.0}}
+            if name == 'replay_scores.json': return {'models': {'classification': self.stats['model_version'], 'regression': 'r1-test'}, 'generated_at_utc': 'test',
+                                                   'scores': {r['order_id']: [.1 - .03 * i, -2.5] for i, r in enumerate(self.samples[:2])}}
             raise AssertionError(name)
         self.data_patch = patch('phase3.frontend.orchestration.read_demo_json', side_effect=demo_json)
         self.data_patch.start(); self.addCleanup(self.data_patch.stop)
@@ -63,6 +69,7 @@ class ClassificationUiTests(unittest.TestCase):
     def get_response(self, url, **kwargs):
         if url.endswith('/health'): return Response({'status': 'healthy', 'model_loaded': True})
         if url.endswith('/model-info'): return Response({'classification': self.stats, 'regression': {'model_code': 'R1', 'model_version': 'r1-test'}})
+        if url.endswith('/logs/summary'): return Response({'request_count': 3, 'prediction_count': 9, 'window_size': 9, 'mean_score': .08, 'recent_warnings': []})
         raise AssertionError(f'Frontend must not call demonstration API routes: {url}')
 
     def post_response(self, url, **kwargs):
@@ -86,7 +93,7 @@ class ClassificationUiTests(unittest.TestCase):
         self.widget('button', 'Previous day').click().run(timeout=20)
         self.assertEqual(str(self.app.date_input[0].value), '2018-06-02')
         from datetime import date
-        self.app.date_input[0].set_value(date(2018, 7, 1)).run(timeout=20)
+        self.app.date_input[0].set_value(date(2018, 8, 30)).run(timeout=20)
         self.assertTrue(self.widget('button', 'Next day').disabled)
         self.assertFalse(self.app.exception)
 
@@ -103,7 +110,7 @@ class ClassificationUiTests(unittest.TestCase):
 
     def test_policy_and_unknown_denominators_without_rescoring_on_reveal(self):
         self.widget('slider', 'Follow-up proportion (%)').set_value(40).run(timeout=20)
-        self.widget('number_input', 'Minimum days remaining before promise').set_value(3).run(timeout=20)
+        self.widget('number_input', 'Min. days before promise').set_value(3).run(timeout=20)
         calls = self.post.call_count
         self.widget('button', 'Reveal eventual outcomes').click().run(timeout=20)
         self.assertEqual(self.post.call_count, calls)
@@ -186,21 +193,26 @@ class ClassificationUiTests(unittest.TestCase):
             self.widget('button', 'Predict delivery').click().run(timeout=20)
         self.assertTrue(any('Timed out' in e.value for e in self.app.error))
         self.get.side_effect = requests.ConnectionError('backend unavailable')
-        self.app.run(timeout=20)
+        with patch.object(orchestration, 'WAKE_BUDGET_SECONDS', 0):
+            self.widget('button', 'Retry API connection').click().run(timeout=20)
         self.assertTrue(any('backend unavailable' in e.value for e in self.app.error))
         self.assertFalse(self.app.session_state['api_connected'])
         self.assertFalse(self.app.exception)
 
     def test_cold_start_note_timeout_budget_and_retry_after_inactivity(self):
-        self.assertTrue(any('50 seconds or more' in note.value and 'After inactivity' in note.value for note in self.app.info))
+        self.assertTrue(any('50 seconds or more' in note.value and 'After inactivity' in note.value for note in self.app.caption))
         self.assertTrue(self.app.session_state['api_connected'])
-        with patch('streamlit.spinner', wraps=st.spinner) as spinner:
-            self.app.run(timeout=20)
-        self.assertTrue(any('Checking / waking' in call.args[0] and call.kwargs.get('show_time') for call in spinner.call_args_list))
-        for call in self.get.call_args_list + self.post.call_args_list:
-            self.assertEqual(call.kwargs['timeout'], (10, 120))
+        from streamlit.delta_generator import DeltaGenerator
+        with patch.object(DeltaGenerator, 'status', autospec=True, side_effect=DeltaGenerator.status) as status:
+            self.widget('button', 'Retry API connection').click().run(timeout=20)
+        self.assertTrue(any('Checking / waking' in call.args[1] for call in status.call_args_list))
+        # No single call may block a run (or a refreshed page) for minutes.
+        for call in self.get.call_args_list: self.assertEqual(call.kwargs['timeout'], HEALTH_TIMEOUT)
+        for call in self.post.call_args_list: self.assertEqual(call.kwargs['timeout'], REQUEST_TIMEOUT)
+        self.assertLessEqual(sum(REQUEST_TIMEOUT), 65)
         self.get.side_effect = requests.Timeout('Service still waking')
-        self.app.run(timeout=20)
+        with patch.object(orchestration, 'WAKE_BUDGET_SECONDS', 0):
+            self.widget('button', 'Retry API connection').click().run(timeout=20)
         self.assertFalse(self.app.session_state['api_connected'])
         self.assertTrue(any('Retry API connection' in note.value and '50 seconds or more' in note.value for note in self.app.info))
         self.assertFalse(self.app.exception)
@@ -214,7 +226,7 @@ class ClassificationUiTests(unittest.TestCase):
         self.app.run(timeout=20)
         self.assertEqual(self.post.call_count, first_calls)
         self.stats = {**self.stats, 'model_version': 'updated-model'}
-        self.app.run(timeout=20)
+        self.widget('button', 'Retry API connection').click().run(timeout=20)
         self.assertGreater(self.post.call_count, first_calls)
         self.assertNotIn('simulation_outcomes.json', self.json_reads)
         current_calls = self.post.call_count
@@ -269,8 +281,54 @@ class ClassificationUiTests(unittest.TestCase):
             if key != 'payment_value_sum':
                 self.assertEqual(rows[0]['features'][key], self.samples[0][key])
 
+    def test_policy_changes_rerank_locally_without_api_calls(self):
+        calls = self.post.call_count
+        self.widget('slider', 'Follow-up proportion (%)').set_value(50).run(timeout=20)
+        self.widget('number_input', 'Min. days before promise').set_value(2).run(timeout=20)
+        self.assertEqual(self.post.call_count, calls)
+        self.assertEqual(self.app.metric[3].value, '1')
+        self.assertFalse(self.app.exception)
+
+    def test_day_navigation_is_clamped_instead_of_crashing(self):
+        from datetime import date
+        from phase3.frontend import app as app_module
+        low, high = date(2018, 6, 2), date(2018, 8, 30)
+        # Queued clicks can run the callback after the button should have been disabled.
+        for start, delta, expected in [(high, 1, high), (low, -1, low), (date(2018, 6, 10), 1, date(2018, 6, 11))]:
+            with patch.object(app_module.st, 'session_state', {'simulation_day': start}) as state:
+                app_module.navigate_day(delta, low, high)
+                self.assertEqual(state['simulation_day'], expected)
+        self.app.session_state['simulation_day'] = date(2018, 9, 9)  # stale out-of-range state must not crash the page
+        self.app.run(timeout=20)
+        self.assertFalse(self.app.exception)
+
+    def test_new_session_reuses_scores_and_connection_is_checked_once(self):
+        health_calls = sum(call.args[0].endswith('/health') for call in self.get.call_args_list)
+        self.app.run(timeout=20)
+        self.assertEqual(sum(call.args[0].endswith('/health') for call in self.get.call_args_list), health_calls)
+        posts = self.post.call_count
+        AppTest.from_file(str(ROOT / 'frontend/app.py')).run(timeout=20)  # e.g. a refresh or a second viewer
+        self.assertEqual(self.post.call_count, posts)
+
+    def test_month_end_review_works_without_api(self):
+        posts = self.post.call_count
+        self.get.side_effect = requests.ConnectionError('backend asleep')
+        self.app.radio[0].set_value('Month-end review').run(timeout=20)
+        self.assertFalse(self.app.exception)
+        self.assertEqual(self.post.call_count, posts)
+        labels = [m.label for m in self.app.metric]
+        self.assertIn('Late deliveries caught', labels)
+        caught = next(m for m in self.app.metric if m.label == 'Late deliveries caught')
+        self.assertEqual(caught.value, '2 of 2')  # the known late order appears on both fixture days and ranks first
+        self.assertTrue(any('Selection month' in w.value and 'Retrospective view' in w.value for w in self.app.warning))
+        mae = next(m for m in self.app.metric if m.label == 'Typical error (MAE)')
+        self.assertEqual(mae.value, '3.5 days')  # |-2.5 - 1| and |-2.5 + 6|
+        self.app.radio(key='month_pick').set_value('2018-07').run(timeout=20)
+        self.assertFalse(self.app.exception)
+        self.assertTrue(any('Out-of-time monitoring' in i.value for i in self.app.info))
+
     def test_supporting_pages_and_frontend_isolation(self):
-        for page in ['Batch API demo', 'Models and guidance']:
+        for page in ['Batch API demo', 'Models and guidance', 'Month-end review']:
             self.app.radio[0].set_value(page).run(timeout=20)
             self.assertFalse(self.app.exception)
         source = (ROOT / 'frontend/app.py').read_text()
