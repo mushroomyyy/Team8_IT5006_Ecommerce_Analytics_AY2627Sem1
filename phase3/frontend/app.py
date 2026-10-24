@@ -16,6 +16,16 @@ import time
 _repo_root = str(Path(__file__).resolve().parents[2])
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
+# Streamlit Cloud reruns this file after a push without restarting Python, so sibling
+# modules imported by an earlier version can be stale; reload any whose source changed.
+import importlib
+import phase3.frontend.simulation as _simulation_module
+import phase3.frontend.orchestration as _orchestration_module
+for _module in (_simulation_module, _orchestration_module):
+    _mtime = os.path.getmtime(_module.__file__)
+    if getattr(_module, '_source_mtime', None) != _mtime:
+        _module = importlib.reload(_module)
+        _module._source_mtime = _mtime
 from phase3.frontend.orchestration import (HEALTH_TIMEOUT, WAKE_BUDGET_SECONDS, api_request, build_day_worklist,
     load_demo_orders, load_demo_samples, load_month_inputs, model_versions, reveal_outcomes, snapshot_revision,
     wait_for_service)
