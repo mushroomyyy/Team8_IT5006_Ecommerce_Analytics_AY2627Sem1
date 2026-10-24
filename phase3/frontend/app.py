@@ -348,7 +348,7 @@ def agreement_chart(frame):
     data = frame.assign(Group=[FOLLOW_LABEL if flag else OTHER_LABEL for flag in frame['follow_up_recommended']])
     points = alt.Chart(data).mark_circle(size=55, opacity=0.8).encode(
         x=alt.X('late_probability:Q', title='C3 late-delivery risk', axis=alt.Axis(format='%')),
-        y=alt.Y('predicted_days_from_promise:Q', title='R1 days from promise (0 = on the promise date)'),
+        y=alt.Y('predicted_days_from_promise:Q', title='R1: days before promised date'),
         color=alt.Color('Group:N', scale=alt.Scale(domain=[FOLLOW_LABEL, OTHER_LABEL], range=[FOLLOW, OTHER]), legend=alt.Legend(orient='top', title=None)),
         tooltip=[alt.Tooltip('order_id:N', title='Order'), alt.Tooltip('late_probability:Q', title='C3 risk', format='.1%'),
                  alt.Tooltip('predicted_days_from_promise:Q', title='R1 days', format='+.1f')])
@@ -409,9 +409,9 @@ def daily_page(api_url, metadata):
             st.altair_chart(risk_chart(frame, result['counts']['selected']), width='stretch')
             st.caption('One bar per order. Orange = today’s follow-up list.')
         with chart_right.container(border=True):
-            st.markdown('**Two views of risk: C3 ranking and R1 safety buffer**')
+            st.markdown('**How the two models see each order**')
             st.altair_chart(agreement_chart(frame), width='stretch')
-            st.caption('Dashed line = promised date. Closer to it means less slack.')
+            st.caption('Each dot is an order. Right = higher C3 risk. Higher = R1 expects it to arrive closer to its promised date (dashed line), so less room for delay. Top-right orders worry both models.')
         columns = ['rank', 'order_id', 'late_probability', 'recommendation', 'promised_delivery_date', 'predicted_days_from_promise']
         display = frame[[c for c in columns if c in frame]].copy()
         display['promised_delivery_date'] = display['promised_delivery_date'].str[:10]
