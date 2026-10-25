@@ -1,4 +1,4 @@
-"""Export C3 from the repository root with -m phase3.export.train_classification.
+"""Export C3 from the repository root with -m deployment.export.train_classification.
 
 Uses the notebook's cached CV-selected parameters and known-outcome history,
 never June labels for fitting or threshold selection. Raw Olist data is needed
@@ -20,7 +20,7 @@ import pandas as pd
 import sklearn
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "phase2"))
+sys.path.insert(0, str(ROOT))
 
 from src import RANDOM_STATE  # noqa: E402
 from src.data import load_olist_data  # noqa: E402
@@ -29,7 +29,7 @@ from src.evaluation import score_months, classification_eval_metrics, fingerprin
 from src.features import add_extra_features, build_feature_table  # noqa: E402
 from src.rf_search import tuned_rf_pipeline  # noqa: E402
 
-RESULTS = ROOT / "phase2/results/simple_to_complex/classification"
+RESULTS = ROOT / "results/simple_to_complex/classification"
 ARTIFACTS = Path(__file__).resolve().parents[1] / "artifacts"
 THRESHOLD_POLICY = (
     "Illustrative fixed 0.5 cutoff; not optimized for operational use. "
@@ -139,7 +139,7 @@ def export(output_dir: Path = ARTIFACTS) -> dict:
         "serialization": {"python": platform.python_version(), "scikit_learn": sklearn.__version__,
                           "numpy": np.__version__, "pandas": pd.__version__, "joblib": joblib.__version__},
         "evaluation": evaluation,
-        "evaluation_source": "phase2/results/simple_to_complex/classification/model_results_long.csv",
+        "evaluation_source": "results/simple_to_complex/classification/model_results_long.csv",
         "evaluation_notes": "Train/Validation use development fits; June uses history refit; July/August are monitoring. Metrics are historical, not live accuracy.",
         "export_verification": {"june_ap": reproduced["avg_precision"], "reference_june_ap": expected_ap,
                                 "june_scored": len(june), "sample_training_overlap": 0},
@@ -152,7 +152,7 @@ def export(output_dir: Path = ARTIFACTS) -> dict:
     if not np.array_equal(model.predict_proba(X_check), reloaded.predict_proba(X_check)):
         raise AssertionError("Serialization changed predictions")
     (output_dir / "classification_model_stats.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    samples_dir = ROOT / "phase3/frontend/data"
+    samples_dir = ROOT / "deployment/app/data"
     samples_dir.mkdir(parents=True, exist_ok=True)
     (samples_dir / "classification_sample_orders.json").write_text(json.dumps(samples, indent=2) + "\n")
     replay = {"model_version": metadata["model_version"], "days": {}}

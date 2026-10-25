@@ -9,11 +9,11 @@ import numpy as np
 import pandas as pd
 from fastapi.testclient import TestClient
 
-from phase3.backend import api
-from phase3.backend.classification_service import ClassificationService
-from phase3.backend.model_service import ModelService
+from deployment.api import api
+from deployment.api.classification_service import ClassificationService
+from deployment.api.model_service import ModelService
 
-DATA = Path(__file__).resolve().parents[1] / "frontend" / "data"
+DATA = Path(__file__).resolve().parents[2] / "deployment/app/data"
 
 
 class RegressionTests(unittest.TestCase):

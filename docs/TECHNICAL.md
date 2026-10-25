@@ -59,7 +59,7 @@ on explicit reveal. Changing date or policy hides revealed outcomes again.
 
 Both artifacts preserve fitted preprocessing. C3 bytes are moved unchanged from
 the pre-integration working tree. R1 is not retrained: only its custom transformer
-class import path changes to `phase3.backend.transforms.ExpandColumns`, so inference
+class import path changes to `deployment.api.transforms.ExpandColumns`, so inference
 works without Phase 2 imports. `regression_packaging.json` records source and
 packaged SHA256 hashes and exact pre/post serialization equality for all 6,164
 June rows. `manifest.json` hashes the current packaged files.
@@ -72,7 +72,7 @@ warnings, without late/not-late decisions.
 The historical refit was available on 2 June 2018, using known outcomes strictly
 before that date and approvals from 18 April 2017 through 17 April 2018, with a
 45-day waiting buffer. C3 uses 63,592 history rows; R1 uses 62,841. Source notebooks
-and result tables remain under `phase2/`. The submitted report selected C3 and R1;
+and result tables remain under `notebooks/`, `src/` and `results/`. The submitted report selected C3 and R1;
 June guided selection, while July/August are frozen-model monitoring.
 
 Historical June C3 AP is about 11.22%; R1 RMSE is about 7.369 days and MAE 5.81 days.
@@ -105,11 +105,11 @@ Phase 2 cohort results, not a promise for the implemented daily filtered policy.
   cannot be reconstructed. This is a historical simulation with those limitations.
 
 Snapshots are exported offline from the same Phase 2 feature builder and source
-orders. `frontend/data/simulation_orders.json` has engineered features, approval, promise
+orders. `deployment/app/data/simulation_orders.json` has engineered features, approval, promise
 and delivery timestamps for as-of logic, never final status. These stay in the
 Streamlit Python server; only order identifiers and engineered features are sent
 to Render. Displayed worklist rows omit delivery timestamps.
-`frontend/data/simulation_outcomes.json` is separate and never read for eligibility
+`deployment/app/data/simulation_outcomes.json` is separate and never read for eligibility
 or scoring. Its labels follow Phase 2's
 approval-day-plus-45-days inclusive evaluation rule, preserving unknowns.
 
@@ -133,10 +133,10 @@ numeric rows are rejected. Batch requests accept 1–1,000 rows and report row e
 Export utilities require the original source tables/bundled ZIP and Phase 2 modules:
 
 ```bash
-python -m phase3.export.train_classification  # offline refit; not required to serve
-python -m phase3.export.train_regression      # offline refit; not required to serve
-python -m phase3.export.package_regression    # repackage original remote-branch artifact, no fit
-python -m phase3.export.export_simulation     # snapshot export, no model fit; refresh manifest last
+python -m deployment.export.train_classification  # offline refit; not required to serve
+python -m deployment.export.train_regression      # offline refit; not required to serve
+python -m deployment.export.package_regression    # repackage original fixed-commit artifact, no fit
+python -m deployment.export.export_simulation     # snapshot export, no model fit; refresh manifest last
 ```
 
 Do not retrain casually: the checked-in fitted models and export provenance are
@@ -148,11 +148,11 @@ professor deployment examples were reviewed instead.
 
 The documented inference request accepts exactly the feature names listed by
 `/model-info`. A complete synthetic example is in
-[`../scripts/verify_http.py`](../scripts/verify_http.py); it submits no real order
+[`deployment/scripts/verify_http.py`](../deployment/scripts/verify_http.py); it submits no real order
 identifiers or copied transaction records. To verify a local or deployed API:
 
 ```bash
-python phase3/scripts/verify_http.py https://team8-delivery-api.onrender.com
+python -m deployment.scripts.verify_http https://team8-delivery-api.onrender.com
 ```
 
 The verifier checks integrated vs independent model outputs, single/batch numerical
@@ -191,14 +191,14 @@ Historical dates and outcome reveal are Streamlit operations, not API endpoints.
 
 ## Month-end review
 
-- `phase3/scripts/score_replay.py` pre-scores all 18,960 June–August replay
+- `deployment/scripts/score_replay.py` pre-scores all 18,960 June–August replay
   orders with the packaged C3/R1 artifacts (identical to the deployed API per
-  `render_model_equivalence.json`) into `frontend/data/replay_scores.json`.
+  `render_model_equivalence.json`) into `deployment/app/data/replay_scores.json`.
 - Each month replays every morning with the daily list rules; outcomes are
   attached only after ranking. Comparisons: whole-month C3 ranking (Phase 2
   style), random calls, and the same daily rules ranked by R1's predicted days
   from promise.
-- `frontend/data/simulation_timing.json` holds R1's Phase 2 target per order
+- `deployment/app/data/simulation_timing.json` holds R1's Phase 2 target per order
   (`attach_regression_actuals`, 45-day cap, final canceled/unavailable excluded).
   June reproduces the reported R1 RMSE 7.369 and MAE 5.81.
 

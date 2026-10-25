@@ -1,6 +1,6 @@
 """Verify a freshly started local or deployed API over HTTP.
 
-Usage: python phase3/scripts/verify_http.py https://actual-service-url
+Usage: python -m deployment.scripts.verify_http https://actual-service-url
 Uses the standard library only. Never records raw input data or credentials.
 """
 from __future__ import annotations

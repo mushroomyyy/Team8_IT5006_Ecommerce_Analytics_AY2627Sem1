@@ -78,7 +78,7 @@ curl https://team8-delivery-api.onrender.com/health
 ```bash
 curl -X POST https://team8-delivery-api.onrender.com/predict \
   -H 'Content-Type: application/json' \
-  --data-binary @phase3/docs/synthetic_prediction.json
+  --data-binary @docs/synthetic_prediction.json
 ```
 
 ```json
@@ -189,7 +189,7 @@ import json
 import requests
 
 BASE = "https://team8-delivery-api.onrender.com"
-features = json.load(open("phase3/docs/synthetic_prediction.json"))["features"]
+features = json.load(open("docs/synthetic_prediction.json"))["features"]
 
 requests.get(BASE + "/health", timeout=90).raise_for_status()   # wakes the service if asleep
 
@@ -261,7 +261,7 @@ curl -X POST https://team8-delivery-api.onrender.com/predict \
 ## Verify a deployment
 
 ```bash
-python phase3/scripts/verify_http.py https://team8-delivery-api.onrender.com
+python -m deployment.scripts.verify_http https://team8-delivery-api.onrender.com
 ```
 
 The script checks health, single and batch equivalence, each model route

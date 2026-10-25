@@ -1,6 +1,6 @@
 """Standalone fitted R1 column transformer.
 
-ExpandColumns is copied without behavioural changes from phase2/src/linear_transforms.py.
+ExpandColumns is copied without behavioural changes from src/linear_transforms.py.
 The artifact is rebound to this import path without fitting; export verification
 compares every June replay prediction exactly against the original artifact.
 """

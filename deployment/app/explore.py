@@ -1,6 +1,6 @@
 """Explore the data: the Phase 1 dashboard rebuilt on Phase 2 definitions, plus model outputs.
 
-Reads only the small tables written by phase3/export/export_eda.py, never the raw data.
+Reads only the small tables written by deployment/export/export_eda.py, never the raw data.
 """
 from __future__ import annotations
 

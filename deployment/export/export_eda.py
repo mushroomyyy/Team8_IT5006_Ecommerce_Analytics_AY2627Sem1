@@ -1,6 +1,6 @@
 """Export the tables behind the app's Explore the data page, using Phase 2 definitions.
 
-Run from repository root: python -m phase3.export.export_eda
+Run from repository root: python -m deployment.export.export_eda
 Needs the raw Olist tables (Olist_CSV/ or the bundled zip). The app then reads
 only the small files written here, never the raw data.
 
@@ -20,12 +20,12 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / 'phase2'))
+sys.path.insert(0, str(ROOT))
 from src.data import load_olist_data
 from src.features import add_extra_features, build_feature_table
 from src.labels import attach_prediction_labels, attach_regression_actuals
 
-OUT = ROOT / 'phase3/frontend/data/eda'
+OUT = ROOT / 'deployment/app/data/eda'
 FIRST_MONTH, LAST_MONTH = '2017-01', '2018-08'
 
 
@@ -149,10 +149,10 @@ def export():
     seller_history(data, approved).to_parquet(OUT / 'seller_history.parquet', index=False, compression='zstd')
     repeat_monthly(data, approved).to_parquet(OUT / 'repeat_monthly.parquet', index=False, compression='zstd')
     (OUT / 'data_checks.json').write_text(json.dumps(data_checks(data), indent=1) + '\n')
-    manifest_path = ROOT / 'phase3/artifacts/manifest.json'
+    manifest_path = ROOT / 'deployment/artifacts/manifest.json'
     manifest = json.loads(manifest_path.read_text())
     manifest['eda_data'] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(OUT.iterdir()) if p.is_file()}
-    manifest['eda_export'] = 'python -m phase3.export.export_eda'
+    manifest['eda_export'] = 'python -m deployment.export.export_eda'
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
     known = approved['late'].notna()
     print(f"{len(approved):,} approved orders {FIRST_MONTH}..{LAST_MONTH}; late rate {approved.loc[known, 'late'].mean():.2%} of {known.sum():,} known")

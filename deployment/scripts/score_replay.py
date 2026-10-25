@@ -1,6 +1,6 @@
 """Pre-score every June–August replay order for the month-end review page.
 
-Run from root: python phase3/scripts/score_replay.py
+Run from root: python -m deployment.scripts.score_replay
 Uses the same packaged C3/R1 artifacts that the API serves (see
 docs/render_model_equivalence.json). Scores depend only on approval-time
 features; outcomes are never read here.
@@ -14,17 +14,17 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
-from phase3.backend.classification_service import ClassificationService
-from phase3.backend.feature_validation import FeatureValidationError
-from phase3.backend.model_service import ModelService
+from deployment.api.classification_service import ClassificationService
+from deployment.api.feature_validation import FeatureValidationError
+from deployment.api.model_service import ModelService
 import pandas as pd
 
-OUTPUT=ROOT/'phase3/frontend/data/replay_scores.json'
+OUTPUT=ROOT/'deployment/app/data/replay_scores.json'
 
 
 def score_replay():
     c,r=ClassificationService(),ModelService()
-    snapshots=json.loads((ROOT/'phase3/frontend/data/simulation_orders.json').read_text())
+    snapshots=json.loads((ROOT/'deployment/app/data/simulation_orders.json').read_text())
     rows=[row for day in snapshots['days'].values() for row in day]
     if len({row['order_id'] for row in rows})!=len(rows):
         raise SystemExit('Order IDs must be unique across the replay')
@@ -46,7 +46,7 @@ def score_replay():
             'columns':['late_probability','predicted_days_from_promise'],
             'scores':scores}
     OUTPUT.write_text(json.dumps(result,separators=(',',':'))+'\n')
-    manifest_path=ROOT/'phase3/artifacts/manifest.json'
+    manifest_path=ROOT/'deployment/artifacts/manifest.json'
     manifest=json.loads(manifest_path.read_text())
     manifest['frontend_data'].pop('june_scores.json',None)
     manifest['frontend_data'][OUTPUT.name]=hashlib.sha256(OUTPUT.read_bytes()).hexdigest()

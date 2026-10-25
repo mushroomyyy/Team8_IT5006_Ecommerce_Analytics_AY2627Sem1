@@ -12,15 +12,15 @@ From the repository root:
 
 ```bash
 python3.13 -m venv .venv-phase3
-source .venv-phase3/bin/activate
-python -m pip install -r phase3/requirements-test.txt
-python -m uvicorn phase3.backend.api:app --host 127.0.0.1 --port 8002
+source .venv-deployment/bin/activate
+python -m pip install -r deployment/requirements-test.txt
+python -m uvicorn deployment.api.api:app --host 127.0.0.1 --port 8002
 ```
 
 In another shell with the environment activated:
 
 ```bash
-DELIVERY_API_URL=http://127.0.0.1:8002 python -m streamlit run phase3/frontend/app.py
+DELIVERY_API_URL=http://127.0.0.1:8002 python -m streamlit run deployment/app/app.py
 ```
 
 Open the printed Streamlit address (normally localhost:8501). The API exposes
@@ -55,7 +55,7 @@ test environment can resolve both; it also includes HTTP test support.
    definitions: filters by month, state, route and category; tabs for orders,
    delivery, geography, sellers, customers (repeat purchases and reviews), model
    outputs and data definitions. Refresh its tables with
-   `python -m phase3.export.export_eda`.
+   `python -m deployment.export.export_eda`.
 9. Use **Single-order API demo** to submit a sample or edit its engineered inputs.
    This calls the same services as the worklist. Batch CSV scoring is also available;
    `docs/examples/batch_example.csv` is a ready-made file of 10 orders.
@@ -66,22 +66,22 @@ test environment can resolve both; it also includes HTTP test support.
 
 | Folder | Purpose |
 |---|---|
-| `backend/` | Independent fitted-model services, strict input validation and inference routes |
-| `frontend/` | Streamlit UI, server-side historical orchestration, daily policy and packaged demo data |
-| `artifacts/` | Fitted pipelines, metadata and packaging provenance; no historical order rows |
-| `export/` | Offline export/packaging utilities; never run at web startup |
-| `scripts/` | `score_replay.py` (pre-scores the replay for Month-end review), `evaluate_daily.py`, `verify_http.py` |
-| `tests/` | Model, API, temporal policy, packaging and Streamlit checks |
+| `deployment/api/` | Independent fitted-model services, strict input validation and inference routes |
+| `deployment/app/` | Streamlit UI, server-side historical orchestration, daily policy and packaged demo data |
+| `deployment/artifacts/` | Fitted pipelines, metadata and packaging provenance; no historical order rows |
+| `deployment/export/` | Offline export/packaging utilities; never run at web startup |
+| `deployment/scripts/` | `score_replay.py` (pre-scores the replay for Month-end review), `evaluate_daily.py`, `verify_http.py` |
+| `tests/deployment/` | Model, API, temporal policy, packaging and Streamlit checks |
 | `docs/` | API guide, deployment, model contracts, verification and archived prototype guide |
 
-See [calling the API](docs/API.md), [model and simulation contracts](docs/TECHNICAL.md),
-[hosting instructions](docs/DEPLOYMENT.md) and [verification record](docs/VERIFICATION.md).
+See [calling the API](API.md), [model and simulation contracts](TECHNICAL.md),
+[hosting instructions](DEPLOYMENT.md) and [verification record](VERIFICATION.md).
 
 ## Tests
 
 ```bash
-python -m unittest discover -s phase3/tests -t . -v
-python -m unittest discover -s phase2 -p 'test_*.py'
+python -m pytest tests/deployment -q
+python -m pytest tests/phase2 -q
 ```
 
 Some packaging tests compare against original Git history; run them in a full
@@ -97,7 +97,7 @@ deployed on Streamlit Community Cloud from `main` with this API URL.
 See the verification record for checks actually performed.
 
 To call the live API yourself (endpoints, request and response examples, errors),
-see [API.md](docs/API.md). The app is live at
+see [API.md](API.md). The current app URL (replacement pending after the directory migration) is
 https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/.
 
 ## Refreshing packaged data
@@ -105,8 +105,8 @@ https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit
 Run from the repository root after changing the replay window or the models:
 
 ```bash
-python -m phase3.export.export_simulation   # needs Olist_CSV/; writes orders, outcomes, R1 targets
-python phase3/scripts/score_replay.py       # pre-scores every replay order and updates the manifest
+python -m deployment.export.export_simulation   # needs Olist_CSV/; writes orders, outcomes, R1 targets
+python -m deployment.scripts.score_replay       # pre-scores every replay order and updates the manifest
 ```
 
 ## API boundary

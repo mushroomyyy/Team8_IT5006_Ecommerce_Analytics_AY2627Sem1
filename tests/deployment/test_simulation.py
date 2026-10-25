@@ -1,12 +1,12 @@
 """Policy boundary checks that would catch future-information leakage."""
 from copy import deepcopy
 from unittest.mock import patch
-from phase3.frontend import orchestration
-from phase3.frontend.orchestration import score_demo_rows, wait_for_service
+from deployment.app import orchestration
+from deployment.app.orchestration import score_demo_rows, wait_for_service
 from datetime import date
 import unittest
 
-from phase3.frontend.simulation import build_worklist, month_replay, month_summary, monthly_ranking, retrospective, SimulationDataError
+from deployment.app.simulation import build_worklist, month_replay, month_summary, monthly_ranking, retrospective, SimulationDataError
 import json
 
 
@@ -106,7 +106,7 @@ class PolicyTests(unittest.TestCase):
             month_replay(self.data, {}, outcomes, 1)
 
     def test_timing_accuracy_matches_hand_calculation_and_month_filter(self):
-        from phase3.frontend.simulation import timing_accuracy
+        from deployment.app.simulation import timing_accuracy
         data = {"days": {"2018-06-01": [{"order_id": "x"}, {"order_id": "y"}], "2018-07-01": [{"order_id": "z"}], "2018-06-02": [{"order_id": "gone"}]}}
         scores = {"x": [.9, -10.], "y": [.1, -4.], "z": [.5, 0.], "gone": [.2, -1.]}
         actual = {"x": -12., "y": 2., "z": 3., "gone": None}  # canceled/unknown targets are skipped
@@ -136,7 +136,7 @@ class HttpOrchestrationTests(unittest.TestCase):
         self.results = [{'index': i, 'order_id': row['order_id'], 'prediction': score([row])[0]} for i, row in enumerate(self.rows)]
 
     def test_host_html_error_pages_become_readable_messages(self):
-        from phase3.frontend.orchestration import api_request
+        from deployment.app.orchestration import api_request
         class Reply:
             def __init__(self, status, text, payload=None): self.status_code, self.ok, self.text, self.payload = status, status < 400, text, payload
             def json(self):
@@ -156,11 +156,11 @@ class HttpOrchestrationTests(unittest.TestCase):
     def test_validation422_only_becomes_exclusion_and_remote_errors_abort(self):
         results = deepcopy(self.results)
         results[0] = {'index': 0, 'order_id': 'a', 'status_code': 422, 'error': 'invalid features'}
-        with patch('phase3.frontend.orchestration.api_request', return_value={'results': results}):
+        with patch('deployment.app.orchestration.api_request', return_value={'results': results}):
             self.assertEqual(score_demo_rows('https://api', self.rows), [None, self.results[1]['prediction']])
         for status in [500, 503, None]:
             results[0]['status_code'] = status
-            with self.subTest(status=status), patch('phase3.frontend.orchestration.api_request', return_value={'results': results}), self.assertRaises(SimulationDataError):
+            with self.subTest(status=status), patch('deployment.app.orchestration.api_request', return_value={'results': results}), self.assertRaises(SimulationDataError):
                 score_demo_rows('https://api', self.rows)
 
     def test_results_require_exact_count_index_identity_and_finite_outputs(self):
@@ -172,7 +172,7 @@ class HttpOrchestrationTests(unittest.TestCase):
             entries[0].update(change)
             broken.append(entries)
         for results in broken:
-            with self.subTest(results=results), patch('phase3.frontend.orchestration.api_request', return_value={'results': results}), self.assertRaises(SimulationDataError):
+            with self.subTest(results=results), patch('deployment.app.orchestration.api_request', return_value={'results': results}), self.assertRaises(SimulationDataError):
                 score_demo_rows('https://api', self.rows)
 
     def test_preeligibility_sends_only_eligible_features_and_batch_identity(self):
@@ -181,12 +181,12 @@ class HttpOrchestrationTests(unittest.TestCase):
             self.assertEqual(endpoint, '/predict/batch')
             self.assertEqual([r['order_id'] for r in payload['rows']], ['ok'])
             return {'results': [{'index': 0, 'order_id': 'ok', 'prediction': score(payload['rows'])[0]}]}
-        with patch('phase3.frontend.orchestration.api_request', side_effect=response):
+        with patch('deployment.app.orchestration.api_request', side_effect=response):
             result = build_worklist(data, date(2018, 6, 2), .3, 1, lambda rows: score_demo_rows('https://api', rows))
         self.assertEqual(result['counts'], {'total': 3, 'eligible': 1, 'selected': 1, 'excluded': 2})
 
     def test_scoring_candidates_cover_every_minimum_days_setting_without_delivered_rows(self):
-        from phase3.frontend.simulation import scoring_candidates
+        from deployment.app.simulation import scoring_candidates
         data = {'days': {'2018-06-01': [order('ok'), order('due', promise='2018-06-02'), order('missing', promise=None),
                                         order('past', delivery='2018-06-01T23:59:59'), order('later', delivery='2018-06-05T00:00:00')]},
                 'timezone': 'local', 'batch_definition': 'approval_date'}
@@ -202,7 +202,7 @@ class HttpOrchestrationTests(unittest.TestCase):
         def response(url, endpoint, payload):
             return {'results': [{'index': i, 'order_id': r['order_id'], 'prediction': score([r])[0]} for i, r in enumerate(payload['rows'])]}
         progress = []
-        with patch('phase3.frontend.orchestration.api_request', side_effect=response) as call:
+        with patch('deployment.app.orchestration.api_request', side_effect=response) as call:
             self.assertEqual(len(score_demo_rows('https://api', rows, lambda done, total: progress.append((done, total)))), 250)
         self.assertEqual([len(c.args[2]['rows']) for c in call.call_args_list], [100, 100, 50])
         self.assertEqual(progress, [(0, 250), (100, 250), (200, 250), (250, 250)])
@@ -214,11 +214,11 @@ class HttpOrchestrationTests(unittest.TestCase):
             item = next(attempts)
             if isinstance(item, Exception): raise item
             return item
-        with patch('phase3.frontend.orchestration.api_request', side_effect=health), patch('time.sleep') as sleep:
+        with patch('deployment.app.orchestration.api_request', side_effect=health), patch('time.sleep') as sleep:
             self.assertEqual(wait_for_service('https://api', lambda elapsed, exc: waits.append(type(exc).__name__)), {'status': 'ok'})
         self.assertEqual(waits, ['ConnectionError', 'Timeout'])
         self.assertEqual(sleep.call_count, 2)
-        with patch('phase3.frontend.orchestration.api_request', side_effect=requests.ConnectionError('down')), \
+        with patch('deployment.app.orchestration.api_request', side_effect=requests.ConnectionError('down')), \
              patch.object(orchestration, 'WAKE_BUDGET_SECONDS', 0), self.assertRaises(requests.Timeout):
             wait_for_service('https://api')
 

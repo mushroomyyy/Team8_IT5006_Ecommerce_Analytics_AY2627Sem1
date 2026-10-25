@@ -12,11 +12,11 @@ import requests
 import streamlit as st
 from streamlit.testing.v1 import AppTest
 
-from phase3.frontend import orchestration
-from phase3.frontend.orchestration import HEALTH_TIMEOUT, REQUEST_TIMEOUT, clear_caches
-from phase3.frontend.app import BINARY, COUNTS, INTEGERS, LABELS, replay_score_percentiles, model_info, month_results, prepare_upload, scored_upload_frame, validate_form
+from deployment.app import orchestration
+from deployment.app.orchestration import HEALTH_TIMEOUT, REQUEST_TIMEOUT, clear_caches
+from deployment.app.app import BINARY, COUNTS, INTEGERS, LABELS, replay_score_percentiles, model_info, month_results, prepare_upload, scored_upload_frame, validate_form
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2] / "deployment"
 
 
 class Response:
@@ -32,7 +32,7 @@ class ClassificationUiTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.stats = json.loads((ROOT / 'artifacts/classification_model_stats.json').read_text())
-        cls.samples = json.loads((ROOT / 'frontend/data/classification_sample_orders.json').read_text())
+        cls.samples = json.loads((ROOT / 'app/data/classification_sample_orders.json').read_text())
 
     def setUp(self):
         model_info.clear()
@@ -56,14 +56,14 @@ class ClassificationUiTests(unittest.TestCase):
             if name == 'replay_scores.json': return {'models': {'classification': self.stats['model_version'], 'regression': 'r1-test'}, 'generated_at_utc': 'test',
                                                    'scores': {r['order_id']: [.1 - .03 * i, -2.5] for i, r in enumerate(self.samples[:2])}}
             raise AssertionError(name)
-        self.data_patch = patch('phase3.frontend.orchestration.read_demo_json', side_effect=demo_json)
+        self.data_patch = patch('deployment.app.orchestration.read_demo_json', side_effect=demo_json)
         self.data_patch.start(); self.addCleanup(self.data_patch.stop)
         self.post_patch = patch('requests.post', side_effect=self.post_response)
         self.post = self.post_patch.start(); self.addCleanup(self.post_patch.stop)
         self.get_patch = patch('requests.get', side_effect=self.get_response)
         self.get = self.get_patch.start()
         self.addCleanup(self.get_patch.stop)
-        self.app = AppTest.from_file(str(ROOT / 'frontend/app.py')).run(timeout=20)
+        self.app = AppTest.from_file(str(ROOT / 'app/app.py')).run(timeout=20)
         self.assertEqual(self.app.radio[0].value, 'Start here')  # usage guide is the landing page
         self.app.radio[0].set_value('Daily simulation').run(timeout=20)
 
@@ -131,7 +131,7 @@ class ClassificationUiTests(unittest.TestCase):
         self.app.date_input[0].set_value(date(2018, 7, 1)).run(timeout=20)
         self.assertTrue(any('No eligible orders' in i.value for i in self.app.info))
         self.assertFalse(self.app.exception)
-        with patch('phase3.frontend.orchestration.read_demo_json', side_effect=ValueError('outcomes unavailable')):
+        with patch('deployment.app.orchestration.read_demo_json', side_effect=ValueError('outcomes unavailable')):
             self.widget('button', 'Reveal eventual outcomes').click().run(timeout=20)
         self.assertTrue(any('outcomes unavailable' in e.value for e in self.app.error))
         self.assertFalse(self.app.exception)
@@ -297,7 +297,7 @@ class ClassificationUiTests(unittest.TestCase):
 
     def test_day_navigation_is_clamped_instead_of_crashing(self):
         from datetime import date
-        from phase3.frontend import app as app_module
+        from deployment.app import app as app_module
         low, high = date(2018, 6, 2), date(2018, 8, 30)
         # Queued clicks can run the callback after the button should have been disabled.
         for start, delta, expected in [(high, 1, high), (low, -1, low), (date(2018, 6, 10), 1, date(2018, 6, 11))]:
@@ -313,7 +313,7 @@ class ClassificationUiTests(unittest.TestCase):
         self.app.run(timeout=20)
         self.assertEqual(sum(call.args[0].endswith('/health') for call in self.get.call_args_list), health_calls)
         posts = self.post.call_count
-        viewer = AppTest.from_file(str(ROOT / 'frontend/app.py')).run(timeout=20)  # e.g. a refresh or a second viewer
+        viewer = AppTest.from_file(str(ROOT / 'app/app.py')).run(timeout=20)  # e.g. a refresh or a second viewer
         viewer.radio[0].set_value('Daily simulation').run(timeout=20)
         self.assertEqual(self.post.call_count, posts)
 
@@ -337,7 +337,7 @@ class ClassificationUiTests(unittest.TestCase):
 
     def test_example_batch_csv_matches_upload_template(self):
         cols = self.stats['features']['numeric'] + self.stats['features']['categorical']
-        example = pd.read_csv(ROOT / 'docs/examples/batch_example.csv', float_precision='round_trip')
+        example = pd.read_csv(ROOT.parent / 'docs/examples/batch_example.csv', float_precision='round_trip')
         self.assertEqual(list(example.columns), ['order_id'] + cols)
         kept, rows, error = prepare_upload(example, cols)
         self.assertIsNone(error)
@@ -369,7 +369,7 @@ class ClassificationUiTests(unittest.TestCase):
         for page in ['Batch API demo', 'Models and guidance', 'Month-end review', 'Start here']:
             self.app.sidebar.radio[0].set_value(page).run(timeout=20)
             self.assertFalse(self.app.exception)
-        source = (ROOT / 'frontend/app.py').read_text()
+        source = (ROOT / 'app/app.py').read_text()
         for text in ['import joblib', 'import sklearn', 'classification_service', 'top_10_percent_boundary', 'is_predicted_late']:
             # Legacy CSV result columns are intentionally accepted during re-upload.
             if text == 'is_predicted_late': continue

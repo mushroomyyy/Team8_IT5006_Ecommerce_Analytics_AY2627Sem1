@@ -1,6 +1,6 @@
 """Independent artifact equivalence and deployment-isolation checks.
 
-Run from the repository: python -m unittest phase3.tests.test_packaging.
+Run from the repository: python -m unittest tests.deployment.test_packaging.
 Original-artifact comparisons require Git history. The preservation-tar check
 uses the handoff backup when available and otherwise verifies its recorded hash.
 """
@@ -22,11 +22,11 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from phase3.backend.transforms import ExpandColumns
+from deployment.api.transforms import ExpandColumns
 
 ROOT = Path(__file__).resolve().parents[2]
-ARTIFACTS = ROOT / "phase3/artifacts"
-DEMO_DATA = ROOT / "phase3/frontend/data"
+ARTIFACTS = ROOT / "deployment/artifacts"
+DEMO_DATA = ROOT / "deployment/app/data"
 
 
 class PackagingTests(unittest.TestCase):
@@ -38,31 +38,45 @@ class PackagingTests(unittest.TestCase):
 
     def test_original_regression_exact_on_every_june_order(self):
         original_bytes = subprocess.check_output([
-            "git", "show", "origin/model-deployment-r1:deployment/artifacts/regression_r1_ols.joblib"
+            "git", "show", "bfea55986f266b4208a8c58f932bf67666391b92:deployment/artifacts/regression_r1_ols.joblib"
         ], cwd=ROOT)
         self.assertEqual(hashlib.sha256(original_bytes).hexdigest(), self.packaging["source_artifact_sha256"])
         # Only this historical-artifact check needs the old custom class module.
-        sys.path.insert(0, str(ROOT / "phase2"))
+        sys.path.insert(0, str(ROOT))
         try:
             original = joblib.load(io.BytesIO(original_bytes))
         finally:
-            sys.path.remove(str(ROOT / "phase2"))
+            sys.path.remove(str(ROOT))
         packaged = joblib.load(ARTIFACTS / "regression_r1_ols.joblib")
         cols = original["metadata"]["features"]
         frame = self.frame[cols["numeric"] + cols["categorical"]]
         self.assertEqual(len(frame), 6164)
         np.testing.assert_array_equal(original["model"].predict(frame), packaged["model"].predict(frame))
         self.assertEqual(original["metadata"], packaged["metadata"])
+        # Preserve fitted state and documented inputs as well as the full June replay.
+        for attribute in ("coef_", "intercept_", "singular_", "rank_", "n_features_in_"):
+            np.testing.assert_array_equal(
+                getattr(original["model"].named_steps["model"], attribute),
+                getattr(packaged["model"].named_steps["model"], attribute))
+        examples = {
+            "batch": pd.read_csv(ROOT / "docs/examples/batch_example.csv", float_precision="round_trip"),
+            "synthetic": pd.DataFrame([json.loads((ROOT / "docs/synthetic_prediction.json").read_text())["features"]]),
+            "samples": pd.DataFrame(json.loads((DEMO_DATA / "classification_sample_orders.json").read_text())),
+        }
+        for name, example in examples.items():
+            with self.subTest(example=name):
+                features = example[cols["numeric"] + cols["categorical"]]
+                np.testing.assert_array_equal(original["model"].predict(features), packaged["model"].predict(features))
         self.assertEqual(hashlib.sha256((ARTIFACTS / "regression_r1_ols.joblib").read_bytes()).hexdigest(),
                          self.packaging["packaged_artifact_sha256"])
         self.assertIs(type(packaged["model"].named_steps["preprocessor"].named_steps["expand"]), ExpandColumns)
 
     def test_custom_transformer_parity_for_missing_zero_and_mixed_values(self):
-        sys.path.insert(0, str(ROOT / "phase2"))
+        sys.path.insert(0, str(ROOT))
         try:
             old_class = importlib.import_module("src.linear_transforms").ExpandColumns
         finally:
-            sys.path.remove(str(ROOT / "phase2"))
+            sys.path.remove(str(ROOT))
         frame = pd.DataFrame({"amount": [0., 100., np.nan], "order_approved_month": [1, 12, 6],
                               "route_type": ["3. Mixed", "1. All interstate", None]})
         for cyclic in (False, True):
@@ -96,11 +110,11 @@ class BlockHistoricalCode(importlib.abc.MetaPathFinder):
         if fullname == "src" or fullname.startswith("src.") or fullname == "phase2" or fullname.startswith("phase2."):
             raise AssertionError("Inference attempted historical import: " + fullname)
 sys.meta_path.insert(0, BlockHistoricalCode())
-from phase3.backend.classification_service import ClassificationService
-from phase3.backend.model_service import ModelService
+from deployment.api.classification_service import ClassificationService
+from deployment.api.model_service import ModelService
 import json
 from pathlib import Path
-sample = json.loads((Path(ClassificationService().artifact_path).parents[1] / "frontend/data/classification_sample_orders.json").read_text())[0]
+sample = json.loads((Path(ClassificationService().artifact_path).parents[1] / "app/data/classification_sample_orders.json").read_text())[0]
 sample.pop("order_id", None)
 ClassificationService().predict(sample)
 ModelService().predict(sample)

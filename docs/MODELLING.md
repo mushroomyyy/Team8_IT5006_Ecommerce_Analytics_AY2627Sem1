@@ -36,10 +36,10 @@ Lasso appears only in the variable-selection overlap tables. Linear models alway
 ## Layout
 | Path | Contents |
 |---|---|
-| `01_data_features_multicollinearity.ipynb` | Data, features, label audits, multicollinearity, linear transforms, split and CV diagrams |
-| `02_classification.ipynb` | C0 to C3d, class-imbalance experiment, deciles, ROC/PR, drift, interpretation |
-| `03_regression.ipynb` | R0a to R3d, dual-framing late flag, OLS diagnostics, drift, interpretation |
-| `04_summary.ipynb` | Reads the exports only: ladder figures and `RESULTS_SUMMARY.md` |
+| `notebooks/01_data_features_multicollinearity.ipynb` | Data, features, label audits, multicollinearity, linear transforms, split and CV diagrams |
+| `notebooks/02_classification.ipynb` | C0 to C3d, class-imbalance experiment, deciles, ROC/PR, drift, interpretation |
+| `notebooks/03_regression.ipynb` | R0a to R3d, dual-framing late flag, OLS diagnostics, drift, interpretation |
+| `notebooks/04_summary.ipynb` | Reads the exports only: ladder figures and `RESULTS_SUMMARY.md` |
 | `src/data.py` | Locates and loads the Olist CSVs |
 | `src/features.py` | Order-level feature table, extra features and `LEAKAGE_COLS` |
 | `src/labels.py` | Run-date windows and as-of-run-date targets |
@@ -62,39 +62,46 @@ Lasso appears only in the variable-selection overlap tables. Linear models alway
 | `src/model_labels.py` | Short labels, descriptions and the model key for every model code |
 | `src/report_tables.py` | Export tables as HTML, LaTeX and CSV |
 | `src/summary.py` | Ladder figures, `RESULTS_SUMMARY.md` and merged metadata (also a script) |
-| `test_*.py` | Unit tests (`python -m unittest`) |
+| `tests/phase2/test_*.py` | Unit tests (`python -m unittest`) |
 | `results/feature_selection/` | Multicollinearity screen tables |
 | `results/simple_to_complex/data/` | Notebook 01 tables |
 | `results/simple_to_complex/classification/`, `regression/` | Tables (HTML, TeX, CSV), RF search cache, `run_metadata.json` per task |
 | `results/simple_to_complex/figures/` | PNG figures at 200 dpi, prefixed `01_` to `04_` by notebook |
 | `results/simple_to_complex/RESULTS_SUMMARY.md` | Generated summary of everything the report needs |
 | `results/simple_to_complex/run_metadata.json` | Both tasks' metadata and package versions |
-| `MULTICOLLINEARITY_NOTES.md` | Notes on the feature funnel and multicollinearity decisions |
-| `Archive/` | Earlier work, kept for restoring (below) |
+| `docs/MULTICOLLINEARITY_NOTES.md` | Notes on the feature funnel and multicollinearity decisions |
+| `archive/phase2_archive/` | Earlier work, kept for restoring (below) |
 
 ### Archive
-- `Archive/2026-10-08_before_feature_selection/`: the earlier notebooks (`model_*_dev.ipynb`, `model_validation_timelines.ipynb`), `src/`, `requirements.txt` and `README.md` as of `origin/main` before feature selection.
-- `Archive/2026-10-09_before_simple_to_complex/`: the notebooks, `src/`, tests, old `results/` (figures, report tables, tuning JSON) and untracked prediction CSVs (`local_untracked/`) before this rebuild, with `snapshot_manifest.json`.
+- `archive/phase2_archive/2026-10-08_before_feature_selection/`: the earlier notebooks (`model_*_dev.ipynb`, `model_validation_timelines.ipynb`), `src/`, `requirements.txt` and `README.md` as of `origin/main` before feature selection.
+- `archive/phase2_archive/2026-10-09_before_simple_to_complex/`: the notebooks, `src/`, tests, old `results/` (figures, report tables, tuning JSON) and untracked prediction CSVs (`local_untracked/`) before this rebuild, with `snapshot_manifest.json`.
 
-To restore, copy the files you need back to `phase2/` (for example `cp -R Archive/2026-10-09_before_simple_to_complex/src/. src/`), or run `git checkout <commit> -- phase2/<path>` with the commit recorded in that folder's `snapshot_manifest.json`.
+To inspect an earlier version, use its snapshot under `archive/phase2_archive/` or the historical commit recorded in its `snapshot_manifest.json`. Archived sources retain their original paths and are not current runnable notebooks.
 
 ## Setup
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-modelling.txt
+pip install pytest
 ```
-Data: `src/data.py` reads the Olist CSVs from `Olist_CSV/` one level above `phase2/`. If that folder is missing, it extracts `streamlit_release/data/olist_csv.zip` (also one level above `phase2/`) into it on first run.
+Data: `src/data.py` reads `Olist_CSV/` at the repository root, or extracts `data/olist_csv.zip` there on first use.
 
 ## Running
-From `phase2/`:
+From the repository root, open the notebooks in Jupyter and run 01, 02, 03, then 04. Their first setup cell also supports a kernel launched from `notebooks/`. Saved outputs are submission evidence; full execution can overwrite result exports and is not needed to use the deployed models.
+
 ```bash
-jupyter nbconvert --to notebook --execute --inplace 01_data_features_multicollinearity.ipynb --ExecutePreprocessor.timeout=-1
-# repeat for 02_classification.ipynb, 03_regression.ipynb and 04_summary.ipynb, in that order
-python -m src.feature_selection                 # multicollinearity screen -> results/feature_selection/
-python -m src.rf_search --task classification   # cached RF search; same for --task regression
-python -m src.summary                           # figures 04_*, RESULTS_SUMMARY.md, run_metadata.json
-python -m unittest                              # all tests
+jupyter lab
+python -m pytest tests/phase2 -q
 ```
+
+Optional regeneration commands (write results; not part of a path-only migration):
+
+```bash
+python -m src.feature_selection
+python -m src.rf_search --task classification
+python -m src.summary
+```
+
 Notebooks 02 and 03 load the cached Random Forest search (`rf_best_params.json` in each task folder) with `RUN_RF_SEARCH = False`; run `src.rf_search` only to rebuild it.
 
 Expected runtimes on a laptop: notebook 01 a few minutes; notebooks 02 and 03 about 5 to 25 minutes each; `src.rf_search` about 10 minutes per task; notebook 04 and `src.summary` seconds; `python -m unittest` about 5 seconds.

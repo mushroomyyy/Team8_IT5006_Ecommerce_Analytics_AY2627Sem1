@@ -1,0 +1,18 @@
+{
+  "data_checks.json": {
+    "same_sha256": true,
+    "same_loaded_contents": true
+  },
+  "orders.parquet": {
+    "same_sha256": true,
+    "same_loaded_contents": true
+  },
+  "repeat_monthly.parquet": {
+    "same_sha256": true,
+    "same_loaded_contents": true
+  },
+  "seller_history.parquet": {
+    "same_sha256": true,
+    "same_loaded_contents": true
+  }
+}

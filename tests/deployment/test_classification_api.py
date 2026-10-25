@@ -11,9 +11,9 @@ from unittest.mock import patch
 import numpy as np
 from fastapi.testclient import TestClient
 
-from phase3.backend import api
-from phase3.backend.feature_validation import validate_features, FeatureValidationError
-from phase3.backend.classification_service import DEFAULT_ARTIFACT
+from deployment.api import api
+from deployment.api.feature_validation import validate_features, FeatureValidationError
+from deployment.api.classification_service import DEFAULT_ARTIFACT
 
 
 METADATA = {
@@ -218,7 +218,7 @@ class PackagedModelApiTests(unittest.TestCase):
     def test_real_samples_batch_and_drift(self):
         with TestClient(api.app) as client:
             metadata = client.get("/model-info").json()["classification"]
-            samples = json.loads((Path(__file__).resolve().parents[1] / "frontend/data/classification_sample_orders.json").read_text())
+            samples = json.loads((Path(__file__).resolve().parents[2] / "deployment/app/data/classification_sample_orders.json").read_text())
             features = {k: v for k, v in samples[0].items() if k != "order_id"}
             single = client.post("/predict", json={"features": features}).json()
             batch = client.post("/predict/batch", json={"rows": [{"features": features}]}).json()
@@ -240,7 +240,7 @@ class PackagedModelApiTests(unittest.TestCase):
             batch = client.post("/predict/batch", json=schemas["BatchRequest"]["examples"][0])
             self.assertEqual(batch.status_code, 200)
             self.assertEqual(batch.json()["successful_rows"], 2)
-        documented = json.loads((Path(__file__).resolve().parents[1] / "docs/synthetic_prediction.json").read_text())
+        documented = json.loads((Path(__file__).resolve().parents[2] / "docs/synthetic_prediction.json").read_text())
         self.assertEqual(documented["features"], api.EXAMPLE_FEATURES)
 
 

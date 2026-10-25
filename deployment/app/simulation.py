@@ -115,7 +115,7 @@ def scored_lookup(scores):
         predictions = []
         for row in rows:
             if row["order_id"] not in scores:
-                raise SimulationDataError("Pre-scored June file does not cover this order; rerun phase3/scripts/score_june.py")
+                raise SimulationDataError("Pre-scored June file does not cover this order; rerun python -m deployment.scripts.score_replay")
             pair = scores[row["order_id"]]
             predictions.append(None if pair is None else {"classification": {"late_probability": pair[0]},
                                                           "regression": {"predicted_days_from_promise": pair[1]}})

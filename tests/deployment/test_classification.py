@@ -1,6 +1,6 @@
 """Checks against the actual exported model, not a mocked classifier.
 
-Run: python -m unittest phase3.tests.test_classification
+Run: python -m unittest tests.deployment.test_classification
 """
 from __future__ import annotations
 
@@ -11,10 +11,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from phase3.backend.classification_service import ARTIFACTS, ClassificationService, load_stats
+from deployment.api.classification_service import ARTIFACTS, ClassificationService, load_stats
 
 
-DATA = Path(__file__).resolve().parents[1] / "frontend" / "data"
+DATA = Path(__file__).resolve().parents[2] / "deployment/app/data"
 
 
 class ClassificationTests(unittest.TestCase):
@@ -26,7 +26,7 @@ class ClassificationTests(unittest.TestCase):
 
     def test_export_matches_notebook_specification_and_evaluation(self):
         root = Path(__file__).resolve().parents[2]
-        run = json.loads((root / "phase2/results/simple_to_complex/classification/run_metadata.json").read_text())
+        run = json.loads((root / "results/simple_to_complex/classification/run_metadata.json").read_text())
         metadata = self.service.metadata
         self.assertEqual(metadata, load_stats())
         self.assertEqual(metadata["train_rows"], run["row_counts"]["history"])
@@ -41,7 +41,7 @@ class ClassificationTests(unittest.TestCase):
                                run["headline_june"]["C3"]["avg_precision"], places=10)
         self.assertAlmostEqual(metadata["evaluation"]["June"]["avg_precision"],
                                run["headline_june"]["C3"]["avg_precision"], places=15)
-        metrics = pd.read_csv(root / "phase2/results/simple_to_complex/classification/model_results_long.csv",
+        metrics = pd.read_csv(root / "results/simple_to_complex/classification/model_results_long.csv",
                               float_precision="round_trip")
         expected = metrics[metrics["model"].eq("C3")].set_index("split").drop(columns="model").to_dict(orient="index")
         self.assertEqual(metadata["evaluation"], expected)

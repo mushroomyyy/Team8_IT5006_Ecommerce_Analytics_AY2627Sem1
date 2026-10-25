@@ -1,7 +1,7 @@
 """Retrospective evaluation of the fixed demo daily policy; no policy tuning.
 
-Run from root: python phase3/scripts/evaluate_daily.py
-Writes explicit daily and pooled denominators under phase3/docs/.
+Run from root: python -m deployment.scripts.evaluate_daily
+Writes explicit daily and pooled denominators under docs/.
 """
 from __future__ import annotations
 import json
@@ -11,16 +11,16 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
-from phase3.backend.classification_service import ClassificationService,ARTIFACTS
-from phase3.backend.model_service import ModelService
-from phase3.frontend.simulation import build_worklist,retrospective
+from deployment.api.classification_service import ClassificationService,ARTIFACTS
+from deployment.api.model_service import ModelService
+from deployment.app.simulation import build_worklist,retrospective
 import pandas as pd
 
 
 def evaluate():
     c,r=ClassificationService(),ModelService()
-    snapshots=json.loads((ROOT/'phase3/frontend/data/simulation_orders.json').read_text())
-    outcomes=json.loads((ROOT/'phase3/frontend/data/simulation_outcomes.json').read_text())['outcomes']
+    snapshots=json.loads((ROOT/'deployment/app/data/simulation_orders.json').read_text())
+    outcomes=json.loads((ROOT/'deployment/app/data/simulation_outcomes.json').read_text())['outcomes']
     def score(batch):
         rows = [item["features"] for item in batch]
         cf=pd.concat([c.validate_features(x) for x in rows],ignore_index=True)
@@ -43,7 +43,7 @@ def evaluate():
     result={'notice':'Retrospective evaluation of preset daily policy; June guided model selection and is not untouched policy validation.',
             'policy':{'review_proportion':.3,'minimum_days_remaining':1,'rounding':'ceil each day','ranking':'C3 descending, order ID ascending'},
             'pooled':pooled,'days':days}
-    (ROOT/'phase3/docs/daily_policy_evaluation.json').write_text(json.dumps(result,indent=2)+'\n')
+    (ROOT/'docs/daily_policy_evaluation.json').write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(pooled,indent=2))
 
 if __name__=='__main__':evaluate()

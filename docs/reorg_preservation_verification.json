@@ -1,0 +1,41 @@
+{
+  "baseline_commit": "be93fd24418b92a837395ecf01765e9494da7c3a",
+  "verified_file_counts": {
+    "src/": 24,
+    "results/": 219,
+    "archive/phase2_archive/": 115,
+    "deployment/app/data/": 11
+  },
+  "only_changed_modelling_source": "src/data.py (repository root and ZIP path only)",
+  "results_unchanged": true,
+  "archives_unchanged": true,
+  "packaged_app_data_unchanged": true,
+  "raw_zip_unchanged": true,
+  "notebooks": {
+    "03_regression.ipynb": {
+      "all_existing_outputs_and_metadata_preserved": true,
+      "all_code_cells_compile": true,
+      "only_setup_and_optional_archive_path_changed": true
+    },
+    "01_data_features_multicollinearity.ipynb": {
+      "all_existing_outputs_and_metadata_preserved": true,
+      "all_code_cells_compile": true,
+      "only_setup_and_optional_archive_path_changed": true
+    },
+    "phase1_eda.ipynb": {
+      "all_existing_outputs_and_metadata_preserved": true,
+      "all_code_cells_compile": true,
+      "only_setup_and_optional_archive_path_changed": true
+    },
+    "04_summary.ipynb": {
+      "all_existing_outputs_and_metadata_preserved": true,
+      "all_code_cells_compile": true,
+      "only_setup_and_optional_archive_path_changed": true
+    },
+    "02_classification.ipynb": {
+      "all_existing_outputs_and_metadata_preserved": true,
+      "all_code_cells_compile": true,
+      "only_setup_and_optional_archive_path_changed": true
+    }
+  }
+}

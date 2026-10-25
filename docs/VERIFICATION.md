@@ -1,6 +1,9 @@
 # Verification record
 
-Local checks: 19–20 October 2026 (Singapore), Python 3.13.5. Latest split and UI checks: 20 October.
+Latest reorganization checks: 25 October 2026 (Singapore), Python 3.13.5.
+See [REORG_VERIFICATION.md](REORG_VERIFICATION.md) for the current local layout: 165 passing tests, preserved results and notebook outputs, container/API checks and both app smoke checks. Publication is pending Andrew's review decision; replacement Streamlit URLs are pending Jordan's deployments.
+
+The dated sections below are historical verification records.
 
 ## Streamlit / inference split — 20 October 2026
 
@@ -52,7 +55,7 @@ Local checks: 19–20 October 2026 (Singapore), Python 3.13.5. Latest split and 
 - Fresh API container tested at `http://127.0.0.1:18023`: health, Swagger,
   metadata, samples, integrated single/batch exact equality, both date boundaries,
   outcome separation, retrospective endpoint and invalid date/input 422 responses.
-  Reusable check: `python phase3/scripts/verify_http.py ACTUAL_BASE_URL`.
+  Reusable check: `python -m deployment.scripts.verify_http ACTUAL_BASE_URL`.
 - Fresh Streamlit container tested at `http://127.0.0.1:18523` against that API:
   daily worklist, next/back navigation, explicit outcomes/re-hide, selected-order
   transfer and real C3/R1 single-order prediction all verified in browser.
@@ -66,7 +69,7 @@ Local checks: 19–20 October 2026 (Singapore), Python 3.13.5. Latest split and 
 
 ## Fixed daily-policy retrospective results
 
-`python phase3/scripts/evaluate_daily.py` reproduces
+`python -m deployment.scripts.evaluate_daily` reproduces
 [daily_policy_evaluation.json](daily_policy_evaluation.json). Defaults are 30%
 review and more than one calendar day remaining, rounding selection up each day.
 No June outcomes were used to tune these preset operational settings.

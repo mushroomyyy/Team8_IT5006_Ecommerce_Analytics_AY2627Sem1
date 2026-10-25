@@ -15,7 +15,7 @@ import sklearn
 
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "phase2"))
+sys.path.insert(0, str(ROOT))
 
 from src import RANDOM_STATE  # noqa: E402
 from src.data import load_olist_data  # noqa: E402
@@ -46,7 +46,7 @@ def main() -> None:
     ])
     model.fit(data.history_df[data.feature_cols], data.history_df["y"])
     # Stable inference-only module path; preserve all fitted transformation state.
-    from phase3.backend.transforms import ExpandColumns
+    from deployment.api.transforms import ExpandColumns
     model.named_steps["preprocessor"].named_steps["expand"].__class__ = ExpandColumns
 
     metadata = {
@@ -64,7 +64,7 @@ def main() -> None:
             "june_test_rmse": 7.369,
             "june_test_mae": 5.81,
             "june_reference_rf_rmse": 7.953,
-            "source": "phase2/results/simple_to_complex/regression/regression_model_comparison_5.csv",
+            "source": "results/simple_to_complex/regression/regression_model_comparison_5.csv",
         },
     }
     bundle = {"model": model, "metadata": metadata}

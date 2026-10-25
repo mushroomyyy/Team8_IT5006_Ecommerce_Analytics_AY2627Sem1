@@ -106,7 +106,7 @@ class FeatureSelectionTests(unittest.TestCase):
 
 
     def test_selected_numeric_columns_match_saved_audit(self):
-        saved = pd.read_csv(Path(__file__).parent / 'results/feature_selection/selected_numeric_features.csv')
+        saved = pd.read_csv(Path(__file__).resolve().parents[2] / 'results/feature_selection/selected_numeric_features.csv')
         assert SELECTED_NUM_COLS == saved['feature'].tolist()
 
 

@@ -19,7 +19,7 @@ class ClassificationService:
     def __init__(self, artifact_path: Path | str = DEFAULT_ARTIFACT):
         self.artifact_path = Path(artifact_path)
         if not self.artifact_path.exists():
-            raise FileNotFoundError(f"Missing classification artifact: {self.artifact_path}. Run python -m phase3.export.train_classification first.")
+            raise FileNotFoundError(f"Missing classification artifact: {self.artifact_path}. Run python -m deployment.export.train_classification first.")
         bundle = joblib.load(self.artifact_path)
         self.model, self.metadata = bundle["model"], bundle["metadata"]
         self.feature_cols = self.metadata["features"]["numeric"] + self.metadata["features"]["categorical"]

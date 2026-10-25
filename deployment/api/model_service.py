@@ -22,7 +22,7 @@ class ModelService:
         if not self.artifact_path.exists():
             raise FileNotFoundError(
                 f"Model artifact not found at {self.artifact_path}. "
-                "Run `python -m phase3.export.train_regression` first."
+                "Run `python -m deployment.export.train_regression` first."
             )
         self.bundle = joblib.load(self.artifact_path)
         self.model = self.bundle["model"]

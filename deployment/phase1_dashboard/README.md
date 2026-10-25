@@ -2,7 +2,7 @@
 
 ## Data
 
-The compressed Olist dataset is included in `streamlit_release/data/olist_csv.zip`. The app extracts and uses it automatically, so no data-directory setup is required.
+The compressed Olist dataset is included in `data/olist_csv.zip`. The app extracts and uses it automatically, so no data-directory setup is required.
 
 To use a different copy of the nine CSV files, either paste its folder into **Data location** in the sidebar or open `app.py` and set:
 
@@ -29,7 +29,7 @@ Use the folder containing the CSVs—not an individual CSV file. Keep the `r` be
 ### macOS
 
 ```bash
-cd "/path/to/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/phase1_eda_dashboard"
+cd "/path/to/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/deployment/phase1_dashboard"
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
@@ -39,7 +39,7 @@ python -m streamlit run app.py
 ### Windows PowerShell
 
 ```powershell
-cd "C:\path\to\Team8_IT5006_Ecommerce_Analytics_AY2627Sem1\phase1_eda_dashboard"
+cd "C:\path\to\Team8_IT5006_Ecommerce_Analytics_AY2627Sem1\deployment\phase1_dashboard"
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
@@ -51,7 +51,7 @@ python -m streamlit run app.py
 macOS:
 
 ```bash
-cd "/path/to/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/phase1_eda_dashboard"
+cd "/path/to/Team8_IT5006_Ecommerce_Analytics_AY2627Sem1/deployment/phase1_dashboard"
 source .venv/bin/activate
 python -m streamlit run app.py
 ```
@@ -59,7 +59,7 @@ python -m streamlit run app.py
 Windows PowerShell:
 
 ```powershell
-cd "C:\path\to\Team8_IT5006_Ecommerce_Analytics_AY2627Sem1\phase1_eda_dashboard"
+cd "C:\path\to\Team8_IT5006_Ecommerce_Analytics_AY2627Sem1\deployment\phase1_dashboard"
 .venv\Scripts\Activate.ps1
 python -m streamlit run app.py
 ```

@@ -2,7 +2,7 @@
 
 June is the selection month; July and August are frozen-model monitoring months.
 
-Run from repository root: python -m phase3.export.export_simulation
+Run from repository root: python -m deployment.export.export_simulation
 Raw Olist tables are needed only by this offline utility.
 """
 from __future__ import annotations
@@ -14,13 +14,13 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / 'phase2'))
+sys.path.insert(0, str(ROOT))
 from src.data import load_olist_data
 from src.features import add_extra_features, build_feature_table
 from src.labels import attach_prediction_labels, attach_regression_actuals
 
-ARTIFACTS = ROOT / 'phase3/artifacts'
-DEMO_DATA = ROOT / 'phase3/frontend/data'
+ARTIFACTS = ROOT / 'deployment/artifacts'
+DEMO_DATA = ROOT / 'deployment/app/data'
 FIRST_APPROVAL, LAST_APPROVAL = '2018-06-01', '2018-08-31'
 
 
@@ -70,7 +70,7 @@ def export():
     for filename, payload in [('simulation_orders.json', snapshots), ('simulation_outcomes.json', outcomes), ('simulation_timing.json', timing)]:
         DEMO_DATA.mkdir(parents=True, exist_ok=True)
         (DEMO_DATA / filename).write_text(json.dumps(payload, separators=(',', ':'), allow_nan=False) + '\n')
-    manifest = {'export': 'python -m phase3.export.export_simulation', 'approval_rows': len(rows),
+    manifest = {'export': 'python -m deployment.export.export_simulation', 'approval_rows': len(rows),
                 'approval_days': len(snapshots['days']), 'model_available_date': snapshots['model_available_date'],
                 'artifacts': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(ARTIFACTS.iterdir()) if p.is_file() and p.suffix in {'.joblib', '.json'} and p.name != 'manifest.json'}}
     manifest['frontend_data'] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(DEMO_DATA.glob('*.json'))}

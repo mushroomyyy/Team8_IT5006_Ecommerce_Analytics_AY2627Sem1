@@ -1,5 +1,9 @@
 # Full local development environment. Hosting uses phase-specific dependency files.
--r phase3/requirements-api.txt
--r phase3/requirements-ui.txt
--r phase2/requirements.txt
+-r deployment/requirements-api.txt
+-r deployment/requirements-ui.txt
+-r requirements-modelling.txt
 httpx==0.28.1
+# Phase 1 notebook plotting and the repository test runner
+seaborn>=0.13,<1
+plotly>=5.20,<7
+pytest>=8,<10

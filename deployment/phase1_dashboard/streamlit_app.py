@@ -6,5 +6,5 @@ import runpy
 
 
 os.environ["OLIST_HOSTED_RELEASE"] = "1"
-shared_app = Path(__file__).resolve().parents[1] / "phase1_eda_dashboard" / "app.py"
+shared_app = Path(__file__).resolve().parent / "app.py"
 runpy.run_path(shared_app, run_name="__main__")

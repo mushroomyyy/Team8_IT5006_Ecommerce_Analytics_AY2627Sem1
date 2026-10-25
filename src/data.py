@@ -24,9 +24,9 @@ DATE_COLS = {
     'reviews': ['review_creation_date', 'review_answer_timestamp'],
 }
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 LOCAL_DATA_DIR = os.path.join(PROJECT_ROOT, 'Olist_CSV')
-BUNDLED_ARCHIVE = os.path.join(PROJECT_ROOT, 'streamlit_release', 'data', 'olist_csv.zip')
+BUNDLED_ARCHIVE = os.path.join(PROJECT_ROOT, 'data', 'olist_csv.zip')
 
 
 def resolve_data_dir(data_dir=None):

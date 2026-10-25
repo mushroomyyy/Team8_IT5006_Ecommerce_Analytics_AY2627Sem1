@@ -28,12 +28,12 @@ IS_HOSTED_RELEASE = os.getenv("OLIST_HOSTED_RELEASE") == "1"
 LOCAL_DATA_DIRECTORIES = (
     APP_DIR / "data" / "Olist_CSV",
     APP_DIR / "Olist_CSV",
-    APP_DIR.parent / "data" / "Olist_CSV",
+    APP_DIR.parents[1] / "data" / "Olist_CSV",
 )
 HOSTED_DATA_DIRECTORY = (
     Path(tempfile.gettempdir()) / "olist_eda_dashboard" / "v1" / "Olist_CSV"
 )
-BUNDLED_DATA_ARCHIVE = APP_DIR.parent / "streamlit_release" / "data" / "olist_csv.zip"
+BUNDLED_DATA_ARCHIVE = APP_DIR.parents[1] / "data" / "olist_csv.zip"
 
 REQUIRED_FILES = {
     "orders": "olist_orders_dataset.csv",

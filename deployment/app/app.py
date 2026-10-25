@@ -19,19 +19,19 @@ if _repo_root not in sys.path:
 # Streamlit Cloud reruns this file after a push without restarting Python, so sibling
 # modules imported by an earlier version can be stale; reload any whose source changed.
 import importlib
-import phase3.frontend.simulation as _simulation_module
-import phase3.frontend.orchestration as _orchestration_module
-import phase3.frontend.explore as _explore_module
+import deployment.app.simulation as _simulation_module
+import deployment.app.orchestration as _orchestration_module
+import deployment.app.explore as _explore_module
 for _module in (_simulation_module, _orchestration_module, _explore_module):
     _mtime = os.path.getmtime(_module.__file__)
     if getattr(_module, '_source_mtime', None) != _mtime:
         _module = importlib.reload(_module)
         _module._source_mtime = _mtime
-from phase3.frontend.orchestration import (HEALTH_TIMEOUT, WAKE_BUDGET_SECONDS, api_request, build_day_worklist,
+from deployment.app.orchestration import (HEALTH_TIMEOUT, WAKE_BUDGET_SECONDS, api_request, build_day_worklist,
     load_demo_orders, load_demo_samples, load_month_inputs, model_versions, reveal_outcomes, snapshot_revision,
     wait_for_service)
-from phase3.frontend.explore import explore_page
-from phase3.frontend.simulation import (REPLAY_MONTHS, buffer_ranking_scores, configuration, month_replay, month_summary, monthly_ranking,
+from deployment.app.explore import explore_page
+from deployment.app.simulation import (REPLAY_MONTHS, buffer_ranking_scores, configuration, month_replay, month_summary, monthly_ranking,
     SimulationDataError, timing_accuracy)
 
 import altair as alt
@@ -127,14 +127,14 @@ def inference_summary(api_url):
 @st.cache_resource(show_spinner=False)
 def replay_scores():
     """Pre-computed C3/R1 pairs for every replay order; never reads outcomes."""
-    from phase3.frontend.orchestration import read_demo_json
+    from deployment.app.orchestration import read_demo_json
     return read_demo_json('replay_scores.json')['scores']
 
 
 @st.cache_resource(show_spinner=False)
 def replay_score_percentiles():
     """Sorted replay C3 scores for rank-based context; never reads outcomes."""
-    from phase3.frontend.orchestration import read_demo_json
+    from deployment.app.orchestration import read_demo_json
     scores = read_demo_json('replay_scores.json')['scores'].values()
     return sorted(pair[0] for pair in scores if pair is not None)
 
@@ -628,13 +628,13 @@ def month_page(live_metadata):
         st.download_button('Download month-end table', table.to_csv(index=False), f'month_end_{month}_{share}pct.csv', 'text/csv')
     with st.expander('How these numbers are produced'):
         st.write('Each morning uses the daily list rules; outcomes are attached only after ranking.')
-        st.write(f"Scores are pre-computed with the same C3/R1 models the API serves (`phase3/scripts/score_replay.py`), so this page works without the API.")
+        st.write(f"Scores are pre-computed with the same C3/R1 models the API serves (`python -m deployment.scripts.score_replay`), so this page works without the API.")
         st.write('Late = Phase 2 label within 45 days of approval. R1 accuracy uses the Phase 2 R1 target and excludes canceled orders.')
         st.caption(f"Pre-scored models: {', '.join(f'{k} {v}' for k, v in results['models'].items())}")
     if live_metadata is not None:
         live = dict(model_versions(live_metadata))
         if any(live.get(name) != version for name, version in results['models'].items()):
-            st.warning(f'The live API now serves different model versions ({live}). Rerun phase3/scripts/score_replay.py so this page matches.')
+            st.warning(f'The live API now serves different model versions ({live}). Rerun python -m deployment.scripts.score_replay so this page matches.')
 
 
 def scored_upload_frame(incoming, response):

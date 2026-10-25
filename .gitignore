@@ -13,19 +13,24 @@ __pycache__/
 # Extracted Olist CSVs and generated predictions stay local; the bundled ZIP is tracked
 *.csv
 # Small documented example inputs are published
-!/phase3/docs/examples/*.csv
+!/docs/examples/*.csv
 
 # Local report drafts and working notes
 /CLASSIFICATION_INTEGRATION_HANDOFF.md
 /MILESTONE2_CLASSIFICATION_REPORT_DRAFT.md
 *.docx
 
-# Retired local classification evaluation workflow
+# Retired local classification evaluation workflow (original local copies stay ignored)
 /phase2/classification_eval.py
 /phase2/classification_evaluation.ipynb
 /phase2/test_classification_eval.py
 
 # Publish report summary CSVs; keep prediction caches and working prose local
-!/phase2/results/report_tables/*.csv
-/phase2/results/report_tables/*predictions.csv
-/phase2/results/report_tables/CV_HYPERPARAMETER_PROSE.md
+!/results/report_tables/*.csv
+/results/report_tables/*predictions.csv
+/results/report_tables/CV_HYPERPARAMETER_PROSE.md
+
+# Retired notebooks/tests under the reorganized layout
+/notebooks/classification_evaluation.ipynb
+/tests/phase2/test_classification_eval.py
+/src/classification_eval.py
