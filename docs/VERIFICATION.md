@@ -1,20 +1,20 @@
 # Verification record
 
 Latest reorganization checks: 25 October 2026 (Singapore), Python 3.13.5.
-See [REORG_VERIFICATION.md](REORG_VERIFICATION.md) for the current local layout: 165 passing tests, preserved results and notebook outputs, container/API checks and both app smoke checks. The approved migration is merged into remote `main` as `456262a`; Render is redeployed and verified. Replacement Streamlit URLs remain pending Jordan's deployments.
+The current layout has 165 passing tests, preserved results and notebook outputs, container/API checks and both app smoke checks. The approved migration is merged into remote `main` as `456262a`; Render is redeployed and verified. Replacement Streamlit URLs remain pending Jordan's deployments.
 
 ## Reorganization published — 25 October 2026
 
 - Render deploy `dep-dbeto2g473hc739eqrig` serves merge `456262a` using
   `./deployment/Dockerfile.api`; the dashboard reports Live after 1m21s.
-- [Live HTTPS checks](reorg_live_http_verification.json) pass: health, Swagger,
+- Live HTTPS checks pass: health, Swagger,
   inference metadata, single/batch and independent/integrated agreement,
   invalid-input 422s and removed-route 404s.
 - C3/R1 model versions are unchanged; hosted predictions agree with the local
   models. The documented example batch succeeds 10/10.
-- [Deployment screenshot](screenshots/reorg-render-live.png).
+- Detailed migration evidence and screenshots are retained locally.
 - Only `main` was pushed. Both Streamlit replacement deployments remain pending;
-  see [Jordan's instructions](STREAMLIT_HANDOFF.md).
+  the detailed collaborator instructions are retained locally.
 
 The dated sections below are historical verification records.
 

@@ -14,8 +14,8 @@ to a deployed operations application (Phase 3).
 
 The free API sleeps when idle; the first request can take 30–60 seconds to wake it.
 The directory migration is merged into `main`; Render was redeployed and verified
-on 25 October 2026. Jordan must now replace both Streamlit apps using the
-[deployment handoff](docs/STREAMLIT_HANDOFF.md). Their old entry points have been
+on 25 October 2026. Jordan must now replace both Streamlit apps; see
+[deployment settings](docs/DEPLOYMENT.md). Their old entry points have been
 removed, so the previous URLs may no longer load. New URLs will be recorded after
 deployment. The API service and URL are unchanged.
 
@@ -91,8 +91,8 @@ month-end review, data exploration, single-order and batch API demos, and models
 
 - [Application guide](docs/APPLICATION.md)
 - [Calling the API](docs/API.md) · [Model and simulation contracts](docs/TECHNICAL.md)
-- [Deployment](docs/DEPLOYMENT.md) · [Streamlit handoff](docs/STREAMLIT_HANDOFF.md)
-- [Verification history](docs/VERIFICATION.md) · [Reorganization checks](docs/REORG_VERIFICATION.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Verification history](docs/VERIFICATION.md)
 
 ## Tests
 

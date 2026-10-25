@@ -5,7 +5,7 @@ The existing Render API stays at https://team8-delivery-api.onrender.com
 Watch app URL is
 https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/;
 The migration is now in `main`; Jordan must replace it and the Phase 1 dashboard.
-New URLs are pending. See [Streamlit handoff](STREAMLIT_HANDOFF.md).
+New URLs are pending. The detailed collaborator handoff is retained locally.
 
 ## Published release — 25 October 2026
 
@@ -13,14 +13,13 @@ Andrew approved publication. Merge commit `456262a` is on remote `main`, and Ren
 deploy `dep-dbeto2g473hc739eqrig` is live after a 1m21s build/deployment. The service's
 Dockerfile path is `./deployment/Dockerfile.api`. Public HTTP checks, unchanged
 model versions, hosted/local prediction agreement and the 10/10 batch example pass.
-See [live evidence](reorg_live_http_verification.json) and
-[Render screenshot](screenshots/reorg-render-live.png). The working branch was
+Detailed live verification records and screenshots are retained locally. The working branch was
 never pushed. The Streamlit handoff below is still pending.
 
 ## Release gate
 
 `codex/repo-reorg` is a local-only working branch. Do not push it or create a PR
-from it. Finish the checks in [REORG_VERIFICATION.md](REORG_VERIFICATION.md), then
+from it. Finish the local verification checks, then
 Andrew reviews and approves the result. Only after that decision, merge the local
 branch into `main` and push `main`. Jordan's `model-deployment-r1` branch remains
 untouched; do not merge, delete or rebase it.
@@ -100,8 +99,8 @@ launcher is `deployment/phase1_dashboard/streamlit_app.py`.
 
 ## Streamlit
 
-Jordan creates both replacement apps from `main`; the full configuration and
-smoke checks are in [STREAMLIT_HANDOFF.md](STREAMLIT_HANDOFF.md). Delivery Watch
+Jordan creates both replacement apps from `main`; the detailed handoff and
+smoke checks are retained locally. Delivery Watch
 uses the adjacent `deployment/app/requirements.txt` and the secret:
 
 ```toml
