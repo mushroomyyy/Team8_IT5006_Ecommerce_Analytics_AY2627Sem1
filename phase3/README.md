@@ -65,9 +65,9 @@ test environment can resolve both; it also includes HTTP test support.
 | `export/` | Offline export/packaging utilities; never run at web startup |
 | `scripts/` | `score_replay.py` (pre-scores the replay for Month-end review), `evaluate_daily.py`, `verify_http.py` |
 | `tests/` | Model, API, temporal policy, packaging and Streamlit checks |
-| `docs/` | Deployment, model contracts, verification and archived prototype guide |
+| `docs/` | API guide, deployment, model contracts, verification and archived prototype guide |
 
-See [model and simulation contracts](docs/TECHNICAL.md),
+See [calling the API](docs/API.md), [model and simulation contracts](docs/TECHNICAL.md),
 [hosting instructions](docs/DEPLOYMENT.md) and [verification record](docs/VERIFICATION.md).
 
 ## Tests
@@ -89,8 +89,9 @@ worklist was verified against that HTTPS inference API. The Streamlit app is
 deployed on Streamlit Community Cloud from `main` with this API URL.
 See the verification record for checks actually performed.
 
-For teammate connection details and a complete test request, see
-[TEAMMATE_CONNECTION.md](docs/TEAMMATE_CONNECTION.md).
+To call the live API yourself (endpoints, request and response examples, errors),
+see [API.md](docs/API.md). The app is live at
+https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/.
 
 ## Refreshing packaged data
 

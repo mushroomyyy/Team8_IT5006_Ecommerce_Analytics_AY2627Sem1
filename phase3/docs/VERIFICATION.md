@@ -30,8 +30,8 @@ Local checks: 19–20 October 2026 (Singapore), Python 3.13.5. Latest split and 
 - The UI explains that the first connection after inactivity may take 50 seconds
   or more, shows the elapsed wait and supports retry. Health checks use 5/10 s
   timeouts within a 120 s wake budget; scoring uses 5/60 s per 100-order chunk.
-- Public Streamlit deployment remains pending at Andrew’s request. Teammates can
-  connect without Render account access using [the hookup guide](TEAMMATE_CONNECTION.md).
+- The Streamlit app is deployed on Streamlit Community Cloud from `main`. Anyone
+  can call the API without a Render account; see [API.md](API.md).
 
 ## Initial integration checks (before the boundary refactor)
 

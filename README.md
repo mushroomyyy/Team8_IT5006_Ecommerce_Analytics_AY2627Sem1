@@ -1,63 +1,91 @@
 # IT5006 E-Commerce Analytics — AY2026/27 Semester 1
 
-Group 8 analyses delivery performance for approved Olist e-commerce orders.
-The project includes exploratory analysis, reproducible modelling and an
-integrated operations application built with FastAPI and Streamlit.
+Group 8 analyses delivery performance for approved Olist e-commerce orders: which
+orders are likely to arrive late, and by how many days relative to the promise.
+The project runs from exploratory analysis (Phase 1) through modelling (Phase 2)
+to a deployed operations application (Phase 3).
 
-| Area | Contents |
+| Live | URL |
+|---|---|
+| Delivery Watch app (Streamlit) | https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/ |
+| Model API (FastAPI on Render) | https://team8-delivery-api.onrender.com |
+| API docs (Swagger, with examples) | https://team8-delivery-api.onrender.com/docs |
+
+The free API sleeps when idle; the first request can take 30–60 seconds to wake it.
+
+## Selected models
+
+- **C3 tuned Random Forest**: late-delivery risk, used to rank orders for follow-up.
+- **R1 OLS**: signed days from the promised delivery date (approval-to-delivery capped at 45 days).
+
+Fitted preprocessing travels with each model; the API serves the packaged Phase 2 artifacts.
+
+## Repository map
+
+The repository is organised by project phase. This is where each part of the
+course's suggested structure lives:
+
+| Suggested folder | In this repository |
+|---|---|
+| `data/` | Raw Olist tables: `streamlit_release/data/olist_csv.zip` (extracted locally to `Olist_CSV/`, which is not committed) · packaged app data: `phase3/frontend/data/` |
+| `notebooks/` | `phase2/01_data_features_multicollinearity.ipynb` … `04_summary.ipynb`; Phase 1 EDA: `IT5006_Group_Project_EDA_v2_(Group_8).ipynb` |
+| `src/` | `phase2/src/` (data loading, features, labels, evaluation) |
+| `deployment/` | `phase3/backend/` (FastAPI), `phase3/frontend/` (Streamlit), `phase3/Dockerfile.api`, `render.yaml` |
+| `docs/` | `phase3/docs/` (API guide, technical notes, deployment, verification) |
+| `README.md` | This file, plus `phase1_eda_dashboard/README.md` and `phase3/README.md` |
+
+| Folder | Contents |
 |---|---|
 | [`phase1_eda_dashboard/`](phase1_eda_dashboard/README.md) | Phase 1 exploratory dashboard |
-| `streamlit_release/` | Phase 1 hosted entry point and bundled data |
-| `phase2/` | Modelling notebooks, shared source, results and reproducibility |
-| [`phase3/`](phase3/README.md) | Integrated API, Streamlit frontend, fitted models, tests and guides |
-| `deployment/` | Historical location; current code lives in Phase 3 |
+| `streamlit_release/` | Phase 1 hosted entry point and bundled raw data |
+| `phase2/` | Modelling notebooks, shared source, results tables and tests |
+| [`phase3/`](phase3/README.md) | Deployed API and app, fitted models, scripts, tests and docs |
 
-Selected models are **C3 tuned Random Forest** for late-delivery risk and **R1
-all-feature OLS** for signed days from the promised date, using a capped delivery
-time target. Fitted preprocessing travels with each model.
+## Setup
 
-## Phase 3 operations application
-
-**Every morning, operations receives a prioritised list of yesterday's approved
-orders, supported by classification risk and regression estimates.**
-
-The main Streamlit page simulates 2 June–1 July 2018. Its Python server applies eligibility as of
-the displayed cutoff and ranks yesterday's approvals by C3 risk. All eligible orders are scored. A configurable
-30% follow-up proportion initially selects the highest-risk orders for human follow-up; it is not a validated universal policy.
-Render provides C3/R1 inference; Streamlit handles demo data, eligibility and ranking. R1 supplies supporting delivery estimates. A separate single-order page
-illustrates the same API. Historical outcomes remain hidden until explicitly revealed.
+Python 3.13 is used for the deployed services and fitted artifacts.
 
 ```bash
-python3.13 -m venv .venv-phase3
-source .venv-phase3/bin/activate
-python -m pip install -r phase3/requirements-test.txt
-python -m uvicorn phase3.backend.api:app --host 127.0.0.1 --port 8002
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt      # full environment: notebooks, API, app, tests
 ```
 
-In another activated shell:
+Raw data for the notebooks: unzip `streamlit_release/data/olist_csv.zip` into
+`Olist_CSV/` (Phase 2 also extracts it automatically when missing). The deployed
+API and app do not need the raw data.
+
+Run the app locally against the live API:
 
 ```bash
-DELIVERY_API_URL=http://127.0.0.1:8002 python -m streamlit run phase3/frontend/app.py
+DELIVERY_API_URL=https://team8-delivery-api.onrender.com python -m streamlit run phase3/frontend/app.py
 ```
 
-Open the Streamlit address printed in the terminal. Local Swagger:
-http://127.0.0.1:8002/docs. **Live API:** https://team8-delivery-api.onrender.com ([Swagger](https://team8-delivery-api.onrender.com/docs)). The Streamlit frontend is built and locally verified; public frontend deployment is pending.
-See the [application guide](phase3/README.md), [model/simulation contracts](phase3/docs/TECHNICAL.md),
-[hosting setup](phase3/docs/DEPLOYMENT.md), and [verification record](phase3/docs/VERIFICATION.md).
+Or run the API locally too (`python -m uvicorn phase3.backend.api:app --port 8002`)
+and point `DELIVERY_API_URL` at `http://127.0.0.1:8002`.
 
-## Reproducibility and tests
+## Phase 3 application
 
-Phase 2 notebooks and source paths remain intact. Raw Olist data is needed for
-reproduction/export, but not Phase 3 inference. The bundled ZIP remains at
-`streamlit_release/data/olist_csv.zip`.
+Each simulated morning between 2 June and 30 August 2018, the app takes the
+previous day's approved orders, applies a midnight cutoff and eligibility rules,
+scores every eligible order through the API, and puts the riskiest share
+(30% by default) on a follow-up list. June guided model selection; July and
+August are unseen monitoring months. Pages: Daily simulation, Month-end review,
+single-order and batch API demos, and Models and guidance.
+
+- [Application guide](phase3/README.md)
+- [Calling the API, with examples](phase3/docs/API.md)
+- [Model and simulation contracts](phase3/docs/TECHNICAL.md)
+- [Deployment](phase3/docs/DEPLOYMENT.md) · [Verification record](phase3/docs/VERIFICATION.md)
+
+## Tests
 
 ```bash
 python -m unittest discover -s phase3/tests -t . -v
 python -m unittest discover -s phase2 -p 'test_*.py'
 ```
 
-Install root `requirements.txt` for the full notebook/development environment;
-Phase 3 provides smaller backend and frontend dependency sets for hosting.
-The [Phase 1 instructions](phase1_eda_dashboard/README.md) remain the entry point
-for the exploratory dashboard. The final report and presentation are maintained
-separately by the team.
+Phase 3 also ships smaller pinned dependency sets for hosting
+(`phase3/requirements-api.txt`, `phase3/requirements-ui.txt`). Pushing to `main`
+redeploys both the Render API and the Streamlit app. The final report and
+presentation are maintained separately by the team.

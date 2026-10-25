@@ -230,6 +230,19 @@ class PackagedModelApiTests(unittest.TestCase):
             self.assertIn("payment_value_sum", [warning["feature"] for warning in prediction["classification"]["drift_warnings"]])
             self.assertEqual(client.get("/health").status_code, 200)
 
+    def test_swagger_examples_score_successfully(self):
+        # "Try it out" on /docs must work first time with the prefilled bodies.
+        with TestClient(api.app) as client:
+            schemas = client.get("/openapi.json").json()["components"]["schemas"]
+            single = schemas["PredictionRequest"]["examples"][0]
+            for path in ("/predict", "/predict/classification", "/predict/regression"):
+                self.assertEqual(client.post(path, json=single).status_code, 200, path)
+            batch = client.post("/predict/batch", json=schemas["BatchRequest"]["examples"][0])
+            self.assertEqual(batch.status_code, 200)
+            self.assertEqual(batch.json()["successful_rows"], 2)
+        documented = json.loads((Path(__file__).resolve().parents[1] / "docs/synthetic_prediction.json").read_text())
+        self.assertEqual(documented["features"], api.EXAMPLE_FEATURES)
+
 
 if __name__ == "__main__":
     unittest.main()

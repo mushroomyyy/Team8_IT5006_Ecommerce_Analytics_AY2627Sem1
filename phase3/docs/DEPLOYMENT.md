@@ -2,8 +2,9 @@
 
 The API is live and verified at https://team8-delivery-api.onrender.com
 ([Swagger](https://team8-delivery-api.onrender.com/docs)), deployed on 20 October
-2026 to a free Singapore web service. Public Streamlit deployment remains pending
-at Andrew’s request. Deploy the `main` branch.
+2026 to a free Singapore web service. The Streamlit app is live at
+https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/.
+Both deploy from the `main` branch. How to call the API: [API.md](API.md).
 
 ## Current branch and deployment flow
 

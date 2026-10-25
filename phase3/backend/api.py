@@ -48,18 +48,39 @@ app = FastAPI(title="Team 8 Delivery Operations API", version="2.1.0", lifespan=
               description="Approval-time C3 late-delivery risk and R1 days from promised delivery date.")
 
 
+# Invented order used to prefill Swagger "Try it out" (no real transaction values);
+# matches docs/synthetic_prediction.json and scripts/verify_http.py.
+EXAMPLE_FEATURES = {
+    "order_approved_day_of_week": 5, "order_approved_day_of_month": 1, "order_approved_month": 6,
+    "order_item_count": 1, "order_seller_count": 1, "order_frieght_value_sum": 12.5,
+    "order_product_weight_g_sum": 800.0, "order_product_category_count": 1,
+    "seller_dist_km_mean": 350.0, "seller_state_count": 1, "payment_value_sum": 100.0,
+    "promised_lead_days": 20, "approval_lag_hours": 2.0, "order_product_volume_cm3_sum": 1000.0,
+    "order_product_photos_mean": 3.0, "freight_to_price_ratio": 0.12, "payment_installments_max": 1,
+    "is_weekend_approval": 0, "is_black_friday_period": 0, "is_december_peak": 0,
+    "orders_approved_prev_7d": 1000, "customer_state": "SP",
+    "route_type": "1. All interstate", "payment_combination": "credit_card",
+}
+EXAMPLE_FEATURES_2 = {**EXAMPLE_FEATURES, "customer_state": "RJ", "promised_lead_days": 8,
+                      "seller_dist_km_mean": 900.0, "order_frieght_value_sum": 30.0, "freight_to_price_ratio": 0.3}
+
+
 class PredictionRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"examples": [{"features": EXAMPLE_FEATURES}]})
     features: dict[str, Any] = Field(description="All approval-time features from /model-info; numeric nulls use fitted medians.")
 
 
 class BatchRow(PredictionRequest):
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"examples": [{"order_id": "example-1", "features": EXAMPLE_FEATURES}]})
     order_id: str | None = Field(default=None, max_length=128)
 
 
 class BatchRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    rows: list[dict[str, Any]] = Field(min_length=1, max_length=1000)
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"examples": [{"rows": [
+        {"order_id": "example-1", "features": EXAMPLE_FEATURES},
+        {"order_id": "example-2", "features": EXAMPLE_FEATURES_2}]}]})
+    rows: list[dict[str, Any]] = Field(min_length=1, max_length=1000,
+                                       description="1–1,000 objects, each {\"order_id\": optional string, \"features\": {...}}.")
 
 
 def require_service(name="classification"):
