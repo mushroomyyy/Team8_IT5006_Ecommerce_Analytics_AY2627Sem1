@@ -46,6 +46,74 @@ Fitted preprocessing travels with each model; the API serves the packaged Phase 
 | `archive/phase2_archive/` | Earlier exploratory work, preserved without edits |
 | `requirements.txt`, `requirements-modelling.txt` | Full local environment and modelling dependencies |
 
+## Phase 1: exploratory analysis
+
+The original EDA notebook is [notebooks/phase1_eda.ipynb](notebooks/phase1_eda.ipynb).
+Its saved charts and tables remain inside the notebook.
+
+The original interactive dashboard lives in
+[deployment/phase1_dashboard/](deployment/phase1_dashboard/README.md):
+
+- `app.py`: dashboard implementation and charts.
+- `streamlit_app.py`: Streamlit Cloud entry point; enables hosted mode and runs the dashboard.
+- `requirements.txt`: the dashboard's separate hosting dependencies.
+
+Both the notebook and dashboard use the raw tables bundled in `data/olist_csv.zip`.
+The dashboard generates its charts when it runs. Delivery Watch's **Explore the
+data** page is a separate implementation under `deployment/app/`, using Phase 2
+definitions and small precomputed tables in `deployment/app/data/eda/`.
+
+## Phase 2: modelling
+
+The current modelling workflow consists of four notebooks, run in this order:
+
+| Notebook | Purpose |
+|---|---|
+| [01_data_features_multicollinearity.ipynb](notebooks/01_data_features_multicollinearity.ipynb) | Load and audit data, build features, examine multicollinearity, and define chronological splits |
+| [02_classification.ipynb](notebooks/02_classification.ipynb) | Fit and evaluate classification models |
+| [03_regression.ipynb](notebooks/03_regression.ipynb) | Fit and evaluate regression models |
+| [04_summary.ipynb](notebooks/04_summary.ipynb) | Read exported results and produce the combined summary |
+
+These notebooks import the shared Python package in `src/`. Data loading,
+features and labels live in `data.py`, `features.py` and `labels.py`; the remaining
+modules provide preprocessing, variable selection, model fitting, tuning,
+evaluation and plotting. Dependencies are in `requirements-modelling.txt`,
+included by the root `requirements.txt`. Modelling tests are in `tests/phase2/`.
+
+Phase 2's preserved exports are organised as follows:
+
+```text
+results/
+├── feature_selection/                 # Multicollinearity and feature-selection tables
+└── simple_to_complex/
+    ├── data/                          # Data and feature audit tables from notebook 01
+    ├── classification/                # Metrics, coefficients, tuning caches and metadata
+    ├── regression/                    # Metrics, coefficients, tuning caches and metadata
+    ├── figures/                       # Exported analysis and model charts
+    ├── RESULTS_SUMMARY.md             # Combined results summary
+    └── run_metadata.json              # Combined run information
+```
+
+Start with [RESULTS_SUMMARY.md](results/simple_to_complex/RESULTS_SUMMARY.md) to
+read the findings, or [docs/MODELLING.md](docs/MODELLING.md) for the protocol and
+source-module guide. Earlier notebooks and snapshots are preserved in
+`archive/phase2_archive/`; they retain their historical paths and are not part of
+the current execution workflow. A supporting plotting notebook also remains in
+`results/simple_to_complex/figures/` as part of the preserved results.
+
+## From modelling to deployment
+
+The fitted C3 and R1 models used by the application are packaged under
+`deployment/artifacts/`. The FastAPI service in `deployment/api/` loads these
+artifacts for inference. The Streamlit application in `deployment/app/` calls
+that API over HTTP. Offline model and data builders live in `deployment/export/`;
+they are not run when the API or application starts.
+
+The repository reorganization preserved the existing notebook outputs, Phase 2
+results and archived contents. R1's fitted coefficients and predictions were
+preserved when its serialized transformer reference was updated for the new
+package location; C3's model file was moved unchanged.
+
 ## Setup
 
 Python 3.13.5 matches the deployed services and fitted artifacts.
