@@ -1,0 +1,29 @@
+{
+  "export": "python -m deployment.export.export_simulation",
+  "approval_rows": 18960,
+  "approval_days": 88,
+  "model_available_date": "2018-06-02",
+  "artifacts": {
+    "classification_c3_rf.joblib": "17577aa8c96c0f456b55ab8f7417bc5f2916d7f698e5a15c35926743ceb42682",
+    "classification_model_stats.json": "e7516ea5f9207026c7f0f30695470a6323834437ad58bbe5b3c66603f56bbed3",
+    "regression_model_stats.json": "020b811d7a3d93d89ce47c965e0eae7d293030601860ffa96fff76ed6cab61e2",
+    "regression_packaging.json": "da8b2ac0f3ebf5c7889d7b63e769a54402df83e333a396fbf8e63a8ec6a17cd9",
+    "regression_r1_ols.joblib": "3c067075e7edaa9d65270a0f5eb54eb885518f927a298cb967fa0b46bc3be24d"
+  },
+  "frontend_data": {
+    "classification_june_orders.json": "4c8315d656dee7397b931eb1bdef6524c3a1386305a9bfab5c4c6dcba852e854",
+    "classification_june_outcomes.json": "d9dadb0bdd84b3487e7e309e20bb43b30e6cda77428d0ab15e479e019dfd99e8",
+    "classification_sample_orders.json": "da0a44bd7c37e79a6404fb53d61c4e6d141531b2d4d100249106eaceb13d45b9",
+    "replay_scores.json": "52901fbba60f619b6ebba1d5ee1a15f893b051b0cdcfcffc1ef0ac859f1cd039",
+    "simulation_orders.json": "98bbaddab7e042f31fcabf0bcd6ca24c26c5223e58e558d2daf95560c8793c6d",
+    "simulation_outcomes.json": "a3ecbf8c282e86015e0550e5754eeee0b4f6d3fe928defb7d4d844d5a82d4ae6",
+    "simulation_timing.json": "85a264102ce7cb0ba6d49710d52f0c49794906429d41a0d0750711d86d2a1c31"
+  },
+  "eda_data": {
+    "data_checks.json": "1f337266156f281b641f8df64801cf61292c7c93022f88ddeaf265e50e5c180c",
+    "orders.parquet": "465022feea204adfacd1128b1b2d42bbddfe201802d40fae08fbb1a9f81d9051",
+    "repeat_monthly.parquet": "dfdf016b7ad6e05b33b143feb017c0c255d145deb42c8f92e6050d350e4cd61a",
+    "seller_history.parquet": "a21d56dc7360916f00eb340966a5547e0c80c42aa4edcab4fa93c8005b1a5409"
+  },
+  "eda_export": "python -m deployment.export.export_eda"
+}

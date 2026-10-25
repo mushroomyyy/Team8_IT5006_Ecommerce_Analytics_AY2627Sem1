@@ -1,3 +1,0 @@
--r requirements-api.txt
--r requirements-ui.txt
-httpx==0.28.1

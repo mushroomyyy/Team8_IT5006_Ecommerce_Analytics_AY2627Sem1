@@ -1,0 +1,10 @@
+FROM python:3.13.5-slim
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PORT=10000 STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+COPY deployment/requirements-ui.txt deployment/constraints-ui.txt deployment/
+RUN pip install --no-cache-dir -r deployment/requirements-ui.txt -c deployment/constraints-ui.txt
+COPY deployment/__init__.py deployment/__init__.py
+COPY deployment/app/ deployment/app/
+COPY .streamlit/config.toml .streamlit/config.toml
+EXPOSE 10000
+CMD ["sh", "-c", "python -m streamlit run deployment/app/app.py --server.address 0.0.0.0 --server.port ${PORT}"]

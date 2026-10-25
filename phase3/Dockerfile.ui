@@ -1,9 +1,0 @@
-FROM python:3.13.5-slim
-WORKDIR /app
-ENV PYTHONUNBUFFERED=1 PORT=10000 STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
-COPY phase3/requirements-ui.txt phase3/constraints-ui.txt phase3/
-RUN pip install --no-cache-dir -r phase3/requirements-ui.txt -c phase3/constraints-ui.txt
-COPY phase3/frontend/ phase3/frontend/
-COPY .streamlit/config.toml .streamlit/config.toml
-EXPOSE 10000
-CMD ["sh", "-c", "python -m streamlit run phase3/frontend/app.py --server.address 0.0.0.0 --server.port ${PORT}"]

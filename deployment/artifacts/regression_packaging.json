@@ -1,0 +1,10 @@
+{
+  "source_branch": "origin/model-deployment-r1",
+  "source_commit": "bfea55986f266b4208a8c58f932bf67666391b92",
+  "source_artifact_sha256": "648572734fbacfff30dd7001c1a0fbfd75b035b6ccdfff49bac6931cf5725736",
+  "packaged_artifact_sha256": "3c067075e7edaa9d65270a0f5eb54eb885518f927a298cb967fa0b46bc3be24d",
+  "change": "Only custom transformer class import path rebound to deployment.api.transforms. No fitting, parameter or preprocessing changes.",
+  "equivalence": "Exact array equality before/after rebinding and after serialization",
+  "verified_rows": 6164,
+  "runtime_class": "deployment.api.transforms.ExpandColumns"
+}

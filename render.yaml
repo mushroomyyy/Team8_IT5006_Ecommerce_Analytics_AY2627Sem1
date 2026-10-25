@@ -5,7 +5,7 @@ services:
     plan: free
     region: singapore
     branch: main
-    dockerfilePath: ./phase3/Dockerfile.api
+    dockerfilePath: ./deployment/Dockerfile.api
     dockerContext: .
     healthCheckPath: /health
     envVars:

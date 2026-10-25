@@ -1,0 +1,10 @@
+FROM python:3.13.5-slim
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PORT=10000
+COPY deployment/requirements-api.txt deployment/constraints-api.txt deployment/
+RUN pip install --no-cache-dir -r deployment/requirements-api.txt -c deployment/constraints-api.txt
+COPY deployment/__init__.py deployment/__init__.py
+COPY deployment/api/ deployment/api/
+COPY deployment/artifacts/classification_c3_rf.joblib deployment/artifacts/regression_r1_ols.joblib deployment/artifacts/classification_model_stats.json deployment/artifacts/regression_model_stats.json deployment/artifacts/
+EXPOSE 10000
+CMD ["sh", "-c", "python -m uvicorn deployment.api.api:app --host 0.0.0.0 --port ${PORT}"]

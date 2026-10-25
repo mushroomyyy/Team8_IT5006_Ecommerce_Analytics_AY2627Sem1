@@ -1,0 +1,41 @@
+{
+  "api_url": "http://127.0.0.1:18026",
+  "pages": {
+    "Start here": {
+      "renders_without_errors": true
+    },
+    "Daily simulation": {
+      "renders_without_errors": true,
+      "default_metrics": {
+        "Orders in batch": "129",
+        "Eligible orders": "129",
+        "Excluded orders": "0",
+        "Selected for follow-up": "39"
+      },
+      "outcomes_and_next_day": true
+    },
+    "Month-end review": {
+      "renders_without_errors": true
+    },
+    "Explore the data": {
+      "renders_without_errors": true,
+      "approved_orders": 98958,
+      "filtered_SP_orders": 41553
+    },
+    "Single-order API demo": {
+      "renders_without_errors": true,
+      "live_prediction": true
+    },
+    "Batch API demo": {
+      "renders_without_errors": true
+    },
+    "Models and guidance": {
+      "renders_without_errors": true
+    }
+  },
+  "batch_example": {
+    "submitted": 10,
+    "successful": 10,
+    "actual_http": true
+  }
+}
