@@ -18,5 +18,12 @@
     "simulation_orders.json": "98bbaddab7e042f31fcabf0bcd6ca24c26c5223e58e558d2daf95560c8793c6d",
     "simulation_outcomes.json": "a3ecbf8c282e86015e0550e5754eeee0b4f6d3fe928defb7d4d844d5a82d4ae6",
     "simulation_timing.json": "85a264102ce7cb0ba6d49710d52f0c49794906429d41a0d0750711d86d2a1c31"
-  }
+  },
+  "eda_data": {
+    "data_checks.json": "1f337266156f281b641f8df64801cf61292c7c93022f88ddeaf265e50e5c180c",
+    "orders.parquet": "465022feea204adfacd1128b1b2d42bbddfe201802d40fae08fbb1a9f81d9051",
+    "repeat_monthly.parquet": "dfdf016b7ad6e05b33b143feb017c0c255d145deb42c8f92e6050d350e4cd61a",
+    "seller_history.parquet": "a21d56dc7360916f00eb340966a5547e0c80c42aa4edcab4fa93c8005b1a5409"
+  },
+  "eda_export": "python -m phase3.export.export_eda"
 }

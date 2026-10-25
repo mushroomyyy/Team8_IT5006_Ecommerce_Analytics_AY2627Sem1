@@ -42,8 +42,10 @@ class ClassificationUiTests(unittest.TestCase):
         self.demo_data = {'minimum_date': '2018-06-02', 'maximum_date': '2018-07-01', 'default_date': '2018-06-02', 'model_available_date': '2018-06-02', 'timezone': 'America/Sao_Paulo', 'batch_definition': 'Previous day by approval date', 'limitations': ['Snapshot history is incomplete.'], 'days': {}}
         orders = [{'order_id': r['order_id'], 'promised_delivery_date': '2018-06-20', 'features': {k: r[k] for k in self.stats['features']['numeric'] + self.stats['features']['categorical']}} for r in self.samples[:2]]
         from copy import deepcopy
-        for day in ['2018-06-01', '2018-06-02']:
+        for day in ['2018-06-01', '2018-06-02', '2018-07-01']:  # 2 July is the default morning
             self.demo_data['days'][day] = deepcopy(orders)
+        for row in self.demo_data['days']['2018-07-01']:
+            row['promised_delivery_date'] = '2018-07-20'  # still ahead of the July cutoff
         self.json_reads = []
         def demo_json(name):
             self.json_reads.append(name)
@@ -62,6 +64,8 @@ class ClassificationUiTests(unittest.TestCase):
         self.get = self.get_patch.start()
         self.addCleanup(self.get_patch.stop)
         self.app = AppTest.from_file(str(ROOT / 'frontend/app.py')).run(timeout=20)
+        self.assertEqual(self.app.radio[0].value, 'Start here')  # usage guide is the landing page
+        self.app.radio[0].set_value('Daily simulation').run(timeout=20)
 
     def result(self, probability=.064):
         return {'classification': {'late_probability': probability, 'model_code': 'C3', 'model_version': 'test', 'drift_warnings': []}, 'regression': {'predicted_days_from_promise': -2.5, 'model_code': 'R1'}}
@@ -87,12 +91,14 @@ class ClassificationUiTests(unittest.TestCase):
     def test_daily_default_and_navigation_boundaries(self):
         self.assertFalse(self.app.exception)
         self.assertEqual(self.app.radio[0].value, 'Daily simulation')
-        self.assertTrue(self.widget('button', 'Previous day').disabled)
+        self.assertEqual(str(self.app.date_input[0].value), '2018-07-02')  # first unseen (monitoring) morning
         self.widget('button', 'Next day').click().run(timeout=20)
-        self.assertEqual(str(self.app.date_input[0].value), '2018-06-03')
+        self.assertEqual(str(self.app.date_input[0].value), '2018-07-03')
         self.widget('button', 'Previous day').click().run(timeout=20)
-        self.assertEqual(str(self.app.date_input[0].value), '2018-06-02')
+        self.assertEqual(str(self.app.date_input[0].value), '2018-07-02')
         from datetime import date
+        self.app.date_input[0].set_value(date(2018, 6, 2)).run(timeout=20)
+        self.assertTrue(self.widget('button', 'Previous day').disabled)
         self.app.date_input[0].set_value(date(2018, 8, 30)).run(timeout=20)
         self.assertTrue(self.widget('button', 'Next day').disabled)
         self.assertFalse(self.app.exception)
@@ -307,7 +313,8 @@ class ClassificationUiTests(unittest.TestCase):
         self.app.run(timeout=20)
         self.assertEqual(sum(call.args[0].endswith('/health') for call in self.get.call_args_list), health_calls)
         posts = self.post.call_count
-        AppTest.from_file(str(ROOT / 'frontend/app.py')).run(timeout=20)  # e.g. a refresh or a second viewer
+        viewer = AppTest.from_file(str(ROOT / 'frontend/app.py')).run(timeout=20)  # e.g. a refresh or a second viewer
+        viewer.radio[0].set_value('Daily simulation').run(timeout=20)
         self.assertEqual(self.post.call_count, posts)
 
     def test_month_end_review_works_without_api(self):
@@ -319,17 +326,48 @@ class ClassificationUiTests(unittest.TestCase):
         labels = [m.label for m in self.app.metric]
         self.assertIn('Late deliveries caught', labels)
         caught = next(m for m in self.app.metric if m.label == 'Late deliveries caught')
-        self.assertEqual(caught.value, '2 of 2')  # the known late order appears on both fixture days and ranks first
-        self.assertTrue(any('Selection month' in w.value and 'Retrospective view' in w.value for w in self.app.warning))
+        self.assertEqual(caught.value, '1 of 1')  # opens on July: one fixture day, its late order ranks first
+        self.assertTrue(any('Monitoring month' in i.value and 'Retrospective view' in i.value for i in self.app.info))
         mae = next(m for m in self.app.metric if m.label == 'Typical error (MAE)')
         self.assertEqual(mae.value, '3.5 days')  # |-2.5 - 1| and |-2.5 + 6|
-        self.app.radio(key='month_pick').set_value('2018-07').run(timeout=20)
+        self.app.radio(key='month_pick').set_value('2018-06').run(timeout=20)
         self.assertFalse(self.app.exception)
-        self.assertTrue(any('Out-of-time monitoring' in i.value for i in self.app.info))
+        self.assertTrue(any('Selection month' in w.value for w in self.app.warning))
+        self.assertEqual(next(m for m in self.app.metric if m.label == 'Late deliveries caught').value, '2 of 2')
+
+    def test_example_batch_csv_matches_upload_template(self):
+        cols = self.stats['features']['numeric'] + self.stats['features']['categorical']
+        example = pd.read_csv(ROOT / 'docs/examples/batch_example.csv', float_precision='round_trip')
+        self.assertEqual(list(example.columns), ['order_id'] + cols)
+        kept, rows, error = prepare_upload(example, cols)
+        self.assertIsNone(error)
+        self.assertEqual(len(rows), 10)
+        for row in rows:
+            self.assertFalse(validate_form(row['features'], self.stats))  # every example order passes the app's checks
+
+    def test_start_page_explains_every_page_without_api(self):
+        self.get.side_effect = requests.ConnectionError('backend asleep')
+        self.app.radio[0].set_value('Start here').run(timeout=20)
+        self.assertFalse(self.app.exception)
+        text = ' '.join(m.value for m in self.app.markdown)
+        for page in ['Daily simulation', 'Month-end review', 'Explore the data', 'Single-order API demo', 'Batch API demo', 'Models and guidance']:
+            self.assertIn(page, text)
+
+    def test_explore_page_uses_packaged_tables_and_filters(self):
+        posts = self.post.call_count
+        self.app.radio[0].set_value('Explore the data').run(timeout=60)
+        self.assertFalse(self.app.exception)
+        self.assertEqual(self.post.call_count, posts)
+        total = int(next(m for m in self.app.metric if m.label == 'Approved orders').value.replace(',', ''))
+        self.assertGreater(total, 90000)
+        self.app.multiselect(key='eda_states').set_value(['SP']).run(timeout=60)
+        self.assertFalse(self.app.exception)
+        filtered = int(next(m for m in self.app.metric if m.label == 'Approved orders').value.replace(',', ''))
+        self.assertLess(filtered, total)
 
     def test_supporting_pages_and_frontend_isolation(self):
-        for page in ['Batch API demo', 'Models and guidance', 'Month-end review']:
-            self.app.radio[0].set_value(page).run(timeout=20)
+        for page in ['Batch API demo', 'Models and guidance', 'Month-end review', 'Start here']:
+            self.app.sidebar.radio[0].set_value(page).run(timeout=20)
             self.assertFalse(self.app.exception)
         source = (ROOT / 'frontend/app.py').read_text()
         for text in ['import joblib', 'import sklearn', 'classification_service', 'top_10_percent_boundary', 'is_predicted_late']:

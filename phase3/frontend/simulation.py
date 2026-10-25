@@ -28,12 +28,14 @@ def snapshot_datetime(value):
 MINIMUM_DATE = date(2018, 6, 2)
 # June guided model selection; July and August are frozen-model monitoring months.
 MAXIMUM_DATE = date(2018, 8, 30)
+# Open on the first unseen (monitoring) morning; June stays selectable.
+DEFAULT_DATE = date(2018, 7, 2)
 REPLAY_MONTHS = {"2018-06": "June 2018", "2018-07": "July 2018", "2018-08": "August 2018"}
 
 
 def configuration(data):
     return {"minimum_date": str(max(MINIMUM_DATE, snapshot_date(data["model_available_date"]))), "maximum_date": str(MAXIMUM_DATE),
-            "default_date": str(max(MINIMUM_DATE, snapshot_date(data["model_available_date"]))), "model_available_date": data["model_available_date"],
+            "default_date": str(max(DEFAULT_DATE, MINIMUM_DATE, snapshot_date(data["model_available_date"]))), "model_available_date": data["model_available_date"],
             "batch_definition": data["batch_definition"], "timezone": data["timezone"],
             "limitations": data.get("limitations", [])}
 

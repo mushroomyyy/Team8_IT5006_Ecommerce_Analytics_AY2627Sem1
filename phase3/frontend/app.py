@@ -21,7 +21,8 @@ if _repo_root not in sys.path:
 import importlib
 import phase3.frontend.simulation as _simulation_module
 import phase3.frontend.orchestration as _orchestration_module
-for _module in (_simulation_module, _orchestration_module):
+import phase3.frontend.explore as _explore_module
+for _module in (_simulation_module, _orchestration_module, _explore_module):
     _mtime = os.path.getmtime(_module.__file__)
     if getattr(_module, '_source_mtime', None) != _mtime:
         _module = importlib.reload(_module)
@@ -29,6 +30,7 @@ for _module in (_simulation_module, _orchestration_module):
 from phase3.frontend.orchestration import (HEALTH_TIMEOUT, WAKE_BUDGET_SECONDS, api_request, build_day_worklist,
     load_demo_orders, load_demo_samples, load_month_inputs, model_versions, reveal_outcomes, snapshot_revision,
     wait_for_service)
+from phase3.frontend.explore import explore_page
 from phase3.frontend.simulation import (REPLAY_MONTHS, buffer_ranking_scores, configuration, month_replay, month_summary, monthly_ranking,
     SimulationDataError, timing_accuracy)
 
@@ -78,8 +80,9 @@ UPLOAD_OUTPUT_COLUMNS = {'late_probability','is_predicted_late','threshold','thr
                          'error','risk_rank','rank','watch_list','actual_late','predicted_days_from_promise',
                          'raw_days_from_promise','late_by_days','early_by_days','clipping_applied','clipping_policy','target','score_interpretation'}
 
-PAGES = ['Daily simulation', 'Month-end review', 'Single-order API demo', 'Batch API demo', 'Models and guidance']
-PAGE_ICONS = {'Daily simulation': '📋', 'Month-end review': '📈', 'Single-order API demo': '🔍', 'Batch API demo': '📤', 'Models and guidance': 'ℹ️'}
+PAGES = ['Start here', 'Daily simulation', 'Month-end review', 'Explore the data', 'Single-order API demo', 'Batch API demo', 'Models and guidance']
+PAGE_ICONS = {'Start here': '🏁', 'Daily simulation': '📋', 'Month-end review': '📈', 'Explore the data': '🗺️',
+              'Single-order API demo': '🔍', 'Batch API demo': '📤', 'Models and guidance': 'ℹ️'}
 API_PAGES = {'Daily simulation', 'Single-order API demo', 'Batch API demo', 'Models and guidance'}
 CONNECTION_RECHECK_SECONDS = 300
 # One palette across pages: orange marks the follow-up workload, slate everything else.
@@ -119,6 +122,13 @@ def model_info(api_url):
 @st.cache_data(ttl=60, show_spinner=False)
 def inference_summary(api_url):
     return api_request(api_url, '/logs/summary', timeout=HEALTH_TIMEOUT)
+
+
+@st.cache_resource(show_spinner=False)
+def replay_scores():
+    """Pre-computed C3/R1 pairs for every replay order; never reads outcomes."""
+    from phase3.frontend.orchestration import read_demo_json
+    return read_demo_json('replay_scores.json')['scores']
 
 
 @st.cache_resource(show_spinner=False)
@@ -464,8 +474,8 @@ def daily_page(api_url, metadata):
 
 MONTH_NOTES = {
     '2018-06': ('Selection month', 'June was used to choose the models, so it flatters them slightly.'),
-    '2018-07': ('Out-of-time monitoring', 'The models were frozen on 2 June; July is unseen data.'),
-    '2018-08': ('Out-of-time monitoring', 'The models were frozen on 2 June; August is unseen data.'),
+    '2018-07': ('Monitoring month', 'The models were frozen on 2 June and never saw July: this is the true hold-out.'),
+    '2018-08': ('Monitoring month', 'The models were frozen on 2 June and never saw August: this is the true hold-out.'),
 }
 
 
@@ -553,7 +563,7 @@ def timing_chart(days):
 
 def month_page(live_metadata):
     header = st.container()
-    month = st.radio('Month', list(REPLAY_MONTHS), format_func=lambda key: f'{REPLAY_MONTHS[key]} · {MONTH_NOTES[key][0]}',
+    month = st.radio('Month', list(REPLAY_MONTHS), index=list(REPLAY_MONTHS).index('2018-07'), format_func=lambda key: f'{REPLAY_MONTHS[key]} · {MONTH_NOTES[key][0]}',
                      horizontal=True, key='month_pick', label_visibility='collapsed')
     name, (badge, note) = REPLAY_MONTHS[month], MONTH_NOTES[month]
     with header:
@@ -729,6 +739,45 @@ def guidance(metadata, api_url=None):
         st.json(metadata)
 
 
+# Sidebar order: what each page shows, then what to do there.
+GUIDE = [
+    ('Daily simulation',
+     'One morning’s follow-up list. Orders approved the day before are scored by the live API and ranked by late-delivery risk; the riskiest share is marked for a call.',
+     'It opens on 2 July 2018, the first morning the models had not seen; any day from 2 June to 30 August works. Optionally change the share to call. Press **Reveal eventual outcomes** to see which orders were actually late.'),
+    ('Month-end review',
+     'The same daily list replayed for a whole month: how many late deliveries it caught, how effort trades off against catches, and how accurate R1’s timing was.',
+     'It opens on July. Compare July and August (monitoring months the models never saw) with June (used to choose them).'),
+    ('Explore the data',
+     'The data behind the models, from all 98,958 approved orders (January 2017 to August 2018): what drives late deliveries, plus our other two candidate problems (repeat purchases and reviews) and the models’ outputs.',
+     'Filter by month, state, route or category, then move through the tabs.'),
+    ('Single-order API demo',
+     'One order sent to the live API, showing both predictions: C3 late-delivery risk and R1 days from the promised date.',
+     'Pick an order, change any of its 24 inputs and press **Predict delivery**.'),
+    ('Batch API demo',
+     'Scores many orders in one API call, for your own data.',
+     'Download the template, fill in up to 1,000 orders and upload it.'),
+    ('Models and guidance',
+     'How the two models were built, how they performed month by month, how to read their scores, and live API usage.',
+     'Read before relying on the scores.'),
+]
+
+
+def start_page():
+    page_header('Delivery Watch', 'Ranks yesterday’s Olist orders by late-delivery risk, so operations know which to call first.')
+    st.subheader('How to use this app')
+    st.caption('Work through the pages in the order they appear in the sidebar.')
+    for number, (name, shows, action) in enumerate(GUIDE, 1):
+        with st.container(border=True):
+            st.markdown(f'**{number}. {PAGE_ICONS[name]}\u2002{name}**  \n{shows}  \n**What to do:** {action}')
+    with st.expander('Good to know'):
+        st.markdown(
+            '- **C3** ranks orders by late-delivery risk; its scores are for ranking, not calibrated probabilities.\n'
+            '- **R1** predicts days from the promised date: negative = early, positive = late.\n'
+            '- Data: real Olist orders from 2017–2018, replayed as if new. June 2018 was used to choose the models; July and August are unseen.\n'
+            '- The prediction API sleeps when idle; the first call can take 30–60 seconds. Use **Retry API connection** in the sidebar if needed.\n'
+            '- API documentation: https://team8-delivery-api.onrender.com/docs')
+
+
 def connect(api_url, force=False):
     """Check the API once per session (and on Retry), polling briefly with visible progress instead of one long call."""
     checked = st.session_state.get('connection_checked')
@@ -750,7 +799,7 @@ def main():
     st.markdown(STYLE, unsafe_allow_html=True)
     api_url = os.environ.get('DELIVERY_API_URL', os.environ.get('CLASSIFICATION_API_URL', 'http://127.0.0.1:8002'))
     st.sidebar.title('📦\u2002Delivery Watch')
-    st.sidebar.caption('Olist orders · June–August 2018')
+    st.sidebar.caption('Olist orders · 2017–2018')
     if st.session_state.get('next_page'):
         st.session_state['workspace'] = st.session_state.pop('next_page')
     page = st.sidebar.radio('Workspace', PAGES, key='workspace', label_visibility='collapsed',
@@ -793,8 +842,10 @@ def main():
                     '**Backend:** FastAPI on Render — C3 and R1 predictions.\n\n'
                     '**Data:** held-out Olist orders, June–August 2018.')
     try:
-        if page == 'Daily simulation': daily_page(api_url, metadata)
+        if page == 'Start here': start_page()
+        elif page == 'Daily simulation': daily_page(api_url, metadata)
         elif page == 'Month-end review': month_page(metadata)
+        elif page == 'Explore the data': explore_page(page_header, replay_scores())
         elif page == 'Single-order API demo':
             data = load_demo_samples()
             samples = data.get('samples', []) if isinstance(data, dict) else data

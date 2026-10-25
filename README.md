@@ -70,8 +70,10 @@ Each simulated morning between 2 June and 30 August 2018, the app takes the
 previous day's approved orders, applies a midnight cutoff and eligibility rules,
 scores every eligible order through the API, and puts the riskiest share
 (30% by default) on a follow-up list. June guided model selection; July and
-August are unseen monitoring months. Pages: Daily simulation, Month-end review,
-single-order and batch API demos, and Models and guidance.
+August are unseen monitoring months. Pages, in sidebar order: Start here (how to
+use the app), Daily simulation, Month-end review, Explore the data (the Phase 1
+dashboard rebuilt on Phase 2 definitions, with model outputs), single-order and
+batch API demos, and Models and guidance.
 
 - [Application guide](phase3/README.md)
 - [Calling the API, with examples](phase3/docs/API.md)

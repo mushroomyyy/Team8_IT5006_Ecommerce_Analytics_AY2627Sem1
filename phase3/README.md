@@ -32,8 +32,9 @@ test environment can resolve both; it also includes HTTP test support.
 
 ## Use the application
 
-1. Open **Daily simulation**. Imagine the displayed current date is today.
-   Dates range from 2 June to 30 August 2018, scoring the previous day's approvals.
+1. **Start here** explains each page. Then open **Daily simulation**. Imagine the displayed current date is today.
+   It opens on 2 July 2018 (the first unseen morning); dates range from 2 June to
+   30 August 2018, scoring the previous day's approvals.
    June guided model selection; July and August are unseen monitoring months.
 2. Move with the date picker or **Previous day / Next day**. The cutoff is
    midnight at the start of the simulated date in the source's local wall time.
@@ -50,9 +51,15 @@ test environment can resolve both; it also includes HTTP test support.
    have caught over the whole month, compared with a whole-month ranking, random
    calls and a ranking by R1's buffer, plus R1's timing accuracy. This page uses
    pre-computed scores and works while the API is asleep.
-8. Use **Single-order API demo** to submit a sample or edit its engineered inputs.
-   This calls the same services as the worklist. Batch CSV scoring is also available.
-9. **Models and guidance** summarises both models, month-by-month performance and
+8. Open **Explore the data** for the Phase 1 dashboard rebuilt on Phase 2
+   definitions: filters by month, state, route and category; tabs for orders,
+   delivery, geography, sellers, customers (repeat purchases and reviews), model
+   outputs and data definitions. Refresh its tables with
+   `python -m phase3.export.export_eda`.
+9. Use **Single-order API demo** to submit a sample or edit its engineered inputs.
+   This calls the same services as the worklist. Batch CSV scoring is also available;
+   `docs/examples/batch_example.csv` is a ready-made file of 10 orders.
+10. **Models and guidance** summarises both models, month-by-month performance and
    live API monitoring from `/logs/summary`.
 
 ## Organisation

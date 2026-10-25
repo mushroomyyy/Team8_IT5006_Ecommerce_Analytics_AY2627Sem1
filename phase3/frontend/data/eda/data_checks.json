@@ -1,0 +1,230 @@
+{
+ "inventory": [
+  {
+   "table": "orders",
+   "rows": 99441,
+   "columns": 8,
+   "missing_cells_pct": 0.62
+  },
+  {
+   "table": "order_items",
+   "rows": 112650,
+   "columns": 7,
+   "missing_cells_pct": 0.0
+  },
+  {
+   "table": "customers",
+   "rows": 99441,
+   "columns": 5,
+   "missing_cells_pct": 0.0
+  },
+  {
+   "table": "products",
+   "rows": 32951,
+   "columns": 9,
+   "missing_cells_pct": 0.62
+  },
+  {
+   "table": "sellers",
+   "rows": 3095,
+   "columns": 4,
+   "missing_cells_pct": 0.0
+  },
+  {
+   "table": "payments",
+   "rows": 103886,
+   "columns": 5,
+   "missing_cells_pct": 0.0
+  },
+  {
+   "table": "reviews",
+   "rows": 99224,
+   "columns": 7,
+   "missing_cells_pct": 21.01
+  },
+  {
+   "table": "geolocation",
+   "rows": 1000163,
+   "columns": 5,
+   "missing_cells_pct": 0.0
+  }
+ ],
+ "checks": [
+  {
+   "check": "Order items without a matching order",
+   "result": 0
+  },
+  {
+   "check": "Orders without any line items",
+   "result": 775
+  },
+  {
+   "check": "Orders without approval (excluded)",
+   "result": 160
+  },
+  {
+   "check": "Median / maximum items per order",
+   "result": "1 / 21"
+  },
+  {
+   "check": "Median / maximum payments per order",
+   "result": "1 / 29"
+  }
+ ],
+ "coverage": [
+  {
+   "month": "2016-09",
+   "orders": 4,
+   "approved": 4,
+   "delivered": 1
+  },
+  {
+   "month": "2016-10",
+   "orders": 324,
+   "approved": 318,
+   "delivered": 270
+  },
+  {
+   "month": "2016-12",
+   "orders": 1,
+   "approved": 1,
+   "delivered": 1
+  },
+  {
+   "month": "2017-01",
+   "orders": 800,
+   "approved": 797,
+   "delivered": 750
+  },
+  {
+   "month": "2017-02",
+   "orders": 1780,
+   "approved": 1766,
+   "delivered": 1653
+  },
+  {
+   "month": "2017-03",
+   "orders": 2682,
+   "approved": 2680,
+   "delivered": 2546
+  },
+  {
+   "month": "2017-04",
+   "orders": 2404,
+   "approved": 2400,
+   "delivered": 2303
+  },
+  {
+   "month": "2017-05",
+   "orders": 3700,
+   "approved": 3691,
+   "delivered": 3545
+  },
+  {
+   "month": "2017-06",
+   "orders": 3245,
+   "approved": 3241,
+   "delivered": 3135
+  },
+  {
+   "month": "2017-07",
+   "orders": 4026,
+   "approved": 4021,
+   "delivered": 3872
+  },
+  {
+   "month": "2017-08",
+   "orders": 4331,
+   "approved": 4325,
+   "delivered": 4193
+  },
+  {
+   "month": "2017-09",
+   "orders": 4285,
+   "approved": 4281,
+   "delivered": 4150
+  },
+  {
+   "month": "2017-10",
+   "orders": 4631,
+   "approved": 4626,
+   "delivered": 4478
+  },
+  {
+   "month": "2017-11",
+   "orders": 7544,
+   "approved": 7535,
+   "delivered": 7288
+  },
+  {
+   "month": "2017-12",
+   "orders": 5673,
+   "approved": 5666,
+   "delivered": 5513
+  },
+  {
+   "month": "2018-01",
+   "orders": 7269,
+   "approved": 7268,
+   "delivered": 7069
+  },
+  {
+   "month": "2018-02",
+   "orders": 6728,
+   "approved": 6724,
+   "delivered": 6556
+  },
+  {
+   "month": "2018-03",
+   "orders": 7211,
+   "approved": 7208,
+   "delivered": 7003
+  },
+  {
+   "month": "2018-04",
+   "orders": 6939,
+   "approved": 6939,
+   "delivered": 6798
+  },
+  {
+   "month": "2018-05",
+   "orders": 6873,
+   "approved": 6872,
+   "delivered": 6749
+  },
+  {
+   "month": "2018-06",
+   "orders": 6167,
+   "approved": 6167,
+   "delivered": 6096
+  },
+  {
+   "month": "2018-07",
+   "orders": 6292,
+   "approved": 6291,
+   "delivered": 6156
+  },
+  {
+   "month": "2018-08",
+   "orders": 6512,
+   "approved": 6459,
+   "delivered": 6351
+  },
+  {
+   "month": "2018-09",
+   "orders": 16,
+   "approved": 1,
+   "delivered": 0
+  },
+  {
+   "month": "2018-10",
+   "orders": 4,
+   "approved": 0,
+   "delivered": 0
+  }
+ ],
+ "window": {
+  "first_month": "2017-01",
+  "last_month": "2018-08"
+ }
+}

@@ -174,6 +174,11 @@ Results come back in the same order, each with its `index` and `order_id`
 }
 ```
 
+A ready-made file of 10 real held-out orders,
+[`examples/batch_example.csv`](examples/batch_example.csv), uses the same columns
+as the app's template: upload it on the app's **Batch API demo** page to score
+all 10 in one call.
+
 An invalid row does not fail the batch: it gets its own `error` and
 `status_code: 422`, and every other row is still scored.
 
