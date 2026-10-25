@@ -75,6 +75,9 @@ def api_request(api_url, endpoint, payload=None, timeout=REQUEST_TIMEOUT):
             detail = response.json().get('detail', response.text)
         except ValueError:
             detail = response.text
+        if str(detail).lstrip().startswith('<'):
+            # The host's own HTML error page (e.g. Render while a new version starts), not our API's message.
+            detail = 'the prediction service is restarting or unavailable. Wait a moment, then select Retry API connection.'
         raise ValueError(f'API returned {response.status_code}: {detail}')
     return response.json()
 

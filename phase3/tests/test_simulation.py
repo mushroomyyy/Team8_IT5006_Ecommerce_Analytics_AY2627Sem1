@@ -135,6 +135,24 @@ class HttpOrchestrationTests(unittest.TestCase):
         self.rows = [{'order_id': 'a', 'features': {'score': .1}}, {'order_id': 'b', 'features': {'score': .2}}]
         self.results = [{'index': i, 'order_id': row['order_id'], 'prediction': score([row])[0]} for i, row in enumerate(self.rows)]
 
+    def test_host_html_error_pages_become_readable_messages(self):
+        from phase3.frontend.orchestration import api_request
+        class Reply:
+            def __init__(self, status, text, payload=None): self.status_code, self.ok, self.text, self.payload = status, status < 400, text, payload
+            def json(self):
+                if self.payload is None: raise ValueError('not json')
+                return self.payload
+        with patch('requests.get', return_value=Reply(502, '<!DOCTYPE html><html><body>Bad gateway</body></html>')):
+            with self.assertRaises(ValueError) as caught:
+                api_request('https://api', '/health')
+        self.assertIn('502', str(caught.exception))
+        self.assertIn('restarting', str(caught.exception))
+        self.assertNotIn('<html', str(caught.exception))
+        with patch('requests.post', return_value=Reply(422, '{}', {'detail': 'customer_state must exactly match one of: SP'})):
+            with self.assertRaises(ValueError) as caught:
+                api_request('https://api', '/predict', {'features': {}})
+        self.assertIn('customer_state must exactly match', str(caught.exception))  # our API's own messages pass through
+
     def test_validation422_only_becomes_exclusion_and_remote_errors_abort(self):
         results = deepcopy(self.results)
         results[0] = {'index': 0, 'order_id': 'a', 'status_code': 422, 'error': 'invalid features'}
