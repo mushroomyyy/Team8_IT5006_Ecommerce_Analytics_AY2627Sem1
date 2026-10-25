@@ -90,15 +90,18 @@ source data, Phase 2 modules, offline training utilities and tests.
 
 ## Deployment status
 
-The Render API is live and verified at https://team8-delivery-api.onrender.com
-([Swagger](https://team8-delivery-api.onrender.com/docs)). Both model endpoints passed HTTPS checks on 20 October 2026; the local Streamlit
-worklist was verified against that HTTPS inference API. The Streamlit app is
-deployed on Streamlit Community Cloud from `main` with this API URL.
-See the verification record for checks actually performed.
+The repository migration is published on `main` as merge commit `456262a`.
+The existing Render API was redeployed and verified on 25 October 2026 at
+https://team8-delivery-api.onrender.com
+([Swagger](https://team8-delivery-api.onrender.com/docs)). Both model versions are
+unchanged, hosted/local predictions agree, and the documented batch succeeds
+10/10. See [live verification](reorg_live_http_verification.json).
 
-To call the live API yourself (endpoints, request and response examples, errors),
-see [API.md](API.md). The current app URL (replacement pending after the directory migration) is
-https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/.
+Both Streamlit replacement deployments are pending Jordan. Their old main-file
+paths have been removed. The previous Delivery Watch URL was
+https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/;
+it is not a verified deployment of the reorganized layout. Follow the
+[Streamlit handoff](STREAMLIT_HANDOFF.md). For API clients, see [API.md](API.md).
 
 ## Refreshing packaged data
 

@@ -1,11 +1,21 @@
 # Deploy the reorganized repository
 
 The existing Render API stays at https://team8-delivery-api.onrender.com
-([Swagger](https://team8-delivery-api.onrender.com/docs)). The current Delivery
-Watch app is at
+([Swagger](https://team8-delivery-api.onrender.com/docs)). The previous Delivery
+Watch app URL is
 https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/;
-Jordan will replace it and the Phase 1 dashboard after the migration reaches
-`main`. New URLs are pending. See [Streamlit handoff](STREAMLIT_HANDOFF.md).
+The migration is now in `main`; Jordan must replace it and the Phase 1 dashboard.
+New URLs are pending. See [Streamlit handoff](STREAMLIT_HANDOFF.md).
+
+## Published release — 25 October 2026
+
+Andrew approved publication. Merge commit `456262a` is on remote `main`, and Render
+deploy `dep-dbeto2g473hc739eqrig` is live after a 1m21s build/deployment. The service's
+Dockerfile path is `./deployment/Dockerfile.api`. Public HTTP checks, unchanged
+model versions, hosted/local prediction agreement and the 10/10 batch example pass.
+See [live evidence](reorg_live_http_verification.json) and
+[Render screenshot](screenshots/reorg-render-live.png). The working branch was
+never pushed. The Streamlit handoff below is still pending.
 
 ## Release gate
 

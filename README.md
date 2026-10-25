@@ -7,15 +7,17 @@ to a deployed operations application (Phase 3).
 
 | Live | URL |
 |---|---|
-| Delivery Watch app (current entry point; replacement pending) | https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/ |
+| Delivery Watch (previous URL; replacement pending) | https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/ |
 | Phase 1 dashboard | Replacement URL pending Jordan's deployment |
 | Model API (FastAPI on Render) | https://team8-delivery-api.onrender.com |
 | API docs (Swagger, with examples) | https://team8-delivery-api.onrender.com/docs |
 
 The free API sleeps when idle; the first request can take 30–60 seconds to wake it.
-The directory migration requires Jordan to replace both Streamlit apps after it
-reaches `main`; see the [deployment handoff](docs/STREAMLIT_HANDOFF.md). The existing
-API service and URL stay the same. New Streamlit URLs will be recorded after deployment.
+The directory migration is merged into `main`; Render was redeployed and verified
+on 25 October 2026. Jordan must now replace both Streamlit apps using the
+[deployment handoff](docs/STREAMLIT_HANDOFF.md). Their old entry points have been
+removed, so the previous URLs may no longer load. New URLs will be recorded after
+deployment. The API service and URL are unchanged.
 
 ## Selected models
 

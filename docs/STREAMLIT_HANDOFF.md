@@ -1,10 +1,10 @@
 # Streamlit redeployment handoff for Jordan
 
-Both entry points move in this reorganization. Jordan (`mushroomyyy`) owns the
-Streamlit apps and will create replacements after the team approves the local
-changes and they are merged into remote `main`. Do not deploy the local
-`codex/repo-reorg` branch or push that branch. Coordinate the merge with Jordan:
-the old apps lose their entry points once `main` changes.
+The approved directory migration is now on remote `main` (merge `456262a`), and
+the existing Render API is redeployed and verified. Jordan (`mushroomyyy`) owns
+both Streamlit apps and can now create their replacements using the steps below.
+Both old main-file paths have been removed. Replacement apps and URLs remain
+pending. Do not deploy or push the local-only `codex/repo-reorg` branch.
 
 ## Delivery Watch
 

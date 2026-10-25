@@ -1,9 +1,16 @@
 # Repository reorganization verification — 25 October 2026
 
-All checks below are local, using Python 3.13.5 on Andrew's Mac. The starting
-commit is `be93fd24418b92a837395ecf01765e9494da7c3a`. Work stays on local-only
-`codex/repo-reorg`. Remote `main`, Render and both hosted Streamlit apps have not
-been changed. Publication and redeployment require Andrew's review decision.
+The local checks below used Python 3.13.5 on Andrew's Mac, starting at
+`be93fd24418b92a837395ecf01765e9494da7c3a`. Andrew subsequently approved publication:
+merge commit `456262a` is now on remote `main`. The working branch
+`codex/repo-reorg` remains local-only.
+
+The existing Render service is live from that merge, using
+`./deployment/Dockerfile.api`; deploy `dep-dbeto2g473hc739eqrig` took 1m21s.
+[Public HTTP verification](reorg_live_http_verification.json) passes with unchanged
+model versions, hosted/local prediction agreement and a 10/10 documented batch.
+[Render screenshot](screenshots/reorg-render-live.png). Both Streamlit replacements
+remain pending Jordan.
 
 ## Tests
 
@@ -136,16 +143,21 @@ now starts `deployment/app/app.py` with Python 3.13. The full local requirements
 include the Phase 1 notebook plotting packages and pytest; hosting requirements
 stay separate.
 
-Pending after Andrew approves the review:
+Publication approved and completed on 25 October 2026:
 
-1. Coordinate a release window with Jordan for both replacement Streamlit apps.
-2. Inspect/update the existing Render service's Dockerfile path at release time.
-3. Merge the local branch into `main` and push `main`; never push the working branch.
-4. Deploy the existing Render service and run live HTTP/model-version checks.
-5. Jordan redeploys both Streamlit apps using [STREAMLIT_HANDOFF.md](STREAMLIT_HANDOFF.md),
+- Merged the local reorganization into `main` and pushed only `main`.
+- Updated the existing Render service's Dockerfile path and deployed merge `456262a`.
+- Verified health, Swagger, prediction equivalence, validation errors, removed routes,
+  unchanged model versions and the documented batch over public HTTPS.
+- Saving the Dockerfile setting initially triggered a failed build of the old
+  commit, which lacked the new path; the subsequent merge deployment succeeded.
+
+Remaining collaborator work:
+
+1. Jordan redeploys both Streamlit apps using [STREAMLIT_HANDOFF.md](STREAMLIT_HANDOFF.md),
    checks them and deletes the old apps after replacements pass.
-6. Record both new URLs in active documentation with a link-only `[skip render]`
+2. Record both new URLs in active documentation with a link-only `[skip render]`
    follow-up commit, and update the report/slides outside this repository.
 
-Do not interpret preserved historical deployment records as evidence that the
-reorganized layout has already been published.
+The earlier dated verification records remain historical evidence; use the live
+HTTP record above for the newly published layout.
