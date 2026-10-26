@@ -33,8 +33,9 @@ test environment can resolve both; it also includes HTTP test support.
 ## Use the application
 
 1. **Start here** explains each page. Then open **Daily simulation**. Imagine the displayed current date is today.
-   It opens on 2 July 2018 (the first unseen morning); dates range from 2 June to
-   30 August 2018, scoring the previous day's approvals.
+   It opens on 2 June 2018, the first scoring morning for the frozen models,
+   covering orders approved on 1 June. Dates range from 2 June to 30 August 2018,
+   scoring the previous day's approvals.
    The models were chosen on Validation: June is their held-out test month, and
    July and August are unseen monitoring months.
 2. Move with the date picker or **Previous day / Next day**. The cutoff is

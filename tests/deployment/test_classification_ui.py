@@ -42,7 +42,7 @@ class ClassificationUiTests(unittest.TestCase):
         self.demo_data = {'minimum_date': '2018-06-02', 'maximum_date': '2018-07-01', 'default_date': '2018-06-02', 'model_available_date': '2018-06-02', 'timezone': 'America/Sao_Paulo', 'batch_definition': 'Previous day by approval date', 'limitations': ['Snapshot history is incomplete.'], 'days': {}}
         orders = [{'order_id': r['order_id'], 'promised_delivery_date': '2018-06-20', 'features': {k: r[k] for k in self.stats['features']['numeric'] + self.stats['features']['categorical']}} for r in self.samples[:2]]
         from copy import deepcopy
-        for day in ['2018-06-01', '2018-06-02', '2018-07-01']:  # 2 July is the default morning
+        for day in ['2018-06-01', '2018-06-02', '2018-07-01']:  # Include the default June morning and a July monitoring cohort
             self.demo_data['days'][day] = deepcopy(orders)
         for row in self.demo_data['days']['2018-07-01']:
             row['promised_delivery_date'] = '2018-07-20'  # still ahead of the July cutoff
@@ -91,11 +91,11 @@ class ClassificationUiTests(unittest.TestCase):
     def test_daily_default_and_navigation_boundaries(self):
         self.assertFalse(self.app.exception)
         self.assertEqual(self.app.radio[0].value, 'Daily simulation')
-        self.assertEqual(str(self.app.date_input[0].value), '2018-07-02')  # first unseen (monitoring) morning
+        self.assertEqual(str(self.app.date_input[0].value), '2018-06-02')  # first scoring morning in the test month
         self.widget('button', 'Next day').click().run(timeout=20)
-        self.assertEqual(str(self.app.date_input[0].value), '2018-07-03')
+        self.assertEqual(str(self.app.date_input[0].value), '2018-06-03')
         self.widget('button', 'Previous day').click().run(timeout=20)
-        self.assertEqual(str(self.app.date_input[0].value), '2018-07-02')
+        self.assertEqual(str(self.app.date_input[0].value), '2018-06-02')
         from datetime import date
         self.app.date_input[0].set_value(date(2018, 6, 2)).run(timeout=20)
         self.assertTrue(self.widget('button', 'Previous day').disabled)

@@ -28,8 +28,8 @@ def snapshot_datetime(value):
 MINIMUM_DATE = date(2018, 6, 2)
 # June is the held-out test month; July and August are frozen-model monitoring months.
 MAXIMUM_DATE = date(2018, 8, 30)
-# Open on the first unseen (monitoring) morning; June stays selectable.
-DEFAULT_DATE = date(2018, 7, 2)
+# Open on the first scoring morning for the frozen models, within the June test month.
+DEFAULT_DATE = MINIMUM_DATE
 REPLAY_MONTHS = {"2018-06": "June 2018", "2018-07": "July 2018", "2018-08": "August 2018"}
 
 

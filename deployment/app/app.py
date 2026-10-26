@@ -825,7 +825,7 @@ def guidance(metadata, api_url=None):
 GUIDE = [
     ('Daily simulation',
      'One morning’s follow-up list. Orders approved the day before are scored by the live API and ranked by late-delivery risk; the riskiest share is marked for a call.',
-     'It opens on 2 July 2018, the first morning the models had not seen; any day from 2 June to 30 August works. Optionally change the share to call. Press **Reveal eventual outcomes** to see which orders were actually late.'),
+     'It opens on 2 June 2018, the first scoring morning for the frozen models, covering 1 June approvals in the test month; any day from 2 June to 30 August works. Optionally change the share to call. Press **Reveal eventual outcomes** to see which orders were actually late.'),
     ('Month-end review',
      'The same daily list replayed for a whole month: how many late deliveries it caught, how effort trades off against catches, and how accurate the timing model was.',
      'It opens on July. Compare July and August (monitoring months the models never saw) with June (their held-out test month).'),
