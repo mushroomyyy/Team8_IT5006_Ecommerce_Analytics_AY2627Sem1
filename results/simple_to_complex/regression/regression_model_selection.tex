@@ -1,0 +1,22 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Model choice on Validation: day-level bootstrap against the leader}
+\begin{tabular}{lrrrrrrrrrrrrrr}
+\toprule
+Code & Model & validation & diff\_vs\_leader & ci\_low & ci\_high & leader & tied & family & parameters & selected & decision & order\_ci\_low & order\_ci\_high & order\_tied \\
+\midrule
+R0a & Median baseline & 9.8639 & 1.6596 & 1.4488 & 1.8748 & False & False & nan & nan & False & baseline: not selectable & 1.5622 & 1.7615 & False \\
+R0b & Olist promise & 13.5503 & 5.346 & 4.4877 & 6.1664 & False & False & nan & nan & False & baseline: not selectable & 5.0929 & 5.6064 & False \\
+R1 & OLS (all) & 8.2054 & 0.0011 & -0.0068 & 0.0081 & False & True & linear & 55.0 & False & tied, but a simpler tied model exists & -0.0052 & 0.0074 & True \\
+R2 & OLS (CV-stepwise) & 8.9265 & 0.7221 & 0.6577 & 0.7958 & False & False & linear & 2.0 & False & not tied: interval excludes 0 & 0.6578 & 0.7885 & False \\
+R2B & OLS (BIC) & 8.2043 & 0.0 & 0.0 & 0.0 & True & True & linear & 45.0 & True & selected: simplest model tied with the leader & 0.0 & 0.0 & True \\
+R4 & Decision tree (tuned) & 9.0134 & 0.8091 & 0.7031 & 0.919 & False & False & tree & 16.0 & False & not tied: interval excludes 0 & 0.7414 & 0.8773 & False \\
+R3 & Random Forest (tuned) & 8.3975 & 0.1931 & 0.1558 & 0.2308 & False & False & forest & 656824.0 & False & not tied: interval excludes 0 & 0.1538 & 0.2347 & False \\
+R3d & Random Forest (default) & 8.5563 & 0.352 & 0.2768 & 0.4293 & False & False & forest & 2217209.0 & False & not tied: interval excludes 0 & 0.2798 & 0.4231 & False \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize Differences are model minus leader (RMSE, days). Tied = 95\% interval includes 0; the simplest tied model is selected. Order-level columns are a sensitivity check.\end{minipage}
+\end{table}
+

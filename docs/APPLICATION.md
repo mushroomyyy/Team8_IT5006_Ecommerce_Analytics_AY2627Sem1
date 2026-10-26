@@ -1,7 +1,7 @@
 # Phase 3: delivery operations
 
 Every morning, operations receives a prioritised list of yesterday's approved
-orders, supported by C3 classification risk and R1 regression estimates.
+orders, supported by C2B classification risk and R2B regression estimates.
 Streamlit’s server-side Python code loads the historical demo, applies eligibility
 and ranks results returned by one FastAPI model-inference service over HTTP.
 
@@ -35,32 +35,37 @@ test environment can resolve both; it also includes HTTP test support.
 1. **Start here** explains each page. Then open **Daily simulation**. Imagine the displayed current date is today.
    It opens on 2 July 2018 (the first unseen morning); dates range from 2 June to
    30 August 2018, scoring the previous day's approvals.
-   June guided model selection; July and August are unseen monitoring months.
+   The models were chosen on Validation: June is their held-out test month, and
+   July and August are unseen monitoring months.
 2. Move with the date picker or **Previous day / Next day**. The cutoff is
    midnight at the start of the simulated date in the source's local wall time.
 3. Set the follow-up proportion (30% initially) and minimum days remaining
    (1 initially). These are demonstration assumptions, not validated policies.
 4. Inspect totals, eligible/excluded counts and reasons. Follow up the selected
-   rows, ranked by C3 risk. R1 is supporting information, not a second filter. All eligible orders are scored;
-   the proportion selects the top X% by risk for human follow-up.
+   rows, ranked by C2B risk. R2B is supporting information, not a second filter. All eligible orders are scored;
+   the proportion selects the top X% by risk for human follow-up. Canceled orders
+   stay on the list because cancellation is unknown at approval.
 5. Inspect an order or download the worklist. **Not selected** does not mean
    guaranteed on-time delivery.
 6. Reveal retrospective outcomes explicitly to inspect historical selected late
-   rate and coverage. Outcomes are hidden initially and reset on date/policy changes.
+   rate and coverage; canceled orders show as "Canceled" and are excluded from both. Outcomes are hidden initially and reset on date/policy changes.
 7. Open **Month-end review** and pick a month to see what the daily list would
    have caught over the whole month, compared with a whole-month ranking, random
-   calls and a ranking by R1's buffer, plus R1's timing accuracy. This page uses
+   calls and a ranking by R2B's buffer, plus R2B's timing accuracy. This page uses
    pre-computed scores and works while the API is asleep.
 8. Open **Explore the data** for the Phase 1 dashboard rebuilt on Phase 2
-   definitions: filters by month, state, route and category; tabs for orders,
+   definitions: filters by month, state, route and category (canceled and unavailable orders are not counted as late); tabs for orders,
    delivery, geography, sellers, customers (repeat purchases and reviews), model
    outputs and data definitions. Refresh its tables with
    `python -m deployment.export.export_eda`.
 9. Use **Single-order API demo** to submit a sample or edit its engineered inputs.
-   This calls the same services as the worklist. Batch CSV scoring is also available;
+   This calls the same services as the worklist and shows whether the order is
+   Flagged or Not flagged at C2B's operating cut-off. Batch CSV scoring is also available;
    `docs/examples/batch_example.csv` is a ready-made file of 10 orders.
-10. **Models and guidance** summarises both models, month-by-month performance and
-   live API monitoring from `/logs/summary`.
+10. **Models and guidance** summarises both models, the Validation model-choice
+   tables, C2B's confusion counts at 0.5 and at the operating cut-off, the June
+   late orders it missed, month-by-month performance and live API monitoring from
+   `/logs/summary`. Model labels come from the API metadata.
 
 ## Organisation
 
@@ -68,8 +73,8 @@ test environment can resolve both; it also includes HTTP test support.
 |---|---|
 | `deployment/api/` | Independent fitted-model services, strict input validation and inference routes |
 | `deployment/app/` | Streamlit UI, server-side historical orchestration, daily policy and packaged demo data |
-| `deployment/artifacts/` | Fitted pipelines, metadata and packaging provenance; no historical order rows |
-| `deployment/export/` | Offline export/packaging utilities; never run at web startup |
+| `deployment/artifacts/` | Fitted pipelines (`classification_model.joblib`, `regression_model.joblib`), metadata and manifest; no historical order rows |
+| `deployment/export/` | Offline training and export utilities; never run at web startup |
 | `deployment/scripts/` | `score_replay.py` (pre-scores the replay for Month-end review), `evaluate_daily.py`, `verify_http.py` |
 | `tests/deployment/` | Model, API, temporal policy, packaging and Streamlit checks |
 | `docs/` | API guide, deployment, model contracts, verification and archived prototype guide |
@@ -84,18 +89,21 @@ python -m pytest tests/deployment -q
 python -m pytest tests/phase2 -q
 ```
 
-Some packaging tests compare against original Git history; run them in a full
-checkout. Backend and frontend deployment images deliberately exclude the raw
+Backend and frontend deployment images deliberately exclude the raw
 source data, Phase 2 modules, offline training utilities and tests.
 
 ## Deployment status
 
-The repository migration is published on `main` as merge commit `456262a`.
-The existing Render API was redeployed and verified on 25 October 2026 at
-https://team8-delivery-api.onrender.com
-([Swagger](https://team8-delivery-api.onrender.com/docs)). Both model versions are
-unchanged, hosted/local predictions agree, and the documented batch succeeds
-10/10. The detailed verification records are retained locally.
+The repository migration was published on `main` as merge commit `456262a`, and
+the Render API at https://team8-delivery-api.onrender.com
+([Swagger](https://team8-delivery-api.onrender.com/docs)) was verified live on
+25 October 2026 serving the previous C3/R1 models.
+
+This branch switches the deployed models to C2B and R2B. It was verified locally on
+26-27 October 2026 (Docker build served the new versions; `verify_http` passed
+all checks; 180 tests pass). **Live Render re-verification is pending**: the team
+redeploys after merging, so do not assume the live service serves C2B/R2B until
+that check is recorded.
 
 Both replacement Streamlit apps were deployed from `main` at commit
 `453076cf41a27e92c9850ae37f109283b09e9196` and verified on 26 October 2026:
@@ -111,11 +119,16 @@ See [deployment settings](DEPLOYMENT.md) and the
 
 ## Refreshing packaged data
 
-Run from the repository root after changing the replay window or the models:
+Run from the repository root after changing the replay window or the models, in
+this order:
 
 ```bash
-python -m deployment.export.export_simulation   # needs Olist_CSV/; writes orders, outcomes, R1 targets
-python -m deployment.scripts.score_replay       # pre-scores every replay order and updates the manifest
+python -m deployment.export.train_classification  # refit C2B from the notebook's selected_model
+python -m deployment.export.train_regression      # refit R2B likewise
+python -m deployment.export.export_simulation     # needs Olist_CSV/; writes orders, outcomes, timing targets, manifest
+python -m deployment.scripts.score_replay         # pre-scores every replay order
+python -m deployment.export.export_eda            # refreshes the Explore tables
+python -m deployment.scripts.evaluate_daily       # writes docs/daily_policy_evaluation.json
 ```
 
 ## API boundary

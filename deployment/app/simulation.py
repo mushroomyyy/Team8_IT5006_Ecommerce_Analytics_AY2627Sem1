@@ -26,7 +26,7 @@ def snapshot_datetime(value):
         raise SimulationDataError("Malformed historical snapshot timestamp") from exc
 
 MINIMUM_DATE = date(2018, 6, 2)
-# June guided model selection; July and August are frozen-model monitoring months.
+# June is the held-out test month; July and August are frozen-model monitoring months.
 MAXIMUM_DATE = date(2018, 8, 30)
 # Open on the first unseen (monitoring) morning; June stays selectable.
 DEFAULT_DATE = date(2018, 7, 2)
@@ -141,13 +141,14 @@ def month_replay(data, scores, known_outcomes, minimum_days_remaining, month=Non
 def month_summary(replay, review_proportion):
     """Daily and pooled capture for one follow-up proportion, rounding up each day like the worklist."""
     def late(values): return sum(value == 1 for value in values)
-    def known(values): return sum(value in (0, 1) for value in values)
-    days, pooled = [], dict.fromkeys(["total", "eligible", "selected", "selected_known", "late_caught", "late_eligible", "late_all"], 0)
+    def known(values): return sum(value in (0, 1) for value in values)  # Canceled and unknown outcomes are not counted
+    days, pooled = [], dict.fromkeys(["total", "eligible", "selected", "selected_known", "known_all", "late_caught", "late_eligible", "late_all"], 0)
     for day in replay:
         ranked = day["ranked"]
         selected = ranked[:ceil(review_proportion * len(ranked))]
         row = {"simulation_date": day["simulation_date"], "total": len(ranked) + len(day["excluded"]),
                "eligible": len(ranked), "selected": len(selected), "selected_known": known(selected),
+               "known_all": known(ranked) + known(day["excluded"]),
                "late_caught": late(selected), "late_eligible": late(ranked), "late_all": late(ranked) + late(day["excluded"])}
         days.append(row)
         for key in pooled: pooled[key] += row[key]
@@ -172,12 +173,12 @@ def monthly_ranking(data, scores, known_outcomes, review_proportion, month=None)
 
 
 def buffer_ranking_scores(scores):
-    """Comparison ranking by R1: the later R1 expects arrival relative to the promise, the riskier."""
+    """Comparison ranking by the timing model: the later it expects arrival relative to the promise, the riskier."""
     return {key: None if pair is None else [pair[1], pair[1]] for key, pair in scores.items()}
 
 
 def timing_accuracy(data, scores, actual_days, known_outcomes, month=None):
-    """R1 error against its Phase 2 target (days from promise), overall and per approval day."""
+    """Timing-model error against its Phase 2 target (days from promise), overall and per approval day."""
     pairs, by_day = [], {}
     for key, day in data["days"].items():
         if month and not key.startswith(month):
@@ -208,7 +209,8 @@ def retrospective(worklist, known_outcomes):
     def counts(ids):
         values = [outcomes[key] for key in ids]
         known = sum(value in (0, 1) for value in values)
-        return {"total": len(values), "known": known, "unknown": len(values) - known,
+        canceled = sum(value == "canceled" for value in values)
+        return {"total": len(values), "known": known, "unknown": len(values) - known - canceled, "canceled": canceled,
                 "late": sum(value == 1 for value in values)}
     all_counts, eligible_counts, selected_counts = map(counts, (all_ids, eligible_ids, selected_ids))
     def ratio(numerator, denominator):
@@ -218,4 +220,4 @@ def retrospective(worklist, known_outcomes):
                "eligible_late_coverage": ratio(selected_counts["late"], eligible_counts["late"]),
                "all_late_coverage": ratio(selected_counts["late"], all_counts["late"])}
     return {"simulation_date": worklist["simulation_date"], "display_only": True, "outcomes": outcomes,
-            "metrics": metrics, "notice": "Retrospective eventual outcomes are outside simulated cutoff knowledge. Unknown outcomes are excluded from rate denominators. Daily policy results differ from Phase 2 monthly rankings."}
+            "metrics": metrics, "notice": "Retrospective eventual outcomes are outside simulated cutoff knowledge. Unknown and canceled outcomes are excluded from rate denominators. Daily policy results differ from Phase 2 monthly rankings."}

@@ -539,4 +539,419 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
 </table>
 <p class="note"></p>
 <p></p></section>
+<section>
+<p><b>R2B coefficients (HC3, days)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Term</th>
+      <th>Basis</th>
+      <th>Days per unit</th>
+      <th>95% CI per unit</th>
+      <th>Days per 1 SD</th>
+      <th>95% CI per 1 SD</th>
+      <th>p-value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>order_approved_day_of_week_sin</td>
+      <td>n/a</td>
+      <td>NaN</td>
+      <td></td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>order_approved_day_of_week_cos</td>
+      <td>n/a</td>
+      <td>NaN</td>
+      <td></td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.033</td>
+    </tr>
+    <tr>
+      <td>order_approved_month_sin</td>
+      <td>n/a</td>
+      <td>NaN</td>
+      <td></td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>order_approved_month_cos</td>
+      <td>n/a</td>
+      <td>NaN</td>
+      <td></td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>order_item_count</td>
+      <td>per 1 unit</td>
+      <td>-0.765</td>
+      <td>-0.958 to -0.571</td>
+      <td>-0.409</td>
+      <td>-0.512 to -0.306</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>order_seller_count</td>
+      <td>per 1 unit</td>
+      <td>-3.799</td>
+      <td>-4.265 to -3.333</td>
+      <td>-0.454</td>
+      <td>-0.509 to -0.398</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>log_order_frieght_value_sum</td>
+      <td>per doubling</td>
+      <td>0.733</td>
+      <td>0.520 to 0.947</td>
+      <td>0.534</td>
+      <td>0.378 to 0.689</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>log_order_product_weight_g_sum</td>
+      <td>per doubling</td>
+      <td>0.087</td>
+      <td>0.014 to 0.160</td>
+      <td>0.171</td>
+      <td>0.028 to 0.314</td>
+      <td>0.019</td>
+    </tr>
+    <tr>
+      <td>log_seller_dist_km_mean</td>
+      <td>per doubling</td>
+      <td>0.539</td>
+      <td>0.473 to 0.604</td>
+      <td>1.034</td>
+      <td>0.908 to 1.159</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>promised_lead_days</td>
+      <td>per 1 unit</td>
+      <td>-0.763</td>
+      <td>-0.783 to -0.743</td>
+      <td>-5.683</td>
+      <td>-5.832 to -5.535</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>log_approval_lag_hours</td>
+      <td>per doubling</td>
+      <td>0.076</td>
+      <td>0.039 to 0.113</td>
+      <td>0.159</td>
+      <td>0.082 to 0.236</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>log_order_product_volume_cm3_sum</td>
+      <td>per doubling</td>
+      <td>0.123</td>
+      <td>0.059 to 0.187</td>
+      <td>0.238</td>
+      <td>0.114 to 0.361</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>order_product_photos_mean</td>
+      <td>per 1 unit</td>
+      <td>-0.094</td>
+      <td>-0.137 to -0.052</td>
+      <td>-0.162</td>
+      <td>-0.235 to -0.089</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>is_weekend_approval</td>
+      <td>per 1 unit</td>
+      <td>-0.479</td>
+      <td>-0.768 to -0.190</td>
+      <td>-0.199</td>
+      <td>-0.320 to -0.079</td>
+      <td>0.001</td>
+    </tr>
+    <tr>
+      <td>is_black_friday_period</td>
+      <td>per 1 unit</td>
+      <td>3.373</td>
+      <td>3.021 to 3.725</td>
+      <td>0.977</td>
+      <td>0.875 to 1.079</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>is_december_peak</td>
+      <td>per 1 unit</td>
+      <td>1.185</td>
+      <td>0.905 to 1.465</td>
+      <td>0.395</td>
+      <td>0.302 to 0.488</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>log_orders_approved_prev_7d</td>
+      <td>per doubling</td>
+      <td>0.365</td>
+      <td>0.138 to 0.591</td>
+      <td>0.204</td>
+      <td>0.077 to 0.330</td>
+      <td>0.002</td>
+    </tr>
+    <tr>
+      <td>customer_state_AC</td>
+      <td>vs reference level</td>
+      <td>1.349</td>
+      <td>-1.078 to 3.776</td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.276</td>
+    </tr>
+    <tr>
+      <td>customer_state_AL</td>
+      <td>vs reference level</td>
+      <td>9.495</td>
+      <td>7.971 to 11.019</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_AM</td>
+      <td>vs reference level</td>
+      <td>7.192</td>
+      <td>4.842 to 9.542</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_AP</td>
+      <td>vs reference level</td>
+      <td>3.706</td>
+      <td>1.175 to 6.238</td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.004</td>
+    </tr>
+    <tr>
+      <td>customer_state_BA</td>
+      <td>vs reference level</td>
+      <td>4.259</td>
+      <td>3.759 to 4.759</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_CE</td>
+      <td>vs reference level</td>
+      <td>4.197</td>
+      <td>3.465 to 4.930</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_DF</td>
+      <td>vs reference level</td>
+      <td>0.901</td>
+      <td>0.365 to 1.437</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_ES</td>
+      <td>vs reference level</td>
+      <td>1.950</td>
+      <td>1.444 to 2.457</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_GO</td>
+      <td>vs reference level</td>
+      <td>2.216</td>
+      <td>1.676 to 2.757</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_MA</td>
+      <td>vs reference level</td>
+      <td>5.555</td>
+      <td>4.586 to 6.524</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_MG</td>
+      <td>vs reference level</td>
+      <td>-0.265</td>
+      <td>-0.517 to -0.014</td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.039</td>
+    </tr>
+    <tr>
+      <td>customer_state_MS</td>
+      <td>vs reference level</td>
+      <td>1.277</td>
+      <td>0.497 to 2.058</td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_MT</td>
+      <td>vs reference level</td>
+      <td>2.403</td>
+      <td>1.630 to 3.177</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_PA</td>
+      <td>vs reference level</td>
+      <td>5.252</td>
+      <td>4.367 to 6.136</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_PB</td>
+      <td>vs reference level</td>
+      <td>5.246</td>
+      <td>3.969 to 6.523</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_PE</td>
+      <td>vs reference level</td>
+      <td>3.730</td>
+      <td>2.976 to 4.485</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_PI</td>
+      <td>vs reference level</td>
+      <td>2.857</td>
+      <td>1.651 to 4.064</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_PR</td>
+      <td>vs reference level</td>
+      <td>0.219</td>
+      <td>-0.124 to 0.562</td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.211</td>
+    </tr>
+    <tr>
+      <td>customer_state_RJ</td>
+      <td>vs reference level</td>
+      <td>3.436</td>
+      <td>3.133 to 3.739</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_RN</td>
+      <td>vs reference level</td>
+      <td>3.256</td>
+      <td>2.044 to 4.468</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_RO</td>
+      <td>vs reference level</td>
+      <td>1.073</td>
+      <td>-0.226 to 2.371</td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.106</td>
+    </tr>
+    <tr>
+      <td>customer_state_RR</td>
+      <td>vs reference level</td>
+      <td>4.540</td>
+      <td>-1.418 to 10.498</td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.135</td>
+    </tr>
+    <tr>
+      <td>customer_state_RS</td>
+      <td>vs reference level</td>
+      <td>1.989</td>
+      <td>1.619 to 2.360</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_SC</td>
+      <td>vs reference level</td>
+      <td>2.919</td>
+      <td>2.486 to 3.353</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_SE</td>
+      <td>vs reference level</td>
+      <td>6.300</td>
+      <td>4.828 to 7.772</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>customer_state_TO</td>
+      <td>vs reference level</td>
+      <td>2.139</td>
+      <td>0.800 to 3.478</td>
+      <td>NaN</td>
+      <td></td>
+      <td>0.002</td>
+    </tr>
+    <tr>
+      <td>route_type_2. All same-state</td>
+      <td>vs reference level</td>
+      <td>-0.814</td>
+      <td>-1.085 to -0.544</td>
+      <td>NaN</td>
+      <td></td>
+      <td>&lt;0.001</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
 </body></html>

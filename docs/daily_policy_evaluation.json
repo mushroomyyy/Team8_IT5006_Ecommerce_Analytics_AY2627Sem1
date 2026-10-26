@@ -1,33 +1,33 @@
 {
-  "notice": "Retrospective evaluation of preset daily policy; June guided model selection and is not untouched policy validation.",
+  "notice": "Retrospective evaluation of preset daily policy; models were chosen on Validation, so June is held-out test data, but the policy settings are demonstration assumptions.",
   "policy": {
     "review_proportion": 0.3,
     "minimum_days_remaining": 1,
     "rounding": "ceil each day",
-    "ranking": "C3 descending, order ID ascending"
+    "ranking": "C2B descending, order ID ascending"
   },
   "pooled": {
     "all": {
       "total": 6164,
-      "known": 6155,
-      "unknown": 9,
-      "late": 137
+      "known": 6134,
+      "unknown": 8,
+      "late": 116
     },
     "eligible": {
       "total": 6164,
-      "known": 6155,
-      "unknown": 9,
-      "late": 137
+      "known": 6134,
+      "unknown": 8,
+      "late": 116
     },
     "selected": {
       "total": 1863,
       "known": 1855,
-      "unknown": 8,
-      "late": 80
+      "unknown": 3,
+      "late": 78
     },
-    "selected_late_rate": 0.0431266846361186,
-    "eligible_late_coverage": 0.583941605839416,
-    "all_late_coverage": 0.583941605839416
+    "selected_late_rate": 0.042048517520215635,
+    "eligible_late_coverage": 0.6724137931034483,
+    "all_late_coverage": 0.6724137931034483
   },
   "days": [
     {
@@ -44,18 +44,21 @@
           "total": 147,
           "known": 146,
           "unknown": 1,
+          "canceled": 0,
           "late": 1
         },
         "eligible": {
           "total": 147,
           "known": 146,
           "unknown": 1,
+          "canceled": 0,
           "late": 1
         },
         "selected": {
           "total": 45,
           "known": 44,
           "unknown": 1,
+          "canceled": 0,
           "late": 1
         },
         "selected_late_rate": 0.022727272727272728,
@@ -77,23 +80,26 @@
           "total": 164,
           "known": 164,
           "unknown": 0,
+          "canceled": 0,
           "late": 1
         },
         "eligible": {
           "total": 164,
           "known": 164,
           "unknown": 0,
+          "canceled": 0,
           "late": 1
         },
         "selected": {
           "total": 50,
           "known": 50,
           "unknown": 0,
-          "late": 0
+          "canceled": 0,
+          "late": 1
         },
-        "selected_late_rate": 0.0,
-        "eligible_late_coverage": 0.0,
-        "all_late_coverage": 0.0
+        "selected_late_rate": 0.02,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
       }
     },
     {
@@ -110,23 +116,26 @@
           "total": 156,
           "known": 155,
           "unknown": 1,
+          "canceled": 0,
           "late": 1
         },
         "eligible": {
           "total": 156,
           "known": 155,
           "unknown": 1,
+          "canceled": 0,
           "late": 1
         },
         "selected": {
           "total": 47,
           "known": 46,
           "unknown": 1,
-          "late": 0
+          "canceled": 0,
+          "late": 1
         },
-        "selected_late_rate": 0.0,
-        "eligible_late_coverage": 0.0,
-        "all_late_coverage": 0.0
+        "selected_late_rate": 0.021739130434782608,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
       }
     },
     {
@@ -143,23 +152,26 @@
           "total": 178,
           "known": 177,
           "unknown": 1,
+          "canceled": 0,
           "late": 1
         },
         "eligible": {
           "total": 178,
           "known": 177,
           "unknown": 1,
+          "canceled": 0,
           "late": 1
         },
         "selected": {
           "total": 54,
           "known": 53,
           "unknown": 1,
-          "late": 0
+          "canceled": 0,
+          "late": 1
         },
-        "selected_late_rate": 0.0,
-        "eligible_late_coverage": 0.0,
-        "all_late_coverage": 0.0
+        "selected_late_rate": 0.018867924528301886,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
       }
     },
     {
@@ -174,25 +186,28 @@
       "metrics": {
         "all": {
           "total": 270,
-          "known": 269,
-          "unknown": 1,
-          "late": 9
+          "known": 266,
+          "unknown": 0,
+          "canceled": 4,
+          "late": 6
         },
         "eligible": {
           "total": 270,
-          "known": 269,
-          "unknown": 1,
-          "late": 9
+          "known": 266,
+          "unknown": 0,
+          "canceled": 4,
+          "late": 6
         },
         "selected": {
           "total": 81,
-          "known": 80,
-          "unknown": 1,
-          "late": 7
+          "known": 79,
+          "unknown": 0,
+          "canceled": 2,
+          "late": 4
         },
-        "selected_late_rate": 0.0875,
-        "eligible_late_coverage": 0.7777777777777778,
-        "all_late_coverage": 0.7777777777777778
+        "selected_late_rate": 0.05063291139240506,
+        "eligible_late_coverage": 0.6666666666666666,
+        "all_late_coverage": 0.6666666666666666
       }
     },
     {
@@ -209,23 +224,26 @@
           "total": 218,
           "known": 218,
           "unknown": 0,
+          "canceled": 0,
           "late": 3
         },
         "eligible": {
           "total": 218,
           "known": 218,
           "unknown": 0,
+          "canceled": 0,
           "late": 3
         },
         "selected": {
           "total": 66,
           "known": 66,
           "unknown": 0,
-          "late": 2
+          "canceled": 0,
+          "late": 3
         },
-        "selected_late_rate": 0.030303030303030304,
-        "eligible_late_coverage": 0.6666666666666666,
-        "all_late_coverage": 0.6666666666666666
+        "selected_late_rate": 0.045454545454545456,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
       }
     },
     {
@@ -242,18 +260,21 @@
           "total": 232,
           "known": 231,
           "unknown": 1,
+          "canceled": 0,
           "late": 0
         },
         "eligible": {
           "total": 232,
           "known": 231,
           "unknown": 1,
+          "canceled": 0,
           "late": 0
         },
         "selected": {
           "total": 70,
-          "known": 69,
-          "unknown": 1,
+          "known": 70,
+          "unknown": 0,
+          "canceled": 0,
           "late": 0
         },
         "selected_late_rate": 0.0,
@@ -275,23 +296,26 @@
           "total": 198,
           "known": 198,
           "unknown": 0,
+          "canceled": 0,
           "late": 5
         },
         "eligible": {
           "total": 198,
           "known": 198,
           "unknown": 0,
+          "canceled": 0,
           "late": 5
         },
         "selected": {
           "total": 60,
           "known": 60,
           "unknown": 0,
-          "late": 2
+          "canceled": 0,
+          "late": 1
         },
-        "selected_late_rate": 0.03333333333333333,
-        "eligible_late_coverage": 0.4,
-        "all_late_coverage": 0.4
+        "selected_late_rate": 0.016666666666666666,
+        "eligible_late_coverage": 0.2,
+        "all_late_coverage": 0.2
       }
     },
     {
@@ -308,23 +332,26 @@
           "total": 197,
           "known": 197,
           "unknown": 0,
+          "canceled": 0,
           "late": 10
         },
         "eligible": {
           "total": 197,
           "known": 197,
           "unknown": 0,
+          "canceled": 0,
           "late": 10
         },
         "selected": {
           "total": 60,
           "known": 60,
           "unknown": 0,
-          "late": 4
+          "canceled": 0,
+          "late": 5
         },
-        "selected_late_rate": 0.06666666666666667,
-        "eligible_late_coverage": 0.4,
-        "all_late_coverage": 0.4
+        "selected_late_rate": 0.08333333333333333,
+        "eligible_late_coverage": 0.5,
+        "all_late_coverage": 0.5
       }
     },
     {
@@ -339,25 +366,28 @@
       "metrics": {
         "all": {
           "total": 142,
-          "known": 142,
+          "known": 141,
           "unknown": 0,
-          "late": 3
+          "canceled": 1,
+          "late": 2
         },
         "eligible": {
           "total": 142,
-          "known": 142,
+          "known": 141,
           "unknown": 0,
-          "late": 3
+          "canceled": 1,
+          "late": 2
         },
         "selected": {
           "total": 43,
           "known": 43,
           "unknown": 0,
-          "late": 0
+          "canceled": 0,
+          "late": 1
         },
-        "selected_late_rate": 0.0,
-        "eligible_late_coverage": 0.0,
-        "all_late_coverage": 0.0
+        "selected_late_rate": 0.023255813953488372,
+        "eligible_late_coverage": 0.5,
+        "all_late_coverage": 0.5
       }
     },
     {
@@ -374,23 +404,26 @@
           "total": 256,
           "known": 256,
           "unknown": 0,
+          "canceled": 0,
           "late": 6
         },
         "eligible": {
           "total": 256,
           "known": 256,
           "unknown": 0,
+          "canceled": 0,
           "late": 6
         },
         "selected": {
           "total": 77,
           "known": 77,
           "unknown": 0,
-          "late": 4
+          "canceled": 0,
+          "late": 5
         },
-        "selected_late_rate": 0.05194805194805195,
-        "eligible_late_coverage": 0.6666666666666666,
-        "all_late_coverage": 0.6666666666666666
+        "selected_late_rate": 0.06493506493506493,
+        "eligible_late_coverage": 0.8333333333333334,
+        "all_late_coverage": 0.8333333333333334
       }
     },
     {
@@ -405,25 +438,28 @@
       "metrics": {
         "all": {
           "total": 292,
-          "known": 291,
+          "known": 290,
           "unknown": 1,
-          "late": 14
+          "canceled": 1,
+          "late": 13
         },
         "eligible": {
           "total": 292,
-          "known": 291,
+          "known": 290,
           "unknown": 1,
-          "late": 14
+          "canceled": 1,
+          "late": 13
         },
         "selected": {
           "total": 88,
-          "known": 87,
-          "unknown": 1,
+          "known": 88,
+          "unknown": 0,
+          "canceled": 0,
           "late": 7
         },
-        "selected_late_rate": 0.08045977011494253,
-        "eligible_late_coverage": 0.5,
-        "all_late_coverage": 0.5
+        "selected_late_rate": 0.07954545454545454,
+        "eligible_late_coverage": 0.5384615384615384,
+        "all_late_coverage": 0.5384615384615384
       }
     },
     {
@@ -438,25 +474,28 @@
       "metrics": {
         "all": {
           "total": 260,
-          "known": 260,
+          "known": 259,
           "unknown": 0,
-          "late": 9
+          "canceled": 1,
+          "late": 8
         },
         "eligible": {
           "total": 260,
-          "known": 260,
+          "known": 259,
           "unknown": 0,
-          "late": 9
+          "canceled": 1,
+          "late": 8
         },
         "selected": {
           "total": 78,
           "known": 78,
           "unknown": 0,
-          "late": 6
+          "canceled": 0,
+          "late": 3
         },
-        "selected_late_rate": 0.07692307692307693,
-        "eligible_late_coverage": 0.6666666666666666,
-        "all_late_coverage": 0.6666666666666666
+        "selected_late_rate": 0.038461538461538464,
+        "eligible_late_coverage": 0.375,
+        "all_late_coverage": 0.375
       }
     },
     {
@@ -473,18 +512,21 @@
           "total": 241,
           "known": 241,
           "unknown": 0,
+          "canceled": 0,
           "late": 4
         },
         "eligible": {
           "total": 241,
           "known": 241,
           "unknown": 0,
+          "canceled": 0,
           "late": 4
         },
         "selected": {
           "total": 73,
           "known": 73,
           "unknown": 0,
+          "canceled": 0,
           "late": 2
         },
         "selected_late_rate": 0.0273972602739726,
@@ -506,18 +548,21 @@
           "total": 188,
           "known": 188,
           "unknown": 0,
+          "canceled": 0,
           "late": 5
         },
         "eligible": {
           "total": 188,
           "known": 188,
           "unknown": 0,
+          "canceled": 0,
           "late": 5
         },
         "selected": {
           "total": 57,
           "known": 57,
           "unknown": 0,
+          "canceled": 0,
           "late": 3
         },
         "selected_late_rate": 0.05263157894736842,
@@ -539,23 +584,26 @@
           "total": 141,
           "known": 141,
           "unknown": 0,
+          "canceled": 0,
           "late": 6
         },
         "eligible": {
           "total": 141,
           "known": 141,
           "unknown": 0,
+          "canceled": 0,
           "late": 6
         },
         "selected": {
           "total": 43,
           "known": 43,
           "unknown": 0,
-          "late": 6
+          "canceled": 0,
+          "late": 5
         },
-        "selected_late_rate": 0.13953488372093023,
-        "eligible_late_coverage": 1.0,
-        "all_late_coverage": 1.0
+        "selected_late_rate": 0.11627906976744186,
+        "eligible_late_coverage": 0.8333333333333334,
+        "all_late_coverage": 0.8333333333333334
       }
     },
     {
@@ -572,18 +620,21 @@
           "total": 135,
           "known": 135,
           "unknown": 0,
+          "canceled": 0,
           "late": 2
         },
         "eligible": {
           "total": 135,
           "known": 135,
           "unknown": 0,
+          "canceled": 0,
           "late": 2
         },
         "selected": {
           "total": 41,
           "known": 41,
           "unknown": 0,
+          "canceled": 0,
           "late": 1
         },
         "selected_late_rate": 0.024390243902439025,
@@ -603,23 +654,26 @@
       "metrics": {
         "all": {
           "total": 213,
-          "known": 213,
+          "known": 212,
           "unknown": 0,
-          "late": 3
+          "canceled": 1,
+          "late": 2
         },
         "eligible": {
           "total": 213,
-          "known": 213,
+          "known": 212,
           "unknown": 0,
-          "late": 3
+          "canceled": 1,
+          "late": 2
         },
         "selected": {
           "total": 64,
-          "known": 64,
+          "known": 63,
           "unknown": 0,
-          "late": 3
+          "canceled": 1,
+          "late": 2
         },
-        "selected_late_rate": 0.046875,
+        "selected_late_rate": 0.031746031746031744,
         "eligible_late_coverage": 1.0,
         "all_late_coverage": 1.0
       }
@@ -636,25 +690,28 @@
       "metrics": {
         "all": {
           "total": 288,
-          "known": 288,
+          "known": 285,
           "unknown": 0,
-          "late": 8
+          "canceled": 3,
+          "late": 5
         },
         "eligible": {
           "total": 288,
-          "known": 288,
+          "known": 285,
           "unknown": 0,
-          "late": 8
+          "canceled": 3,
+          "late": 5
         },
         "selected": {
           "total": 87,
           "known": 87,
           "unknown": 0,
+          "canceled": 0,
           "late": 4
         },
         "selected_late_rate": 0.04597701149425287,
-        "eligible_late_coverage": 0.5,
-        "all_late_coverage": 0.5
+        "eligible_late_coverage": 0.8,
+        "all_late_coverage": 0.8
       }
     },
     {
@@ -669,25 +726,28 @@
       "metrics": {
         "all": {
           "total": 213,
-          "known": 213,
+          "known": 212,
           "unknown": 0,
-          "late": 4
+          "canceled": 1,
+          "late": 3
         },
         "eligible": {
           "total": 213,
-          "known": 213,
+          "known": 212,
           "unknown": 0,
-          "late": 4
+          "canceled": 1,
+          "late": 3
         },
         "selected": {
           "total": 64,
           "known": 64,
           "unknown": 0,
-          "late": 1
+          "canceled": 0,
+          "late": 2
         },
-        "selected_late_rate": 0.015625,
-        "eligible_late_coverage": 0.25,
-        "all_late_coverage": 0.25
+        "selected_late_rate": 0.03125,
+        "eligible_late_coverage": 0.6666666666666666,
+        "all_late_coverage": 0.6666666666666666
       }
     },
     {
@@ -704,18 +764,21 @@
           "total": 213,
           "known": 213,
           "unknown": 0,
+          "canceled": 0,
           "late": 4
         },
         "eligible": {
           "total": 213,
           "known": 213,
           "unknown": 0,
+          "canceled": 0,
           "late": 4
         },
         "selected": {
           "total": 64,
           "known": 64,
           "unknown": 0,
+          "canceled": 0,
           "late": 3
         },
         "selected_late_rate": 0.046875,
@@ -737,23 +800,26 @@
           "total": 170,
           "known": 170,
           "unknown": 0,
+          "canceled": 0,
           "late": 4
         },
         "eligible": {
           "total": 170,
           "known": 170,
           "unknown": 0,
+          "canceled": 0,
           "late": 4
         },
         "selected": {
           "total": 51,
           "known": 51,
           "unknown": 0,
-          "late": 1
+          "canceled": 0,
+          "late": 2
         },
-        "selected_late_rate": 0.0196078431372549,
-        "eligible_late_coverage": 0.25,
-        "all_late_coverage": 0.25
+        "selected_late_rate": 0.0392156862745098,
+        "eligible_late_coverage": 0.5,
+        "all_late_coverage": 0.5
       }
     },
     {
@@ -768,25 +834,28 @@
       "metrics": {
         "all": {
           "total": 195,
-          "known": 195,
+          "known": 194,
           "unknown": 0,
-          "late": 3
+          "canceled": 1,
+          "late": 2
         },
         "eligible": {
           "total": 195,
-          "known": 195,
+          "known": 194,
           "unknown": 0,
-          "late": 3
+          "canceled": 1,
+          "late": 2
         },
         "selected": {
           "total": 59,
           "known": 59,
           "unknown": 0,
+          "canceled": 0,
           "late": 2
         },
         "selected_late_rate": 0.03389830508474576,
-        "eligible_late_coverage": 0.6666666666666666,
-        "all_late_coverage": 0.6666666666666666
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
       }
     },
     {
@@ -801,23 +870,26 @@
       "metrics": {
         "all": {
           "total": 168,
-          "known": 167,
+          "known": 166,
           "unknown": 1,
-          "late": 2
+          "canceled": 1,
+          "late": 1
         },
         "eligible": {
           "total": 168,
-          "known": 167,
+          "known": 166,
           "unknown": 1,
-          "late": 2
+          "canceled": 1,
+          "late": 1
         },
         "selected": {
           "total": 51,
-          "known": 50,
-          "unknown": 1,
-          "late": 2
+          "known": 51,
+          "unknown": 0,
+          "canceled": 0,
+          "late": 1
         },
-        "selected_late_rate": 0.04,
+        "selected_late_rate": 0.0196078431372549,
         "eligible_late_coverage": 1.0,
         "all_late_coverage": 1.0
       }
@@ -834,25 +906,28 @@
       "metrics": {
         "all": {
           "total": 190,
-          "known": 190,
+          "known": 189,
           "unknown": 0,
-          "late": 7
+          "canceled": 1,
+          "late": 6
         },
         "eligible": {
           "total": 190,
-          "known": 190,
+          "known": 189,
           "unknown": 0,
-          "late": 7
+          "canceled": 1,
+          "late": 6
         },
         "selected": {
           "total": 57,
           "known": 57,
           "unknown": 0,
-          "late": 4
+          "canceled": 0,
+          "late": 6
         },
-        "selected_late_rate": 0.07017543859649122,
-        "eligible_late_coverage": 0.5714285714285714,
-        "all_late_coverage": 0.5714285714285714
+        "selected_late_rate": 0.10526315789473684,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
       }
     },
     {
@@ -867,25 +942,28 @@
       "metrics": {
         "all": {
           "total": 287,
-          "known": 287,
+          "known": 283,
           "unknown": 0,
-          "late": 6
+          "canceled": 4,
+          "late": 2
         },
         "eligible": {
           "total": 287,
-          "known": 287,
+          "known": 283,
           "unknown": 0,
-          "late": 6
+          "canceled": 4,
+          "late": 2
         },
         "selected": {
           "total": 87,
-          "known": 87,
+          "known": 86,
           "unknown": 0,
-          "late": 4
+          "canceled": 1,
+          "late": 2
         },
-        "selected_late_rate": 0.04597701149425287,
-        "eligible_late_coverage": 0.6666666666666666,
-        "all_late_coverage": 0.6666666666666666
+        "selected_late_rate": 0.023255813953488372,
+        "eligible_late_coverage": 1.0,
+        "all_late_coverage": 1.0
       }
     },
     {
@@ -900,25 +978,28 @@
       "metrics": {
         "all": {
           "total": 217,
-          "known": 217,
+          "known": 216,
           "unknown": 0,
-          "late": 2
+          "canceled": 1,
+          "late": 1
         },
         "eligible": {
           "total": 217,
-          "known": 217,
+          "known": 216,
           "unknown": 0,
-          "late": 2
+          "canceled": 1,
+          "late": 1
         },
         "selected": {
           "total": 66,
-          "known": 66,
+          "known": 65,
           "unknown": 0,
-          "late": 1
+          "canceled": 1,
+          "late": 0
         },
-        "selected_late_rate": 0.015151515151515152,
-        "eligible_late_coverage": 0.5,
-        "all_late_coverage": 0.5
+        "selected_late_rate": 0.0,
+        "eligible_late_coverage": 0.0,
+        "all_late_coverage": 0.0
       }
     },
     {
@@ -933,25 +1014,28 @@
       "metrics": {
         "all": {
           "total": 254,
-          "known": 253,
+          "known": 252,
           "unknown": 1,
-          "late": 7
+          "canceled": 1,
+          "late": 6
         },
         "eligible": {
           "total": 254,
-          "known": 253,
+          "known": 252,
           "unknown": 1,
-          "late": 7
+          "canceled": 1,
+          "late": 6
         },
         "selected": {
           "total": 77,
           "known": 77,
           "unknown": 0,
-          "late": 4
+          "canceled": 0,
+          "late": 5
         },
-        "selected_late_rate": 0.05194805194805195,
-        "eligible_late_coverage": 0.5714285714285714,
-        "all_late_coverage": 0.5714285714285714
+        "selected_late_rate": 0.06493506493506493,
+        "eligible_late_coverage": 0.8333333333333334,
+        "all_late_coverage": 0.8333333333333334
       }
     },
     {
@@ -966,25 +1050,28 @@
       "metrics": {
         "all": {
           "total": 196,
-          "known": 195,
+          "known": 194,
           "unknown": 1,
-          "late": 7
+          "canceled": 1,
+          "late": 6
         },
         "eligible": {
           "total": 196,
-          "known": 195,
+          "known": 194,
           "unknown": 1,
-          "late": 7
+          "canceled": 1,
+          "late": 6
         },
         "selected": {
           "total": 59,
-          "known": 58,
-          "unknown": 1,
-          "late": 6
+          "known": 59,
+          "unknown": 0,
+          "canceled": 0,
+          "late": 5
         },
-        "selected_late_rate": 0.10344827586206896,
-        "eligible_late_coverage": 0.8571428571428571,
-        "all_late_coverage": 0.8571428571428571
+        "selected_late_rate": 0.0847457627118644,
+        "eligible_late_coverage": 0.8333333333333334,
+        "all_late_coverage": 0.8333333333333334
       }
     },
     {
@@ -1001,18 +1088,21 @@
           "total": 145,
           "known": 145,
           "unknown": 0,
+          "canceled": 0,
           "late": 0
         },
         "eligible": {
           "total": 145,
           "known": 145,
           "unknown": 0,
+          "canceled": 0,
           "late": 0
         },
         "selected": {
           "total": 44,
           "known": 44,
           "unknown": 0,
+          "canceled": 0,
           "late": 0
         },
         "selected_late_rate": 0.0,

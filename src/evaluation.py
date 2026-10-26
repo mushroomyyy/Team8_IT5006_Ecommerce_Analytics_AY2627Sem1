@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, clone
 from sklearn.metrics import (
     average_precision_score, brier_score_loss, f1_score,
-    mean_absolute_error, mean_squared_error, median_absolute_error, precision_score,
+    mean_absolute_error, mean_squared_error, median_absolute_error, precision_recall_curve, precision_score,
     r2_score, recall_score, roc_auc_score,
 )
 
@@ -315,6 +315,53 @@ def classification_success_criteria(results, linear_models, forest_model, splits
     return pd.DataFrame(rows)
 
 
+def f1_threshold(y_true, prob):
+    """Probability cut-off that maximises F1 on known outcomes (chosen on Validation only)."""
+    y = pd.Series(y_true).reset_index(drop=True)
+    known = y.notna().to_numpy()
+    precision, recall, thresholds = precision_recall_curve(y[known].astype(int), np.asarray(prob)[known])
+    precision, recall = precision[:-1], recall[:-1]
+    f1 = np.divide(2 * precision * recall, precision + recall,
+                   out=np.zeros_like(precision), where=(precision + recall) > 0)
+    return float(thresholds[int(np.argmax(f1))])
+
+
+def confusion_at(y_true, prob, threshold):
+    """Confusion counts and precision, recall and F1 at `threshold` (known outcomes only)."""
+    y = pd.Series(y_true).reset_index(drop=True)
+    known = y.notna().to_numpy()
+    actual = y[known].astype(int).to_numpy().astype(bool)
+    flag = np.asarray(prob, dtype=float)[known] >= threshold
+    tp, fp = int((flag & actual).sum()), int((flag & ~actual).sum())
+    fn, tn = int((~flag & actual).sum()), int((~flag & ~actual).sum())
+    return {'threshold': threshold, 'true_positive': tp, 'false_positive': fp, 'false_negative': fn,
+            'true_negative': tn, 'flagged_pct': 100 * flag.mean(),
+            'precision': precision_score(actual, flag, zero_division=0),
+            'recall': recall_score(actual, flag, zero_division=0),
+            'f1': f1_score(actual, flag, zero_division=0)}
+
+
+LEAD_BANDS = ([-np.inf, 14, 21, 28, np.inf], ['<= 14 days', '15-21 days', '22-28 days', '> 28 days'])
+
+
+def false_negative_breakdown(scored, features, threshold, by):
+    """Known late orders missed at `threshold`, grouped by one feature column.
+
+    `scored` has order_id, predicted_probability and actual_label; `features` supplies
+    `by` per order_id ('promised_lead_band' is derived from promised_lead_days). The miss
+    rate is missed / late within the group; share is the group's part of all misses.
+    """
+    frame = scored.merge(features, on='order_id', how='left', validate='one_to_one')
+    if by == 'promised_lead_band':
+        frame[by] = pd.cut(frame['promised_lead_days'], LEAD_BANDS[0], labels=LEAD_BANDS[1])
+    late = frame[frame['actual_label'] == 1].copy()
+    late['missed'] = late['predicted_probability'] < threshold
+    table = late.groupby(by, observed=True).agg(late_orders=('missed', 'size'), missed=('missed', 'sum'))
+    table['miss_rate_pct'] = 100 * table['missed'] / table['late_orders']
+    table['share_of_missed_pct'] = 100 * table['missed'] / max(int(late['missed'].sum()), 1)
+    return table.sort_values('missed', ascending=False).reset_index()
+
+
 def score_split(model, split, y_true, prob, order_ids=None):
     """One results row: `classification_eval_metrics` for a model on one split."""
     return {'model': model, 'split': split, **classification_eval_metrics(y_true, prob, order_ids=order_ids)}
@@ -324,12 +371,14 @@ def score_months(fitted, final_df, orders, feature_cols, months):
     """Daily inference for each 'YYYY-MM' month, labelled at approval day + lookback.
 
     Returns {month: DataFrame(order_id, predicted_probability, actual_label, ...)}; the
-    daily scores are pooled per month before any metric is computed.
+    daily scores are pooled per month before any metric is computed. Orders that were
+    canceled or unavailable are excluded, as in the training cohort.
     """
+    cohort = final_df[~final_df['order_status'].isin(EXCLUDED_STATUSES)]
     scored = {}
     for month in months:
         start, end = month_bounds(month)
-        daily = run_inference(final_df, feature_cols, start, end, fitted, verbose=False)
+        daily = run_inference(cohort, feature_cols, start, end, fitted, verbose=False)
         scored[month] = attach_prediction_labels(daily, orders, lookback=LOOKBACK)
     return scored
 

@@ -26,8 +26,8 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Logistic (all)</td>
       <td>June</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>3.281</td>
-      <td>2.00</td>
+      <td>3.444</td>
+      <td>2.000</td>
       <td>pass</td>
     </tr>
     <tr>
@@ -35,17 +35,26 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Logistic (CV-stepwise)</td>
       <td>June</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>3.209</td>
-      <td>2.00</td>
-      <td>pass</td>
+      <td>1.980</td>
+      <td>2.000</td>
+      <td>fail</td>
     </tr>
     <tr>
       <td>C2B</td>
       <td>Logistic (BIC)</td>
       <td>June</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>3.209</td>
-      <td>2.00</td>
+      <td>3.358</td>
+      <td>2.000</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>C4</td>
+      <td>Decision tree (tuned)</td>
+      <td>June</td>
+      <td>Top-10% lift &gt;= 2</td>
+      <td>2.325</td>
+      <td>2.000</td>
       <td>pass</td>
     </tr>
     <tr>
@@ -53,8 +62,8 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Random Forest (tuned)</td>
       <td>June</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>3.281</td>
-      <td>2.00</td>
+      <td>3.272</td>
+      <td>2.000</td>
       <td>pass</td>
     </tr>
     <tr>
@@ -62,17 +71,26 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Random Forest (default)</td>
       <td>June</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>3.136</td>
-      <td>2.00</td>
+      <td>3.013</td>
+      <td>2.000</td>
       <td>pass</td>
+    </tr>
+    <tr>
+      <td>C4</td>
+      <td>Decision tree (tuned)</td>
+      <td>June</td>
+      <td>Top-10% precision &gt;= 1.1 x best linear (C1)</td>
+      <td>0.044</td>
+      <td>0.072</td>
+      <td>fail</td>
     </tr>
     <tr>
       <td>C3</td>
       <td>Random Forest (tuned)</td>
       <td>June</td>
       <td>Top-10% precision &gt;= 1.1 x best linear (C1)</td>
-      <td>0.073</td>
-      <td>0.08</td>
+      <td>0.062</td>
+      <td>0.072</td>
       <td>fail</td>
     </tr>
     <tr>
@@ -80,8 +98,8 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Random Forest (default)</td>
       <td>June</td>
       <td>Top-10% precision &gt;= 1.1 x best linear (C1)</td>
-      <td>0.070</td>
-      <td>0.08</td>
+      <td>0.057</td>
+      <td>0.072</td>
       <td>fail</td>
     </tr>
     <tr>
@@ -89,8 +107,8 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Logistic (all)</td>
       <td>Validation</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>2.875</td>
-      <td>2.00</td>
+      <td>3.061</td>
+      <td>2.000</td>
       <td>pass</td>
     </tr>
     <tr>
@@ -98,17 +116,26 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Logistic (CV-stepwise)</td>
       <td>Validation</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>2.889</td>
-      <td>2.00</td>
-      <td>pass</td>
+      <td>1.973</td>
+      <td>2.000</td>
+      <td>fail</td>
     </tr>
     <tr>
       <td>C2B</td>
       <td>Logistic (BIC)</td>
       <td>Validation</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>2.931</td>
-      <td>2.00</td>
+      <td>3.003</td>
+      <td>2.000</td>
+      <td>pass</td>
+    </tr>
+    <tr>
+      <td>C4</td>
+      <td>Decision tree (tuned)</td>
+      <td>Validation</td>
+      <td>Top-10% lift &gt;= 2</td>
+      <td>2.045</td>
+      <td>2.000</td>
       <td>pass</td>
     </tr>
     <tr>
@@ -116,8 +143,8 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Random Forest (tuned)</td>
       <td>Validation</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>2.370</td>
-      <td>2.00</td>
+      <td>2.466</td>
+      <td>2.000</td>
       <td>pass</td>
     </tr>
     <tr>
@@ -125,26 +152,35 @@ tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;
       <td>Random Forest (default)</td>
       <td>Validation</td>
       <td>Top-10% lift &gt;= 2</td>
-      <td>2.272</td>
-      <td>2.00</td>
+      <td>2.437</td>
+      <td>2.000</td>
       <td>pass</td>
+    </tr>
+    <tr>
+      <td>C4</td>
+      <td>Decision tree (tuned)</td>
+      <td>Validation</td>
+      <td>Top-10% precision &gt;= 1.1 x best linear (C1)</td>
+      <td>0.206</td>
+      <td>0.339</td>
+      <td>fail</td>
     </tr>
     <tr>
       <td>C3</td>
       <td>Random Forest (tuned)</td>
       <td>Validation</td>
-      <td>Top-10% precision &gt;= 1.1 x best linear (C2)</td>
-      <td>0.246</td>
-      <td>0.33</td>
+      <td>Top-10% precision &gt;= 1.1 x best linear (C1)</td>
+      <td>0.248</td>
+      <td>0.339</td>
       <td>fail</td>
     </tr>
     <tr>
       <td>C3d</td>
       <td>Random Forest (default)</td>
       <td>Validation</td>
-      <td>Top-10% precision &gt;= 1.1 x best linear (C2)</td>
-      <td>0.236</td>
-      <td>0.33</td>
+      <td>Top-10% precision &gt;= 1.1 x best linear (C1)</td>
+      <td>0.245</td>
+      <td>0.339</td>
       <td>fail</td>
     </tr>
   </tbody>

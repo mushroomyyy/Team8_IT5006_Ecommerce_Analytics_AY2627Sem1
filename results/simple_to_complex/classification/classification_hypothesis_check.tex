@@ -7,20 +7,20 @@
 \toprule
 Code & Model & hypothesis & feature & expected\_sign & term & coef & p\_value & observed\_sign & verdict \\
 \midrule
-C1 & Logistic (all) & time & is\_weekend\_approval & + & is\_weekend\_approval & -0.071 & 0.0083 & - & disagree \\
-C1 & Logistic (all) & time & is\_black\_friday\_period & + & is\_black\_friday\_period & 0.234 & 0.0 & + & agree \\
-C1 & Logistic (all) & time & is\_december\_peak & + & is\_december\_peak & 0.114 & 0.0 & + & agree \\
-C1 & Logistic (all) & workload & orders\_approved\_prev\_7d & + & log\_orders\_approved\_prev\_7d & 0.09 & 0.0004 & + & agree \\
-C1 & Logistic (all) & workload & approval\_lag\_hours & + & log\_approval\_lag\_hours & 0.151 & 0.0 & + & agree \\
-C1 & Logistic (all) & order & order\_item\_count & + & order\_item\_count & -0.091 & 0.0002 & - & disagree \\
-C1 & Logistic (all) & order & order\_seller\_count & + & order\_seller\_count & -0.16 & 0.001 & - & disagree \\
-C1 & Logistic (all) & order & order\_product\_weight\_g\_sum & + & log\_order\_product\_weight\_g\_sum & -0.01 & 0.7436 & - & not significant \\
-C1 & Logistic (all) & order & order\_product\_volume\_cm3\_sum & + & log\_order\_product\_volume\_cm3\_sum & 0.101 & 0.0002 & + & agree \\
-C1 & Logistic (all) & distance & seller\_dist\_km\_mean & + & log\_seller\_dist\_km\_mean & 0.08 & 0.0186 & + & agree \\
-C1 & Logistic (all) & distance & seller\_state\_count & + & seller\_state\_count & -1.21 & 0.9928 & - & not identified \\
-C1 & Logistic (all) & payment & payment\_installments\_max & + & payment\_installments\_max & 0.011 & 0.5642 & + & not significant \\
-C1 & Logistic (all) & payment & payment\_value\_sum & + & log\_payment\_value\_sum & 0.156 & 0.0001 & + & agree \\
-C1 & Logistic (all) & promise & promised\_lead\_days & - & promised\_lead\_days & -0.439 & 0.0 & - & agree \\
+C1 & Logistic (all) & time & is\_weekend\_approval & + & is\_weekend\_approval & -0.084 & 0.0039 & - & disagree \\
+C1 & Logistic (all) & time & is\_black\_friday\_period & + & is\_black\_friday\_period & 0.276 & 0.0 & + & agree \\
+C1 & Logistic (all) & time & is\_december\_peak & + & is\_december\_peak & 0.135 & 0.0 & + & agree \\
+C1 & Logistic (all) & workload & orders\_approved\_prev\_7d & + & log\_orders\_approved\_prev\_7d & 0.107 & 0.0001 & + & agree \\
+C1 & Logistic (all) & workload & approval\_lag\_hours & + & log\_approval\_lag\_hours & 0.15 & 0.0 & + & agree \\
+C1 & Logistic (all) & order & order\_item\_count & + & order\_item\_count & -0.1 & 0.0001 & - & disagree \\
+C1 & Logistic (all) & order & order\_seller\_count & + & order\_seller\_count & -0.154 & 0.0018 & - & disagree \\
+C1 & Logistic (all) & order & order\_product\_weight\_g\_sum & + & log\_order\_product\_weight\_g\_sum & 0.008 & 0.8235 & + & not significant \\
+C1 & Logistic (all) & order & order\_product\_volume\_cm3\_sum & + & log\_order\_product\_volume\_cm3\_sum & 0.076 & 0.0096 & + & agree \\
+C1 & Logistic (all) & distance & seller\_dist\_km\_mean & + & log\_seller\_dist\_km\_mean & 0.139 & 0.0001 & + & agree \\
+C1 & Logistic (all) & distance & seller\_state\_count & + & seller\_state\_count & -1.139 & 0.9892 & - & not identified \\
+C1 & Logistic (all) & payment & payment\_installments\_max & + & payment\_installments\_max & 0.019 & 0.3691 & + & not significant \\
+C1 & Logistic (all) & payment & payment\_value\_sum & + & log\_payment\_value\_sum & 0.116 & 0.0076 & + & agree \\
+C1 & Logistic (all) & promise & promised\_lead\_days & - & promised\_lead\_days & -0.371 & 0.0 & - & agree \\
 C2 & Logistic (CV-stepwise) & time & is\_weekend\_approval & + & nan & nan & nan &  & not in model \\
 C2 & Logistic (CV-stepwise) & time & is\_black\_friday\_period & + & nan & nan & nan &  & not in model \\
 C2 & Logistic (CV-stepwise) & time & is\_december\_peak & + & nan & nan & nan &  & not in model \\
@@ -34,7 +34,7 @@ C2 & Logistic (CV-stepwise) & distance & seller\_dist\_km\_mean & + & nan & nan 
 C2 & Logistic (CV-stepwise) & distance & seller\_state\_count & + & nan & nan & nan &  & not in model \\
 C2 & Logistic (CV-stepwise) & payment & payment\_installments\_max & + & nan & nan & nan &  & not in model \\
 C2 & Logistic (CV-stepwise) & payment & payment\_value\_sum & + & nan & nan & nan &  & not in model \\
-C2 & Logistic (CV-stepwise) & promise & promised\_lead\_days & - & promised\_lead\_days & -0.347 & 0.0 & - & agree \\
+C2 & Logistic (CV-stepwise) & promise & promised\_lead\_days & - & nan & nan & nan &  & not in model \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}

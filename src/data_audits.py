@@ -49,7 +49,7 @@ def cleaning_steps(olist, final_df):
         ('Order-level feature table (one row per order)', len(final_df)),
         ('  of which delivered before approval (kept; label rules mark them invalid)',
          int(in_table.isin(orders.loc[reversed_dates, 'order_id']).sum())),
-        ('  of which canceled or unavailable (dropped from regression only)',
+        ('  of which canceled or unavailable (dropped from both tasks: no delivery outcome)',
          int(final_df['order_status'].isin(EXCLUDED_STATUSES).sum())),
     ], columns=['step', 'orders'])
 
@@ -66,9 +66,8 @@ def population_funnel(task_data, final_df):
     start, end = task_data.window
     window = final_df[final_df['order_approved_dt'].between(start, end)]
     steps = [('Approved orders in the 365-day window', len(window))]
-    if task_data.task == 'regression':
-        window = window[~window['order_status'].isin(EXCLUDED_STATUSES)]
-        steps.append(('After dropping canceled and unavailable orders', len(window)))
+    window = window[~window['order_status'].isin(EXCLUDED_STATUSES)]
+    steps.append(('After dropping canceled and unavailable orders', len(window)))
     history, train, validation = task_data.history_df, task_data.train_df, task_data.validation_df
     steps += [('Outcome known on the run date (history)', len(history)),
               ('Validation (newest 30 approval days)', len(validation)),
@@ -131,7 +130,8 @@ def buffer_label_audit(orders, order_ids, run_dates, buffer_days, window_days, t
 def label_availability(task_data, final_df):
     """Known and unknown labels on the run date for the classification window."""
     start, end = task_data.window
-    window = final_df[final_df['order_approved_dt'].between(start, end)].drop_duplicates('order_id')
+    window = final_df[final_df['order_approved_dt'].between(start, end)
+                      & ~final_df['order_status'].isin(EXCLUDED_STATUSES)].drop_duplicates('order_id')
     audit = labels_as_of(window, run_date=RUN_DATE)
     counts = audit['label_status'].value_counts().rename_axis('label_status').to_frame('orders')
     counts['share_pct'] = 100 * counts['orders'] / counts['orders'].sum()

@@ -1,20 +1,16 @@
-"""Independent artifact equivalence and deployment-isolation checks.
+"""Artifact packaging and deployment-isolation checks.
 
 Run from the repository: python -m unittest tests.deployment.test_packaging.
-Original-artifact comparisons require Git history. The preservation-tar check
-uses the handoff backup when available and otherwise verifies its recorded hash.
 """
 from __future__ import annotations
 
 import hashlib
 import importlib
-import io
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
-import tarfile
 import tempfile
 import unittest
 
@@ -30,46 +26,13 @@ DEMO_DATA = ROOT / "deployment/app/data"
 
 
 class PackagingTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.replay = json.loads((DEMO_DATA / "classification_june_orders.json").read_text())
-        cls.frame = pd.DataFrame([row for day in cls.replay["days"].values() for row in day])
-        cls.packaging = json.loads((ARTIFACTS / "regression_packaging.json").read_text())
-
-    def test_original_regression_exact_on_every_june_order(self):
-        original_bytes = subprocess.check_output([
-            "git", "show", "bfea55986f266b4208a8c58f932bf67666391b92:deployment/artifacts/regression_r1_ols.joblib"
-        ], cwd=ROOT)
-        self.assertEqual(hashlib.sha256(original_bytes).hexdigest(), self.packaging["source_artifact_sha256"])
-        # Only this historical-artifact check needs the old custom class module.
-        sys.path.insert(0, str(ROOT))
-        try:
-            original = joblib.load(io.BytesIO(original_bytes))
-        finally:
-            sys.path.remove(str(ROOT))
-        packaged = joblib.load(ARTIFACTS / "regression_r1_ols.joblib")
-        cols = original["metadata"]["features"]
-        frame = self.frame[cols["numeric"] + cols["categorical"]]
-        self.assertEqual(len(frame), 6164)
-        np.testing.assert_array_equal(original["model"].predict(frame), packaged["model"].predict(frame))
-        self.assertEqual(original["metadata"], packaged["metadata"])
-        # Preserve fitted state and documented inputs as well as the full June replay.
-        for attribute in ("coef_", "intercept_", "singular_", "rank_", "n_features_in_"):
-            np.testing.assert_array_equal(
-                getattr(original["model"].named_steps["model"], attribute),
-                getattr(packaged["model"].named_steps["model"], attribute))
-        examples = {
-            "batch": pd.read_csv(ROOT / "docs/examples/batch_example.csv", float_precision="round_trip"),
-            "synthetic": pd.DataFrame([json.loads((ROOT / "docs/synthetic_prediction.json").read_text())["features"]]),
-            "samples": pd.DataFrame(json.loads((DEMO_DATA / "classification_sample_orders.json").read_text())),
-        }
-        for name, example in examples.items():
-            with self.subTest(example=name):
-                features = example[cols["numeric"] + cols["categorical"]]
-                np.testing.assert_array_equal(original["model"].predict(features), packaged["model"].predict(features))
-        self.assertEqual(hashlib.sha256((ARTIFACTS / "regression_r1_ols.joblib").read_bytes()).hexdigest(),
-                         self.packaging["packaged_artifact_sha256"])
-        self.assertIs(type(packaged["model"].named_steps["preprocessor"].named_steps["expand"]), ExpandColumns)
+    def test_linear_artifacts_use_the_standalone_transformer(self):
+        for name in ("classification_model.joblib", "regression_model.joblib"):
+            with self.subTest(artifact=name):
+                bundle = joblib.load(ARTIFACTS / name)
+                if bundle["metadata"]["family"] == "linear":
+                    expand = bundle["model"].named_steps["preprocessor"].named_steps["expand"]
+                    self.assertIs(type(expand), ExpandColumns)
 
     def test_custom_transformer_parity_for_missing_zero_and_mixed_values(self):
         sys.path.insert(0, str(ROOT))
@@ -92,15 +55,6 @@ class PackagingTests(unittest.TestCase):
                 for transformer in (old, new):
                     with self.assertRaises(ValueError):
                         transformer.transform(bad)
-
-    def test_classification_binary_preserved(self):
-        current = (ARTIFACTS / "classification_c3_rf.joblib").read_bytes()
-        self.assertEqual(hashlib.sha256(current).hexdigest(),
-                         "17577aa8c96c0f456b55ab8f7417bc5f2916d7f698e5a15c35926743ceb42682")
-        backup = Path("/private/tmp/phase3-handoff-preservation/working-files.tar.gz")
-        if backup.exists():
-            with tarfile.open(backup) as archive:
-                self.assertEqual(current, archive.extractfile("deployment/artifacts/classification_c3_rf.joblib").read())
 
     def test_standalone_inference_does_not_import_phase2(self):
         code = '''
@@ -138,7 +92,7 @@ assert not any(n == "src" or n.startswith("src.") or n == "phase2" or n.startswi
         self.assertEqual(len(ids), len(set(ids)))
         self.assertEqual(set(ids), set(outcomes["outcomes"]))
         self.assertTrue(outcomes["display_only"])
-        self.assertTrue(all(value in (None, 0, 1) for value in outcomes["outcomes"].values()))
+        self.assertTrue(all(value in (None, 0, 1, "canceled") for value in outcomes["outcomes"].values()))
 
     def test_manifest_hashes_match_every_packaged_artifact(self):
         manifest = json.loads((ARTIFACTS / "manifest.json").read_text())

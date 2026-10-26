@@ -1,0 +1,155 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Model choice on Validation: day-level bootstrap against the leader</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Code</th>
+      <th>Model</th>
+      <th>validation</th>
+      <th>diff_vs_leader</th>
+      <th>ci_low</th>
+      <th>ci_high</th>
+      <th>leader</th>
+      <th>tied</th>
+      <th>family</th>
+      <th>parameters</th>
+      <th>selected</th>
+      <th>decision</th>
+      <th>order_ci_low</th>
+      <th>order_ci_high</th>
+      <th>order_tied</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>C0</td>
+      <td>No-skill baseline</td>
+      <td>0.1006</td>
+      <td>-0.1457</td>
+      <td>-0.1759</td>
+      <td>-0.1218</td>
+      <td>False</td>
+      <td>False</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>False</td>
+      <td>baseline: not selectable</td>
+      <td>-0.1736</td>
+      <td>-0.1213</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>C1</td>
+      <td>Logistic (all)</td>
+      <td>0.2463</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>True</td>
+      <td>True</td>
+      <td>linear</td>
+      <td>55.0</td>
+      <td>False</td>
+      <td>tied, but a simpler tied model exists</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>C2</td>
+      <td>Logistic (CV-stepwise)</td>
+      <td>0.1736</td>
+      <td>-0.0728</td>
+      <td>-0.0924</td>
+      <td>-0.0574</td>
+      <td>False</td>
+      <td>False</td>
+      <td>linear</td>
+      <td>27.0</td>
+      <td>False</td>
+      <td>not tied: interval excludes 0</td>
+      <td>-0.0913</td>
+      <td>-0.0563</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>C2B</td>
+      <td>Logistic (BIC)</td>
+      <td>0.2453</td>
+      <td>-0.0010</td>
+      <td>-0.0072</td>
+      <td>0.0044</td>
+      <td>False</td>
+      <td>True</td>
+      <td>linear</td>
+      <td>40.0</td>
+      <td>True</td>
+      <td>selected: simplest model tied with the leader</td>
+      <td>-0.0077</td>
+      <td>0.0048</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>C4</td>
+      <td>Decision tree (tuned)</td>
+      <td>0.1676</td>
+      <td>-0.0788</td>
+      <td>-0.1010</td>
+      <td>-0.0585</td>
+      <td>False</td>
+      <td>False</td>
+      <td>tree</td>
+      <td>344.0</td>
+      <td>False</td>
+      <td>not tied: interval excludes 0</td>
+      <td>-0.1051</td>
+      <td>-0.0561</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>C3</td>
+      <td>Random Forest (tuned)</td>
+      <td>0.2066</td>
+      <td>-0.0398</td>
+      <td>-0.0654</td>
+      <td>-0.0155</td>
+      <td>False</td>
+      <td>False</td>
+      <td>forest</td>
+      <td>228205.0</td>
+      <td>False</td>
+      <td>not tied: interval excludes 0</td>
+      <td>-0.0603</td>
+      <td>-0.0202</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>C3d</td>
+      <td>Random Forest (default)</td>
+      <td>0.1836</td>
+      <td>-0.0628</td>
+      <td>-0.0893</td>
+      <td>-0.0385</td>
+      <td>False</td>
+      <td>False</td>
+      <td>forest</td>
+      <td>417589.0</td>
+      <td>False</td>
+      <td>not tied: interval excludes 0</td>
+      <td>-0.0839</td>
+      <td>-0.0413</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Differences are model minus leader (AP). Tied = 95% interval includes 0; the simplest tied model is selected. Order-level columns are a sensitivity check.</p>
+<p></p></section>
+</body></html>

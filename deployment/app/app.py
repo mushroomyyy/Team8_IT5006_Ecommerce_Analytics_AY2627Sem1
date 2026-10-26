@@ -31,6 +31,7 @@ from deployment.app.orchestration import (HEALTH_TIMEOUT, WAKE_BUDGET_SECONDS, a
     load_demo_orders, load_demo_samples, load_month_inputs, model_versions, reveal_outcomes, snapshot_revision,
     wait_for_service)
 from deployment.app.explore import explore_page
+from deployment.app.model_names import short_label
 from deployment.app.simulation import (REPLAY_MONTHS, buffer_ranking_scores, configuration, month_replay, month_summary, monthly_ranking,
     SimulationDataError, timing_accuracy)
 
@@ -126,14 +127,24 @@ def inference_summary(api_url):
 
 @st.cache_resource(show_spinner=False)
 def replay_scores():
-    """Pre-computed C3/R1 pairs for every replay order; never reads outcomes."""
+    """Pre-computed late-risk and days-from-promise pairs for every replay order; never reads outcomes."""
     from deployment.app.orchestration import read_demo_json
     return read_demo_json('replay_scores.json')['scores']
 
 
+def model_codes():
+    """(late-risk, timing) model codes: from the live API once connected, else from the pre-scored replay file."""
+    from deployment.app.orchestration import read_demo_json
+    live = st.session_state.get('live_metadata')
+    if live:
+        return live['classification'].get('model_code', 'risk model'), live.get('regression', {}).get('model_code', 'timing model')
+    codes = read_demo_json('replay_scores.json').get('model_codes', {})
+    return codes.get('classification', 'risk model'), codes.get('regression', 'timing model')
+
+
 @st.cache_resource(show_spinner=False)
 def replay_score_percentiles():
-    """Sorted replay C3 scores for rank-based context; never reads outcomes."""
+    """Sorted replay late-risk scores for rank-based context; never reads outcomes."""
     from deployment.app.orchestration import read_demo_json
     scores = read_demo_json('replay_scores.json')['scores'].values()
     return sorted(pair[0] for pair in scores if pair is not None)
@@ -276,8 +287,12 @@ def result_panel(result, stats, api_url, features):
         context = percentile_text(probability)
     except SimulationDataError:
         context = None
-    st.metric('Estimated late-delivery risk', f'{probability:.1%}', help='C3 score used for ranking; not a calibrated probability.')
+    risk, _ = model_codes()
+    st.metric('Estimated late-delivery risk', f'{probability:.1%}', help=f'{risk} score used for ranking; not a calibrated probability.')
     st.progress(min(max(probability, 0.0), 1.0))
+    threshold = stats.get('threshold')
+    if threshold is not None:
+        st.caption(f"{'Flagged' if probability >= threshold else 'Not flagged'} at the operating cut-off of {threshold:.1%} (the Validation F1-maximising cut-off).")
     if context: st.caption(f'{context}.')
     days = regression['predicted_days_from_promise']
     st.metric('Estimated days from promise', f'{days:+.2f} days')
@@ -339,14 +354,14 @@ def navigate_day(delta, minimum, maximum):
     st.session_state['simulation_day'] = min(max(current, minimum), maximum)
 
 
-def risk_chart(frame, selected):
+def risk_chart(frame, selected, risk):
     data = frame.assign(Group=[FOLLOW_LABEL if flag else OTHER_LABEL for flag in frame['follow_up_recommended']])
     bars = alt.Chart(data).mark_bar(width={'band': 0.9}).encode(
         x=alt.X('rank:Q', title='Risk rank (1 = highest risk)', scale=alt.Scale(domain=[0.5, len(data) + 0.5], nice=False)),
-        y=alt.Y('late_probability:Q', title='C3 late-delivery risk', axis=alt.Axis(format='%')),
+        y=alt.Y('late_probability:Q', title=f'{risk} late-delivery risk', axis=alt.Axis(format='%')),
         color=alt.Color('Group:N', scale=alt.Scale(domain=[FOLLOW_LABEL, OTHER_LABEL], range=[FOLLOW, OTHER]), legend=alt.Legend(orient='top', title=None)),
         tooltip=[alt.Tooltip('rank:Q', title='Rank'), alt.Tooltip('order_id:N', title='Order'),
-                 alt.Tooltip('late_probability:Q', title='C3 risk', format='.1%'), alt.Tooltip('Group:N', title='Decision')])
+                 alt.Tooltip('late_probability:Q', title=f'{risk} risk', format='.1%'), alt.Tooltip('Group:N', title='Decision')])
     layers = [bars]
     if 0 < selected < len(data):
         layers.append(alt.Chart(pd.DataFrame({'x': [selected + 0.5], 'label': [f'Follow-up cutoff: top {selected}']})).mark_rule(
@@ -354,14 +369,14 @@ def risk_chart(frame, selected):
     return alt.layer(*layers).properties(height=280)
 
 
-def agreement_chart(frame):
+def agreement_chart(frame, risk, timing):
     data = frame.assign(Group=[FOLLOW_LABEL if flag else OTHER_LABEL for flag in frame['follow_up_recommended']])
     points = alt.Chart(data).mark_circle(size=55, opacity=0.8).encode(
-        x=alt.X('late_probability:Q', title='C3 late-delivery risk', axis=alt.Axis(format='%')),
-        y=alt.Y('predicted_days_from_promise:Q', title='R1: days before promised date'),
+        x=alt.X('late_probability:Q', title=f'{risk} late-delivery risk', axis=alt.Axis(format='%')),
+        y=alt.Y('predicted_days_from_promise:Q', title=f'{timing}: days before promised date'),
         color=alt.Color('Group:N', scale=alt.Scale(domain=[FOLLOW_LABEL, OTHER_LABEL], range=[FOLLOW, OTHER]), legend=alt.Legend(orient='top', title=None)),
-        tooltip=[alt.Tooltip('order_id:N', title='Order'), alt.Tooltip('late_probability:Q', title='C3 risk', format='.1%'),
-                 alt.Tooltip('predicted_days_from_promise:Q', title='R1 days', format='+.1f')])
+        tooltip=[alt.Tooltip('order_id:N', title='Order'), alt.Tooltip('late_probability:Q', title=f'{risk} risk', format='.1%'),
+                 alt.Tooltip('predicted_days_from_promise:Q', title=f'{timing} days', format='+.1f')])
     promise = alt.Chart(pd.DataFrame({'y': [0]})).mark_rule(color=INK, strokeDash=[4, 3]).encode(y='y:Q')
     return alt.layer(promise, points).properties(height=280)
 
@@ -375,6 +390,7 @@ def score_progress():
 
 
 def daily_page(api_url, metadata):
+    risk, timing = model_codes()
     page_header('Morning delivery follow-up', 'Each morning, yesterday’s approved orders are scored and the riskiest share is sent for follow-up.')
     config = configuration(load_demo_orders())
     minimum, maximum = date.fromisoformat(config['minimum_date']), date.fromisoformat(config['maximum_date'])
@@ -388,7 +404,7 @@ def daily_page(api_url, metadata):
         following.button('Next day', disabled=day >= maximum, on_click=navigate_day, args=(1, minimum, maximum), width='stretch')
     with policy_box.container(border=True):
         review_col, remaining_col = st.columns([1.4, 1], vertical_alignment='bottom')
-        review = review_col.slider('Follow-up proportion (%)', 0, 100, 30, step=5, help='Share of eligible orders, ranked by C3 risk, sent for human follow-up. Rounds up; ties use order ID.')
+        review = review_col.slider('Follow-up proportion (%)', 0, 100, 30, step=5, help=f'Share of eligible orders, ranked by {risk} risk, sent for human follow-up. Rounds up; ties use order ID.')
         remaining = remaining_col.number_input('Min. days before promise', min_value=0, max_value=365, value=1, step=1, help='Orders whose promise is this many days away or fewer are excluded: too late to act on.')
     query = (api_url, model_versions(metadata), day.isoformat(), review, remaining, snapshot_revision())
     if st.session_state.get('worklist_policy') != query:
@@ -402,7 +418,7 @@ def daily_page(api_url, metadata):
     cols = st.columns(4)
     labels = {'total': 'Orders in batch', 'eligible': 'Eligible orders', 'excluded': 'Excluded orders', 'selected': 'Selected for follow-up'}
     helps = {'total': 'Orders approved on the previous calendar day.', 'eligible': 'Still undelivered at the cutoff, with enough time before the promise.',
-             'excluded': 'Already delivered, missing promise, or too close to the promise.', 'selected': f'Top {review}% of eligible orders by C3 risk.'}
+             'excluded': 'Already delivered, missing promise, or too close to the promise.', 'selected': f'Top {review}% of eligible orders by {risk} risk.'}
     for column, name in zip(cols, ['total', 'eligible', 'excluded', 'selected']):
         column.metric(labels[name], result['counts'][name], help=helps[name], border=True)
     reasons = result.get('exclusion_reasons', {})
@@ -416,12 +432,12 @@ def daily_page(api_url, metadata):
         chart_left, chart_right = st.columns(2)
         with chart_left.container(border=True):
             st.markdown('**Who gets a follow-up call?**')
-            st.altair_chart(risk_chart(frame, result['counts']['selected']), width='stretch')
+            st.altair_chart(risk_chart(frame, result['counts']['selected'], risk), width='stretch')
             st.caption('One bar per order. Orange = today’s follow-up list.')
         with chart_right.container(border=True):
             st.markdown('**How the two models see each order**')
-            st.altair_chart(agreement_chart(frame), width='stretch')
-            st.caption('Each dot is an order. Right = higher C3 risk. Higher = R1 expects it to arrive closer to its promised date (dashed line), so less room for delay. Top-right orders worry both models.')
+            st.altair_chart(agreement_chart(frame, risk, timing), width='stretch')
+            st.caption(f'Each dot is an order. Right = higher {risk} risk. Higher = {timing} expects it to arrive closer to its promised date (dashed line), so less room for delay. Top-right orders worry both models.')
         columns = ['rank', 'order_id', 'late_probability', 'recommendation', 'promised_delivery_date', 'predicted_days_from_promise']
         display = frame[[c for c in columns if c in frame]].copy()
         display['promised_delivery_date'] = display['promised_delivery_date'].str[:10]
@@ -431,10 +447,10 @@ def daily_page(api_url, metadata):
         st.dataframe(display, hide_index=True, width='stretch', height=320, column_config={
             'rank': st.column_config.NumberColumn('Rank', width='small'),
             'order_id': st.column_config.TextColumn('Order ID', width='medium'),
-            'late_probability': st.column_config.ProgressColumn('C3 risk', format='percent', min_value=0.0, max_value=top, width='medium'),
+            'late_probability': st.column_config.ProgressColumn(f'{risk} risk', format='percent', min_value=0.0, max_value=top, width='medium'),
             'recommendation': st.column_config.TextColumn('Follow-up', width='small'),
             'promised_delivery_date': st.column_config.TextColumn('Promised date', width='small'),
-            'predicted_days_from_promise': st.column_config.NumberColumn('R1 days vs promise', format='%+.1f', width='small', help='Estimated days from promise: positive late, negative early.')})
+            'predicted_days_from_promise': st.column_config.NumberColumn(f'{timing} days vs promise', format='%+.1f', width='small', help='Estimated days from promise: positive late, negative early.')})
         actions = st.columns([1.3, 2.4, 1.6], vertical_alignment='bottom')
         actions[0].download_button('Download prioritised worklist', display.to_csv(index=False), f'worklist_{day}.csv', 'text/csv', width='stretch')
         order_id = actions[1].selectbox('Inspect a ranked order', frame.order_id.tolist())
@@ -462,10 +478,10 @@ def daily_page(api_url, metadata):
             summary[1].metric('Late orders caught (of eligible)', percent(metrics.get('eligible_late_coverage')), border=True)
             summary[2].metric('Late orders caught (of all)', percent(metrics.get('all_late_coverage')), border=True)
             st.dataframe(pd.DataFrame([{'Population': label, **metrics[label]} for label in ['all', 'eligible', 'selected']]), hide_index=True, width='stretch')
-            st.caption('Unknown outcomes are excluded from rates.')
+            st.caption('Unknown and canceled outcomes are excluded from rates. Cancellation is not known at approval, so canceled orders stay on the worklist.')
             values = historical.get('outcomes', {})
             with st.expander('Eventual outcome per order'):
-                st.dataframe(pd.DataFrame([{'order_id': k, 'Eventual outcome': {0: 'On time', 1: 'Late'}.get(v, 'Unknown')} for k, v in values.items()]), hide_index=True, width='stretch')
+                st.dataframe(pd.DataFrame([{'order_id': k, 'Eventual outcome': {0: 'On time', 1: 'Late', 'canceled': 'Canceled'}.get(v, 'Unknown')} for k, v in values.items()]), hide_index=True, width='stretch')
     with st.expander('Simulation assumptions and limits'):
         st.write(f"Model available from {config.get('model_available_date', minimum)}. Dates are restricted to the supported replay period.")
         st.write('Eligible promises must be strictly more than the selected minimum days away. The follow-up proportion and minimum days are configurable operational assumptions, not a validated universal policy.')
@@ -473,7 +489,7 @@ def daily_page(api_url, metadata):
 
 
 MONTH_NOTES = {
-    '2018-06': ('Selection month', 'June was used to choose the models, so it flatters them slightly.'),
+    '2018-06': ('Test month', 'The models were fitted on history before 2 June and chosen on Validation: June is their held-out test month.'),
     '2018-07': ('Monitoring month', 'The models were frozen on 2 June and never saw July: this is the true hold-out.'),
     '2018-08': ('Monitoring month', 'The models were frozen on 2 June and never saw August: this is the true hold-out.'),
 }
@@ -484,15 +500,15 @@ def month_results(revision, minimum_days_remaining, month):
     scored, outcomes, timing = load_month_inputs()
     data = load_demo_orders()
     replay = month_replay(data, scored['scores'], outcomes, minimum_days_remaining, month)
-    # Comparison only: the deployed list ranks by C3; this shows the same daily rules ranked by R1's buffer.
-    r1_replay = month_replay(data, buffer_ranking_scores(scored['scores']), outcomes, minimum_days_remaining, month)
+    # Comparison only: the deployed list ranks by late risk; this shows the same daily rules ranked by the timing model's buffer.
+    buffer_replay = month_replay(data, buffer_ranking_scores(scored['scores']), outcomes, minimum_days_remaining, month)
     curve = []
     for share in range(0, 101, 5):
         daily = month_summary(replay, share / 100)['pooled']
         monthly = monthly_ranking(data, scored['scores'], outcomes, share / 100, month)
-        by_r1 = month_summary(r1_replay, share / 100)['pooled']
-        curve.append({'share': share, 'daily': daily['all_late_coverage'], 'monthly': monthly['all_late_coverage'], 'r1': by_r1['all_late_coverage'],
-                      'daily_caught': daily['late_caught'], 'r1_caught': by_r1['late_caught'], 'late_all': daily['late_all']})
+        by_buffer = month_summary(buffer_replay, share / 100)['pooled']
+        curve.append({'share': share, 'daily': daily['all_late_coverage'], 'monthly': monthly['all_late_coverage'], 'buffer': by_buffer['all_late_coverage'],
+                      'daily_caught': daily['late_caught'], 'buffer_caught': by_buffer['late_caught'], 'late_all': daily['late_all']})
     return {'replay': replay, 'curve': curve, 'models': scored.get('models', {}), 'generated_at': scored.get('generated_at_utc'),
             'timing': timing_accuracy(data, scored['scores'], timing, outcomes, month)}
 
@@ -525,14 +541,14 @@ def daily_bars_chart(days):
         tooltip=[alt.Tooltip('date:T', title='Day', format='%d %b %Y'), 'Late orders:N', 'Orders:Q', alt.Tooltip('selected:Q', title='Orders followed up')]).properties(height=300)
 
 
-def tradeoff_chart(curve, share, current):
+def tradeoff_chart(curve, share, current, risk, timing):
     rows = []
     for point in curve:
-        rows += [{'share': point['share'], 'Policy': 'C3 daily list (deployed)', 'caught': point['daily']},
-                 {'share': point['share'], 'Policy': 'R1 buffer daily list', 'caught': point['r1']},
-                 {'share': point['share'], 'Policy': 'C3 whole-month ranking', 'caught': point['monthly']},
+        rows += [{'share': point['share'], 'Policy': f'{risk} daily list (deployed)', 'caught': point['daily']},
+                 {'share': point['share'], 'Policy': f'{timing} buffer daily list', 'caught': point['buffer']},
+                 {'share': point['share'], 'Policy': f'{risk} whole-month ranking', 'caught': point['monthly']},
                  {'share': point['share'], 'Policy': 'Random', 'caught': point['share'] / 100}]
-    domain = ['C3 daily list (deployed)', 'R1 buffer daily list', 'C3 whole-month ranking', 'Random']
+    domain = [f'{risk} daily list (deployed)', f'{timing} buffer daily list', f'{risk} whole-month ranking', 'Random']
     lines = alt.Chart(pd.DataFrame(rows)).mark_line(strokeWidth=2.5).encode(
         x=alt.X('share:Q', title='Share of each day’s orders you follow up (%)', scale=alt.Scale(domain=[0, 100])),
         y=alt.Y('caught:Q', title='Share of all late deliveries caught', axis=alt.Axis(format='%'), scale=alt.Scale(domain=[0, 1])),
@@ -546,15 +562,15 @@ def tradeoff_chart(curve, share, current):
     return alt.layer(lines, marker).properties(height=320)
 
 
-def timing_chart(days):
+def timing_chart(days, timing):
     frame = pd.DataFrame(days)
     frame['date'] = pd.to_datetime(frame['approval_date'])
-    frame = frame.rename(columns={'actual': 'Actual arrival', 'predicted': 'R1 prediction'})
-    long = frame.melt(id_vars=['date', 'n'], value_vars=['Actual arrival', 'R1 prediction'], var_name='Series', value_name='Days')
+    frame = frame.rename(columns={'actual': 'Actual arrival', 'predicted': f'{timing} prediction'})
+    long = frame.melt(id_vars=['date', 'n'], value_vars=['Actual arrival', f'{timing} prediction'], var_name='Series', value_name='Days')
     lines = alt.Chart(long).mark_line(point=True, strokeWidth=2.5).encode(
         x=alt.X('date:T', title='Approval day', axis=alt.Axis(format='%d %b')),
         y=alt.Y('Days:Q', title='Days from promise (− early, + late)'),
-        color=alt.Color('Series:N', scale=alt.Scale(domain=['Actual arrival', 'R1 prediction'], range=[INK, FOLLOW]), legend=alt.Legend(orient='top', title=None)),
+        color=alt.Color('Series:N', scale=alt.Scale(domain=['Actual arrival', f'{timing} prediction'], range=[INK, FOLLOW]), legend=alt.Legend(orient='top', title=None)),
         tooltip=[alt.Tooltip('date:T', title='Approved', format='%d %b %Y'), 'Series:N', alt.Tooltip('Days:Q', format='+.1f'), alt.Tooltip('n:Q', title='Orders')])
     promise = alt.Chart(pd.DataFrame({'y': [0], 'label': ['Promised date']})).mark_rule(color=MUTED, strokeDash=[4, 3]).encode(
         y='y:Q', tooltip=alt.Tooltip('label:N', title=''))
@@ -562,13 +578,14 @@ def timing_chart(days):
 
 
 def month_page(live_metadata):
+    risk, timing_code = model_codes()
     header = st.container()
     month = st.radio('Month', list(REPLAY_MONTHS), index=list(REPLAY_MONTHS).index('2018-07'), format_func=lambda key: f'{REPLAY_MONTHS[key]} · {MONTH_NOTES[key][0]}',
                      horizontal=True, key='month_pick', label_visibility='collapsed')
     name, (badge, note) = REPLAY_MONTHS[month], MONTH_NOTES[month]
     with header:
-        page_header(f'Month-end review · {name}', 'Late deliveries the daily list would have caught, and how accurate R1 was.')
-    (st.warning if month == '2018-06' else st.info)(f'**{badge}.** {note} Retrospective view: uses outcomes not known on the day.')
+        page_header(f'Month-end review · {name}', f'Late deliveries the daily list would have caught, and how accurate {timing_code} was.')
+    st.info(f'**{badge}.** {note} Retrospective view: uses outcomes not known on the day.')
     controls = st.columns([2, 1.4, 2.6], vertical_alignment='bottom')
     share = controls[0].slider('Follow-up proportion (%)', 0, 100, 30, step=5, key='month_share', help='Applied every day to that day’s eligible orders, rounding up.')
     remaining = controls[1].number_input('Min. days before promise', min_value=0, max_value=30, value=1, step=1, key='month_remaining', help='Orders whose promise is this many days away or fewer are excluded: too late to act on.')
@@ -576,13 +593,13 @@ def month_page(live_metadata):
     summary = month_summary(results['replay'], share / 100)
     pooled = summary['pooled']
     monthly = next(point['monthly'] for point in results['curve'] if point['share'] == share)
-    base_rate = pooled['late_all'] / pooled['total'] if pooled['total'] else None
+    base_rate = pooled['late_all'] / pooled['known_all'] if pooled['known_all'] else None
     hit_rate = pooled['selected_late_rate']
-    st.subheader('C3 follow-up: late deliveries caught')
+    st.subheader(f'{risk} follow-up: late deliveries caught')
     cards = st.columns(4)
     cards[0].metric('Orders followed up', f"{pooled['selected']:,}", f"{pooled['selected'] / pooled['total']:.0%} of {pooled['total']:,} orders" if pooled['total'] else None, delta_color='off', delta_arrow='off', border=True)
     cards[1].metric('Late deliveries caught', f"{pooled['late_caught']} of {pooled['late_all']}", f"{percent(pooled['all_late_coverage'])} captured", delta_color='off', delta_arrow='off', border=True,
-                    help='Known late orders among those followed up, out of every known late order that month (including excluded ones).')
+                    help='Known late orders among those followed up, out of every known late order that month (including excluded ones). Canceled orders have no outcome and never count as late.')
     cards[2].metric('Hit rate of follow-ups', percent(hit_rate), f"{hit_rate / base_rate:.1f}× the {base_rate:.1%} late rate" if hit_rate and base_rate else None, delta_color='off', delta_arrow='off', border=True,
                     help='Share of followed-up orders (with known outcomes) that were eventually late. Random follow-up would match the month’s late rate.')
     delta = None if pooled['all_late_coverage'] is None or monthly is None else pooled['all_late_coverage'] - monthly
@@ -599,37 +616,38 @@ def month_page(live_metadata):
     with st.container(border=True):
         st.markdown('**How much follow-up effort buys how many catches?**')
         st.caption(f"Your setting (dot): call {share}% of orders → catch {percent(pooled['all_late_coverage'])} of late deliveries.")
-        st.altair_chart(tradeoff_chart(results['curve'], share, pooled['all_late_coverage']), width='stretch')
+        st.altair_chart(tradeoff_chart(results['curve'], share, pooled['all_late_coverage'], risk, timing_code), width='stretch')
         point = next(p for p in results['curve'] if p['share'] == share)
         if point['late_all']:
-            st.info(f"At {share}%, C3 caught {point['daily_caught']} of {point['late_all']} late deliveries; "
-                    f"ranking by R1’s buffer would have caught {point['r1_caught']}.")
+            st.info(f"At {share}%, {risk} caught {point['daily_caught']} of {point['late_all']} late deliveries; "
+                    f"ranking by {timing_code}’s buffer would have caught {point['buffer_caught']}.")
     timing = results['timing']
     if timing:
-        st.subheader('R1 timing: how close were the arrival estimates?')
+        st.subheader(f'{timing_code} timing: how close were the arrival estimates?')
+        june_rmse = ((live_metadata or {}).get('regression') or {}).get('evaluation', {}).get('June', {}).get('rmse')
         cards = st.columns(4)
-        cards[0].metric('Typical error (MAE)', f"{timing['mae']:.1f} days", help='Mean absolute gap between R1’s predicted and the actual days from promise.', border=True)
-        cards[1].metric('RMSE', f"{timing['rmse']:.2f} days", help='Penalises large misses more. Phase 2 reported 7.369 days for June.', border=True)
-        cards[2].metric('Actual vs R1 (average days)', f"{timing['mean_actual']:+.1f} vs {timing['mean_predicted']:+.1f}",
-                        f"R1 {'later' if timing['bias'] > 0 else 'earlier'} by {abs(timing['bias']):.1f} days on average", delta_color='off', delta_arrow='off', border=True,
-                        help='Days from promise (negative = early). R1 erring later is the cautious direction for operations.')
+        cards[0].metric('Typical error (MAE)', f"{timing['mae']:.1f} days", help=f'Mean absolute gap between {timing_code}’s predicted and the actual days from promise.', border=True)
+        cards[1].metric('RMSE', f"{timing['rmse']:.2f} days", help='Penalises large misses more.' + (f' Phase 2 reported {june_rmse:.3f} days for June.' if june_rmse else ''), border=True)
+        cards[2].metric(f'Actual vs {timing_code} (average days)', f"{timing['mean_actual']:+.1f} vs {timing['mean_predicted']:+.1f}",
+                        f"{timing_code} {'later' if timing['bias'] > 0 else 'earlier'} by {abs(timing['bias']):.1f} days on average", delta_color='off', delta_arrow='off', border=True,
+                        help=f'Days from promise (negative = early). {timing_code} erring later is the cautious direction for operations.')
         if timing['predicted_late_orders'] is not None and timing['predicted_on_time_orders'] is not None:
-            cards[3].metric('R1 buffer: late vs on-time', f"{timing['predicted_late_orders']:+.1f} vs {timing['predicted_on_time_orders']:+.1f}",
+            cards[3].metric(f'{timing_code} buffer: late vs on-time', f"{timing['predicted_late_orders']:+.1f} vs {timing['predicted_on_time_orders']:+.1f}",
                             'Late orders: thinner buffer', delta_color='off', delta_arrow='off', border=True,
-                            help='Average R1 prediction for orders that were eventually late vs on time. A smaller buffer for late orders shows R1 carries a risk signal.')
+                            help='Average timing-model prediction for orders that were eventually late vs on time. A smaller buffer for late orders shows the timing model carries a risk signal.')
         with st.container(border=True):
             st.markdown('**Predicted vs actual days from promise, by approval day**')
-            st.altair_chart(timing_chart(timing['days']), width='stretch')
-            st.caption('Both lines sit below 0 because 2018 promises were generous. R1 errs slightly late, the cautious side.')
+            st.altair_chart(timing_chart(timing['days'], timing_code), width='stretch')
+            st.caption('Negative = before the promised date. A prediction line above the actual line errs late, the cautious side.')
     table = pd.DataFrame(summary['days']).rename(columns={'simulation_date': 'Simulated day', 'total': 'Orders', 'eligible': 'Eligible', 'selected': 'Followed up',
-                                                          'late_caught': 'Late caught', 'late_eligible': 'Late (eligible)', 'late_all': 'Late (all)'}).drop(columns=['selected_known'])
+                                                          'late_caught': 'Late caught', 'late_eligible': 'Late (eligible)', 'late_all': 'Late (all)'}).drop(columns=['selected_known', 'known_all'])
     with st.expander('Day-by-day table'):
         st.dataframe(table, hide_index=True, width='stretch')
         st.download_button('Download month-end table', table.to_csv(index=False), f'month_end_{month}_{share}pct.csv', 'text/csv')
     with st.expander('How these numbers are produced'):
         st.write('Each morning uses the daily list rules; outcomes are attached only after ranking.')
-        st.write(f"Scores are pre-computed with the same C3/R1 models the API serves (`python -m deployment.scripts.score_replay`), so this page works without the API.")
-        st.write('Late = Phase 2 label within 45 days of approval. R1 accuracy uses the Phase 2 R1 target and excludes canceled orders.')
+        st.write(f"Scores are pre-computed with the same {risk} and {timing_code} models the API serves (`python -m deployment.scripts.score_replay`), so this page works without the API.")
+        st.write('Late = Phase 2 label within 45 days of approval. Canceled and unavailable orders stay in the daily list (cancellation is unknown at approval) but have no outcome, so they never count as late or toward rates. Timing accuracy uses the Phase 2 target and excludes them.')
         st.caption(f"Pre-scored models: {', '.join(f'{k} {v}' for k, v in results['models'].items())}")
     if live_metadata is not None:
         live = dict(model_versions(live_metadata))
@@ -665,29 +683,85 @@ def batch_upload(api_url, stats):
             show_error(exc)
 
 
+def selection_table(records, score_name, digits):
+    """Validation model-choice table from the exported selection records."""
+    rows = [{'Code': r['Code'], 'Model': r['Model'], score_name: r['validation'], 'Difference vs leader': r['diff_vs_leader'],
+             '95% interval': f"{r['ci_low']:+.{digits}f} to {r['ci_high']:+.{digits}f}", 'Tied with leader': 'Yes' if r['tied'] else 'No',
+             'Decision': r['decision']} for r in records]
+    return pd.DataFrame(rows)
+
+
+def choice_section(stats, regression, risk, timing):
+    """Why these models: the Validation choice, then the classifier's cut-off and its June misses."""
+    st.subheader('How the models were chosen')
+    st.write('Candidates were tuned by cross-validation inside each family. Only the Validation set chooses between them, and June never does. '
+             f"{stats.get('selection_rule', '')}")
+    left, right = st.columns(2)
+    for column, (title, meta, score, digits) in zip((left, right), [('Late-delivery risk: Validation average precision (higher is better)', stats, 'Average precision', 4),
+                                                                    ('Days from promise: Validation RMSE in days (lower is better)', regression, 'RMSE (days)', 4)]):
+        with column.container(border=True):
+            st.markdown(f'**{title}**')
+            if meta.get('selection'):
+                st.dataframe(selection_table(meta['selection'], score, digits), hide_index=True, width='stretch')
+                if meta.get('selected_by_order_bootstrap') not in (None, meta.get('model_code')):
+                    st.caption(f"Resampling single orders instead of days would pick {meta['selected_by_order_bootstrap']}.")
+            else:
+                st.info('Selection table unavailable for this model version.')
+    threshold = stats.get('threshold')
+    if not stats.get('confusion') or threshold is None:
+        return
+    st.subheader(f'{risk} flags: cut-off and misses')
+    st.write(f"The operating cut-off is {threshold:.1%}: the probability that maximises F1 on Validation for the Train-only fit, applied unchanged to June. "
+             'Scores are for ranking; the default 0.5 flags almost nothing because late orders are rare.')
+    confusion = pd.DataFrame(stats['confusion']).rename(columns={
+        'split': 'Split', 'cut-off': 'Cut-off', 'true_positive': 'Late, flagged', 'false_negative': 'Late, missed',
+        'false_positive': 'On time, flagged', 'true_negative': 'On time, not flagged', 'flagged_pct': 'Flagged (%)',
+        'precision': 'Precision', 'recall': 'Recall', 'f1': 'F1'})
+    st.dataframe(confusion[['Split', 'Cut-off', 'Late, flagged', 'Late, missed', 'On time, flagged', 'On time, not flagged', 'Flagged (%)', 'Precision', 'Recall', 'F1']],
+                 hide_index=True, width='stretch', column_config={
+                     'Flagged (%)': st.column_config.NumberColumn(format='%.1f'), 'Precision': st.column_config.NumberColumn(format='percent'),
+                     'Recall': st.column_config.NumberColumn(format='percent'), 'F1': st.column_config.NumberColumn(format='%.3f')})
+    st.caption('Known outcomes only; canceled orders are excluded.')
+    misses = pd.DataFrame(stats.get('false_negatives', []))
+    if not misses.empty:
+        misses = misses[misses['cut_off'] != '0.5']
+        with st.container(border=True):
+            st.markdown(f'**June late orders {risk} missed at the operating cut-off**')
+            tabs = st.tabs(['Customer state', 'Route type', 'Promised lead time'])
+            for tab, breakdown in zip(tabs, ['customer_state', 'route_type', 'promised_lead_band']):
+                shown = misses[misses['breakdown'] == breakdown].head(12).rename(columns={
+                    'group': 'Group', 'late_orders': 'Late orders', 'missed': 'Missed', 'miss_rate_pct': 'Miss rate (%)', 'share_of_missed_pct': 'Share of all misses (%)'})
+                tab.dataframe(shown[['Group', 'Late orders', 'Missed', 'Miss rate (%)', 'Share of all misses (%)']], hide_index=True, width='stretch',
+                              column_config={'Miss rate (%)': st.column_config.NumberColumn(format='%.1f'), 'Share of all misses (%)': st.column_config.NumberColumn(format='%.1f')})
+
+
 def guidance(metadata, api_url=None):
-    page_header('Models and guidance', 'How C3 and R1 were built and how they held up.')
+    risk, timing = model_codes()
+    page_header('Models and guidance', f'How {risk} and {timing} were chosen and how they held up.')
     stats, regression = metadata['classification'], metadata.get('regression', {})
+    numeric, categorical = stats['features']['numeric'], stats['features']['categorical']
+    def used(meta):
+        return len(meta.get('selected_features') or numeric + categorical)
     left, right = st.columns(2)
     with left.container(border=True):
-        st.markdown('**C3 · late-delivery risk** (tuned Random Forest classifier)')
+        st.markdown(f'**{risk} · late-delivery risk** ({short_label(risk)})')
         st.write('Ranks orders by late-delivery risk. Scores are for ranking, not calibrated probabilities.')
-        st.caption(f"Version {stats.get('model_version', '?')} · {stats.get('train_rows', 0):,} training orders known before 2 June 2018 · 500 trees, max depth 8.")
+        st.caption(f"Version {stats.get('model_version', '?')} · {stats.get('train_rows', 0):,} training orders known before 2 June 2018 · {used(stats)} of {len(numeric) + len(categorical)} features.")
     with right.container(border=True):
-        st.markdown('**R1 · days from promise** (OLS regression)')
+        st.markdown(f'**{timing} · days from promise** ({short_label(timing)})')
         st.write('Predicts days before (−) or after (+) the promised date.')
-        st.caption(f"Version {regression.get('model_version', '?')} · same 24 inputs · frozen with C3 on 2 June 2018.")
-    numeric, categorical = stats['features']['numeric'], stats['features']['categorical']
+        st.caption(f"Version {regression.get('model_version', '?')} · {used(regression)} of {len(numeric) + len(categorical)} features · frozen with {risk} on 2 June 2018.")
     facts = st.columns(4)
-    facts[0].metric('C3 training orders', f"{stats.get('train_rows', 0):,}", border=True)
-    facts[1].metric('R1 training orders', f"{regression.get('train_rows', 0):,}", border=True)
+    facts[0].metric(f'{risk} training orders', f"{stats.get('train_rows', 0):,}", border=True)
+    facts[1].metric(f'{timing} training orders', f"{regression.get('train_rows', 0):,}", border=True)
     facts[2].metric('Input features', len(numeric) + len(categorical), f'{len(numeric)} numeric · {len(categorical)} categorical', delta_color='off', delta_arrow='off', border=True)
-    facts[3].metric('Replay orders (Jun–Aug 2018)', '18,960', 'held out: never used in training', delta_color='off', delta_arrow='off', border=True)
+    facts[3].metric('Replay orders (Jun–Aug 2018)', f'{len(replay_scores()):,}', 'held out: never used in training', delta_color='off', delta_arrow='off', border=True)
     with st.expander('Features used (all known at payment approval)'):
         groups = st.columns(len(GROUPS))
         for column, (title, names) in zip(groups, GROUPS.items()):
             column.markdown(f'**{title}**')
             column.markdown('\n'.join(f'- {LABELS[name][0]}' for name in names))
+    choice_section(stats, regression, risk, timing)
     st.subheader('How the models held up, month by month')
     rows = []
     for month, name in REPLAY_MONTHS.items():
@@ -696,27 +770,35 @@ def guidance(metadata, api_url=None):
             results = month_results(snapshot_revision(), 1, month)
         except SimulationDataError:
             results = None
-        timing = results['timing'] if results else None
+        timing_scores = results['timing'] if results else None
         point = next((p for p in results['curve'] if p['share'] == 30), None) if results else None
-        rows.append({'Month': f"{name.split()[0]} · {'selection' if month == '2018-06' else 'monitoring'}", 'Late rate': c3.get('late_rate'),
-                     'C3 AUC': c3.get('roc_auc'), 'C3 AP': c3.get('avg_precision'),
-                     'Caught @30% · C3': point['daily'] if point else None, 'Caught @30% · R1 buffer': point['r1'] if point else None,
-                     'R1 MAE': timing['mae'] if timing else None, 'R1 RMSE': timing['rmse'] if timing else None})
+        rows.append({'Month': f"{name.split()[0]} · {'test' if month == '2018-06' else 'monitoring'}", 'Late rate': c3.get('late_rate'),
+                     f'{risk} AUC': c3.get('roc_auc'), f'{risk} AP': c3.get('avg_precision'),
+                     f'Caught @30% · {risk}': point['daily'] if point else None, f'Caught @30% · {timing} buffer': point['buffer'] if point else None,
+                     f'{timing} MAE': timing_scores['mae'] if timing_scores else None, f'{timing} RMSE': timing_scores['rmse'] if timing_scores else None})
     st.dataframe(pd.DataFrame(rows), hide_index=True, width='stretch', column_config={
-        'Late rate': st.column_config.NumberColumn(format='percent'), 'C3 AUC': st.column_config.NumberColumn(format='%.3f', help='ROC-AUC; 0.5 = random ranking.'),
-        'C3 AP': st.column_config.NumberColumn(format='percent', help='Average precision.'),
-        'Caught @30% · C3': st.column_config.NumberColumn(format='percent'), 'Caught @30% · R1 buffer': st.column_config.NumberColumn(format='percent'),
-        'R1 MAE': st.column_config.NumberColumn(format='%.2f d'), 'R1 RMSE': st.column_config.NumberColumn(format='%.2f d')})
+        'Late rate': st.column_config.NumberColumn(format='percent'), f'{risk} AUC': st.column_config.NumberColumn(format='%.3f', help='ROC-AUC; 0.5 = random ranking.'),
+        f'{risk} AP': st.column_config.NumberColumn(format='percent', help='Average precision.'),
+        f'Caught @30% · {risk}': st.column_config.NumberColumn(format='percent'), f'Caught @30% · {timing} buffer': st.column_config.NumberColumn(format='percent'),
+        f'{timing} MAE': st.column_config.NumberColumn(format='%.2f d'), f'{timing} RMSE': st.column_config.NumberColumn(format='%.2f d')})
     st.caption('AUC 0.5 = random ranking. “Caught @30%” uses the daily list rules.')
     with st.container(border=True):
         st.markdown('**What monitoring tells us**')
-        st.write('- Late deliveries rose from 2% (June) to 8% (August).\n'
-                 '- C3’s AUC fell from 0.64 to 0.43; R1’s error stayed at 4.5–5.8 days.\n'
-                 '- Next step: retrain C3, or rank with R1’s buffer.')
+        first, last = rows[0], rows[-1]
+        notes = []
+        if first['Late rate'] is not None and last['Late rate'] is not None:
+            notes.append(f"Late deliveries went from {first['Late rate']:.1%} (June) to {last['Late rate']:.1%} (August) of orders with a known outcome.")
+        if first[f'{risk} AUC'] is not None and last[f'{risk} AUC'] is not None:
+            notes.append(f"{risk}’s AUC went from {first[f'{risk} AUC']:.2f} to {last[f'{risk} AUC']:.2f}.")
+        if first[f'{timing} RMSE'] is not None and last[f'{timing} RMSE'] is not None:
+            notes.append(f"{timing}’s RMSE went from {first[f'{timing} RMSE']:.1f} to {last[f'{timing} RMSE']:.1f} days.")
+        if len(notes) == 3 and first[f'{risk} AUC'] > last[f'{risk} AUC']:
+            notes.append(f'Next step: retrain {risk}, or rank with {timing}’s buffer.')
+        st.write('\n'.join(f'- {note}' for note in notes) or 'No monitoring results are available.')
     with st.container(border=True):
         st.markdown('**How to use the scores**')
-        st.write('- Call the top share of orders by C3 risk that your team can handle.\n'
-                 '- R1 close to 0 days means little slack before the promise.\n'
+        st.write(f'- Call the top share of orders by {risk} risk that your team can handle.\n'
+                 f'- {timing} close to 0 days means little slack before the promise.\n'
                  '- A low score does not guarantee on-time delivery.')
     st.subheader('Live inference monitoring')
     try:
@@ -726,9 +808,9 @@ def guidance(metadata, api_url=None):
     if live:
         cols = st.columns(4)
         cols[0].metric('API prediction requests', f"{live.get('request_count', 0):,}", border=True, help='Direct prediction calls since the Render service last started.')
-        cols[1].metric('Orders scored', f"{live.get('prediction_count', 0):,}", border=True, help='Successful C3 classifications, including each row of a batch.')
+        cols[1].metric('Orders scored', f"{live.get('prediction_count', 0):,}", border=True, help=f'Successful {risk} classifications, including each row of a batch.')
         mean = live.get('mean_score')
-        cols[2].metric('Mean C3 risk (recent window)', '—' if mean is None else f'{mean:.1%}', f"last {live.get('window_size', 0)} scores", delta_color='off', delta_arrow='off', border=True)
+        cols[2].metric(f'Mean {risk} risk (recent window)', '—' if mean is None else f'{mean:.1%}', f"last {live.get('window_size', 0)} scores", delta_color='off', delta_arrow='off', border=True)
         warnings_seen = len(live.get('recent_warnings', []))
         cols[3].metric('Recent drift warnings', f"{warnings_seen}+" if warnings_seen >= 20 else warnings_seen, help='Recent predictions with an input outside the training 1st–99th percentile.', border=True)
         st.caption('From the API’s /logs/summary. Resets when the Render service restarts.')
@@ -745,13 +827,13 @@ GUIDE = [
      'One morning’s follow-up list. Orders approved the day before are scored by the live API and ranked by late-delivery risk; the riskiest share is marked for a call.',
      'It opens on 2 July 2018, the first morning the models had not seen; any day from 2 June to 30 August works. Optionally change the share to call. Press **Reveal eventual outcomes** to see which orders were actually late.'),
     ('Month-end review',
-     'The same daily list replayed for a whole month: how many late deliveries it caught, how effort trades off against catches, and how accurate R1’s timing was.',
-     'It opens on July. Compare July and August (monitoring months the models never saw) with June (used to choose them).'),
+     'The same daily list replayed for a whole month: how many late deliveries it caught, how effort trades off against catches, and how accurate the timing model was.',
+     'It opens on July. Compare July and August (monitoring months the models never saw) with June (their held-out test month).'),
     ('Explore the data',
      'The data behind the models, from all 98,958 approved orders (January 2017 to August 2018): what drives late deliveries, plus our other two candidate problems (repeat purchases and reviews) and the models’ outputs.',
      'Filter by month, state, route or category, then move through the tabs.'),
     ('Single-order API demo',
-     'One order sent to the live API, showing both predictions: C3 late-delivery risk and R1 days from the promised date.',
+     'One order sent to the live API, showing both predictions: late-delivery risk and days from the promised date.',
      'Pick an order, change any of its 24 inputs and press **Predict delivery**.'),
     ('Batch API demo',
      'Scores many orders in one API call, for your own data.',
@@ -763,6 +845,7 @@ GUIDE = [
 
 
 def start_page():
+    risk, timing = model_codes()
     page_header('Delivery Watch', 'Ranks yesterday’s Olist orders by late-delivery risk, so operations know which to call first.')
     st.subheader('How to use this app')
     st.caption('Work through the pages in the order they appear in the sidebar.')
@@ -771,9 +854,9 @@ def start_page():
             st.markdown(f'**{number}. {PAGE_ICONS[name]}\u2002{name}**  \n{shows}  \n**What to do:** {action}')
     with st.expander('Good to know'):
         st.markdown(
-            '- **C3** ranks orders by late-delivery risk; its scores are for ranking, not calibrated probabilities.\n'
-            '- **R1** predicts days from the promised date: negative = early, positive = late.\n'
-            '- Data: real Olist orders from 2017–2018, replayed as if new. June 2018 was used to choose the models; July and August are unseen.\n'
+            f'- **{risk}** ({short_label(risk)}) ranks orders by late-delivery risk; its scores are for ranking, not calibrated probabilities.\n'
+            f'- **{timing}** ({short_label(timing)}) predicts days from the promised date: negative = early, positive = late.\n'
+            '- Data: real Olist orders from 2017–2018, replayed as if new. The models were fitted on history before 2 June and chosen on Validation; June is their test month and July and August are unseen.\n'
             '- The prediction API sleeps when idle; the first call can take 30–60 seconds. Use **Retry API connection** in the sidebar if needed.\n'
             '- API documentation: https://team8-delivery-api.onrender.com/docs')
 
@@ -795,7 +878,7 @@ def connect(api_url, force=False):
 
 
 def main():
-    st.set_page_config(page_title='Delivery Watch · C3 + R1', page_icon='📦', layout='wide')
+    st.set_page_config(page_title='Delivery Watch', page_icon='📦', layout='wide')
     st.markdown(STYLE, unsafe_allow_html=True)
     api_url = os.environ.get('DELIVERY_API_URL', os.environ.get('CLASSIFICATION_API_URL', 'http://127.0.0.1:8002'))
     st.sidebar.title('📦\u2002Delivery Watch')
@@ -821,7 +904,7 @@ def main():
                 st.session_state['prediction_service'] = service_identity
             st.session_state['api_connected'] = True
             st.session_state['live_metadata'] = metadata
-            status_area.success('API connected · C3 + R1')
+            status_area.success(f"API connected · {' + '.join(model_codes())}")
         except (ValueError, requests.RequestException, SimulationDataError) as exc:
             st.session_state['api_connected'] = False
             status_area.error('API unavailable')
@@ -834,18 +917,18 @@ def main():
     else:
         # Offline-capable pages reuse the last metadata and never wait on the network.
         metadata = st.session_state.get('live_metadata')
-        if st.session_state.get('api_connected'): status_area.success('API connected · C3 + R1')
+        if st.session_state.get('api_connected'): status_area.success(f"API connected · {' + '.join(model_codes())}")
         else: status_area.caption('This page works without the prediction API.')
     st.sidebar.caption(api_url)
     with st.sidebar.expander('About this app'):
         st.markdown('**Frontend:** Streamlit — daily replay, ranking, charts.\n\n'
-                    '**Backend:** FastAPI on Render — C3 and R1 predictions.\n\n'
+                    '**Backend:** FastAPI on Render — late-delivery risk and days-from-promise predictions.\n\n'
                     '**Data:** held-out Olist orders, June–August 2018.')
     try:
         if page == 'Start here': start_page()
         elif page == 'Daily simulation': daily_page(api_url, metadata)
         elif page == 'Month-end review': month_page(metadata)
-        elif page == 'Explore the data': explore_page(page_header, replay_scores())
+        elif page == 'Explore the data': explore_page(page_header, replay_scores(), model_codes())
         elif page == 'Single-order API demo':
             data = load_demo_samples()
             samples = data.get('samples', []) if isinstance(data, dict) else data

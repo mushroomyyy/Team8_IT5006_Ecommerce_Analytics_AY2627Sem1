@@ -81,3 +81,61 @@ payment\_combination\_voucher & vs reference level & 0.353 & -0.238 to 0.944 & n
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
 \end{table}
 
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{R2B coefficients (HC3, days)}
+\begin{tabular}{lrrrrrr}
+\toprule
+Term & Basis & Days per unit & 95\% CI per unit & Days per 1 SD & 95\% CI per 1 SD & p-value \\
+\midrule
+order\_approved\_day\_of\_week\_sin & n/a & nan &  & nan &  & <0.001 \\
+order\_approved\_day\_of\_week\_cos & n/a & nan &  & nan &  & 0.033 \\
+order\_approved\_month\_sin & n/a & nan &  & nan &  & <0.001 \\
+order\_approved\_month\_cos & n/a & nan &  & nan &  & <0.001 \\
+order\_item\_count & per 1 unit & -0.765 & -0.958 to -0.571 & -0.409 & -0.512 to -0.306 & <0.001 \\
+order\_seller\_count & per 1 unit & -3.799 & -4.265 to -3.333 & -0.454 & -0.509 to -0.398 & <0.001 \\
+log\_order\_frieght\_value\_sum & per doubling & 0.733 & 0.520 to 0.947 & 0.534 & 0.378 to 0.689 & <0.001 \\
+log\_order\_product\_weight\_g\_sum & per doubling & 0.087 & 0.014 to 0.160 & 0.171 & 0.028 to 0.314 & 0.019 \\
+log\_seller\_dist\_km\_mean & per doubling & 0.539 & 0.473 to 0.604 & 1.034 & 0.908 to 1.159 & <0.001 \\
+promised\_lead\_days & per 1 unit & -0.763 & -0.783 to -0.743 & -5.683 & -5.832 to -5.535 & <0.001 \\
+log\_approval\_lag\_hours & per doubling & 0.076 & 0.039 to 0.113 & 0.159 & 0.082 to 0.236 & <0.001 \\
+log\_order\_product\_volume\_cm3\_sum & per doubling & 0.123 & 0.059 to 0.187 & 0.238 & 0.114 to 0.361 & <0.001 \\
+order\_product\_photos\_mean & per 1 unit & -0.094 & -0.137 to -0.052 & -0.162 & -0.235 to -0.089 & <0.001 \\
+is\_weekend\_approval & per 1 unit & -0.479 & -0.768 to -0.190 & -0.199 & -0.320 to -0.079 & 0.001 \\
+is\_black\_friday\_period & per 1 unit & 3.373 & 3.021 to 3.725 & 0.977 & 0.875 to 1.079 & <0.001 \\
+is\_december\_peak & per 1 unit & 1.185 & 0.905 to 1.465 & 0.395 & 0.302 to 0.488 & <0.001 \\
+log\_orders\_approved\_prev\_7d & per doubling & 0.365 & 0.138 to 0.591 & 0.204 & 0.077 to 0.330 & 0.002 \\
+customer\_state\_AC & vs reference level & 1.349 & -1.078 to 3.776 & nan &  & 0.276 \\
+customer\_state\_AL & vs reference level & 9.495 & 7.971 to 11.019 & nan &  & <0.001 \\
+customer\_state\_AM & vs reference level & 7.192 & 4.842 to 9.542 & nan &  & <0.001 \\
+customer\_state\_AP & vs reference level & 3.706 & 1.175 to 6.238 & nan &  & 0.004 \\
+customer\_state\_BA & vs reference level & 4.259 & 3.759 to 4.759 & nan &  & <0.001 \\
+customer\_state\_CE & vs reference level & 4.197 & 3.465 to 4.930 & nan &  & <0.001 \\
+customer\_state\_DF & vs reference level & 0.901 & 0.365 to 1.437 & nan &  & <0.001 \\
+customer\_state\_ES & vs reference level & 1.95 & 1.444 to 2.457 & nan &  & <0.001 \\
+customer\_state\_GO & vs reference level & 2.216 & 1.676 to 2.757 & nan &  & <0.001 \\
+customer\_state\_MA & vs reference level & 5.555 & 4.586 to 6.524 & nan &  & <0.001 \\
+customer\_state\_MG & vs reference level & -0.265 & -0.517 to -0.014 & nan &  & 0.039 \\
+customer\_state\_MS & vs reference level & 1.277 & 0.497 to 2.058 & nan &  & 0.001 \\
+customer\_state\_MT & vs reference level & 2.403 & 1.630 to 3.177 & nan &  & <0.001 \\
+customer\_state\_PA & vs reference level & 5.252 & 4.367 to 6.136 & nan &  & <0.001 \\
+customer\_state\_PB & vs reference level & 5.246 & 3.969 to 6.523 & nan &  & <0.001 \\
+customer\_state\_PE & vs reference level & 3.73 & 2.976 to 4.485 & nan &  & <0.001 \\
+customer\_state\_PI & vs reference level & 2.857 & 1.651 to 4.064 & nan &  & <0.001 \\
+customer\_state\_PR & vs reference level & 0.219 & -0.124 to 0.562 & nan &  & 0.211 \\
+customer\_state\_RJ & vs reference level & 3.436 & 3.133 to 3.739 & nan &  & <0.001 \\
+customer\_state\_RN & vs reference level & 3.256 & 2.044 to 4.468 & nan &  & <0.001 \\
+customer\_state\_RO & vs reference level & 1.073 & -0.226 to 2.371 & nan &  & 0.106 \\
+customer\_state\_RR & vs reference level & 4.54 & -1.418 to 10.498 & nan &  & 0.135 \\
+customer\_state\_RS & vs reference level & 1.989 & 1.619 to 2.360 & nan &  & <0.001 \\
+customer\_state\_SC & vs reference level & 2.919 & 2.486 to 3.353 & nan &  & <0.001 \\
+customer\_state\_SE & vs reference level & 6.3 & 4.828 to 7.772 & nan &  & <0.001 \\
+customer\_state\_TO & vs reference level & 2.139 & 0.800 to 3.478 & nan &  & 0.002 \\
+route\_type\_2. All same-state & vs reference level & -0.814 & -1.085 to -0.544 & nan &  & <0.001 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+

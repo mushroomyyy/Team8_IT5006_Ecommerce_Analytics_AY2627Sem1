@@ -1,0 +1,16 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Refit check for C2B on June}
+\begin{tabular}{lrrrrrr}
+\toprule
+C2B & avg\_precision & roc\_auc & brier & precision\_top10 & top10\_lift & n\_known \\
+\midrule
+Fitted on Train only & 0.0712 & 0.7547 & 0.019 & 0.065 & 3.4438 & 6134 \\
+Refitted on history before 2 June & 0.0815 & 0.7294 & 0.0198 & 0.0634 & 3.3577 & 6134 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+

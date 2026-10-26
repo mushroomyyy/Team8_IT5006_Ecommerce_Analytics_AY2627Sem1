@@ -8,6 +8,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from .datasets import EXCLUDED_STATUSES
 from .labels import attach_prediction_labels, attach_regression_actuals
 from .report_figures import AQUA, BLUE, INK, INK2, ORANGE, PURPLE, SLATE, STYLE, UNUSED
 
@@ -21,10 +22,12 @@ def cohort_counts(final_df, orders, task, month_start, lookback):
     """Orders approved in a month that are scored, and those whose outcome is known at +45 days.
 
     Classification scores orders that were not already delivered on their approval day.
+    Canceled and unavailable orders are excluded from both tasks, as in evaluation.
     """
     start = pd.Timestamp(month_start)
     end = start + pd.offsets.MonthEnd(0)
-    cohort = final_df[final_df['order_approved_dt'].between(start, end)]
+    cohort = final_df[final_df['order_approved_dt'].between(start, end)
+                      & ~final_df['order_status'].isin(EXCLUDED_STATUSES)]
     if task == 'classification':
         delivered = pd.to_datetime(cohort['order_delivered_customer_date']).dt.normalize()
         cohort = cohort[delivered.isna() | delivered.gt(cohort['order_approved_dt'])]

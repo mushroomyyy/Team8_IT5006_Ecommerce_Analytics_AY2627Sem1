@@ -21,8 +21,16 @@ have been deleted. See [deployment settings](docs/DEPLOYMENT.md) and the
 
 ## Selected models
 
-- **C3 tuned Random Forest**: late-delivery risk, used to rank orders for follow-up.
-- **R1 OLS**: signed days from the promised delivery date (approval-to-delivery capped at 45 days).
+Models are chosen on the Validation set only: the Validation leader, a day-level bootstrap
+of every model's difference from it, and the simplest model statistically tied with it.
+Cross-validation only tunes and selects features within each model family, and June is an
+independent test. Canceled and unavailable orders are excluded from training and evaluation
+because they have no delivery outcome.
+
+- **C2B logistic regression (13 BIC-selected features)**: late-delivery risk, used to rank orders
+  for follow-up; operating cut-off 0.128 chosen on Validation.
+- **R2B OLS regression (17 BIC-selected features)**: signed days from the promised delivery date
+  (approval-to-delivery capped at 45 days).
 
 Fitted preprocessing travels with each model; the API serves the packaged Phase 2 artifacts.
 
@@ -39,7 +47,7 @@ Fitted preprocessing travels with each model; the API serves the packaged Phase 
 | `deployment/api/` | FastAPI inference service |
 | `deployment/app/` | Delivery Watch Streamlit app, adjacent requirements and packaged data |
 | `deployment/artifacts/` | Fitted models, metadata and manifest |
-| `deployment/export/`, `deployment/scripts/` | Offline builders, scoring and verification commands |
+| `deployment/export/`, `deployment/scripts/` | Offline model and data builders, scoring and verification commands |
 | `deployment/phase1_dashboard/` | Original Phase 1 dashboard and hosted `streamlit_app.py` launcher |
 | `deployment/Dockerfile.*`, `render.yaml` | Container builds and Render configuration |
 | `docs/` | Application, API, modelling, deployment and verification guides |
@@ -76,8 +84,9 @@ The current modelling workflow consists of four notebooks, run in this order:
 
 These notebooks import the shared Python package in `src/`. Data loading,
 features and labels live in `data.py`, `features.py` and `labels.py`; the remaining
-modules provide preprocessing, variable selection, model fitting, tuning,
-evaluation and plotting. Dependencies are in `requirements-modelling.txt`,
+modules provide preprocessing, variable selection, model fitting, decision-tree and
+Random Forest tuning (`tree_search.py`, `rf_search.py`), Validation model choice
+(`model_selection.py`), evaluation and plotting. Dependencies are in `requirements-modelling.txt`,
 included by the root `requirements.txt`. Modelling tests are in `tests/phase2/`.
 
 Phase 2's preserved exports are organised as follows:
@@ -103,16 +112,15 @@ the current execution workflow. A supporting plotting notebook also remains in
 
 ## From modelling to deployment
 
-The fitted C3 and R1 models used by the application are packaged under
-`deployment/artifacts/`. The FastAPI service in `deployment/api/` loads these
-artifacts for inference. The Streamlit application in `deployment/app/` calls
-that API over HTTP. Offline model and data builders live in `deployment/export/`;
-they are not run when the API or application starts.
-
-The repository reorganization preserved the existing notebook outputs, Phase 2
-results and archived contents. R1's fitted coefficients and predictions were
-preserved when its serialized transformer reference was updated for the new
-package location; C3's model file was moved unchanged.
+The selected models are refitted on the June history and packaged as
+`deployment/artifacts/classification_model.joblib` and `regression_model.joblib`;
+the model code (C2B, R2B) is recorded inside each artifact. The exporters in
+`deployment/export/` read the Validation choice from the notebooks'
+`run_metadata.json`, reproduce the notebook's June scores and fitted-state
+fingerprints exactly, and stop if they differ. The FastAPI service in
+`deployment/api/` loads these artifacts for inference, and the Streamlit
+application in `deployment/app/` calls that API over HTTP. Offline builders are
+not run when the API or application starts.
 
 ## Setup
 
@@ -154,8 +162,8 @@ python -m streamlit run deployment/phase1_dashboard/streamlit_app.py
 
 Each simulated morning between 2 June and 30 August 2018, the app scores the
 previous day's eligible approvals and puts the riskiest share (30% by default)
-on a follow-up list. June guided model selection; July and August are unseen
-monitoring months. Its seven pages cover getting started, daily simulation,
+on a follow-up list. Models were chosen on Validation; June is their held-out test
+month and July and August are unseen monitoring months. Its seven pages cover getting started, daily simulation,
 month-end review, data exploration, single-order and batch API demos, and models.
 
 - [Application guide](docs/APPLICATION.md)

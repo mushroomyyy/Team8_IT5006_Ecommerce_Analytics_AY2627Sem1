@@ -30,12 +30,12 @@ Item & Value \\
 \midrule
 Stage A candidates & 60 \\
 Stage A trees & 200 \\
-Stage B candidates & 24 \\
+Stage B candidates & 54 \\
 Stage B trees & 300 or 500 \\
-Best CV AP (mean +/- SD) & 0.2691 +/- 0.0331 \\
-Stage A best CV AP & 0.2657 \\
-Search time (Stage A + B, s) & 206 \\
-Best parameters & \{"min\_samples\_split": 50, "max\_samples": 0.7, "criterion": "entropy", "class\_weight": null, "max\_depth": 8, "min\_samples\_leaf": 2, "max\_features": "log2", "n\_estimators": 500\} \\
+Best CV AP (mean +/- SD) & 0.1298 +/- 0.0453 \\
+Stage A best CV AP & 0.1292 \\
+Search time (Stage A + B, s) & 298 \\
+Best parameters & \{"min\_samples\_split": 10, "max\_samples": 0.5, "criterion": "gini", "class\_weight": "balanced", "max\_depth": 12, "min\_samples\_leaf": 5, "max\_features": "sqrt", "n\_estimators": 500\} \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
@@ -50,11 +50,11 @@ Best parameters & \{"min\_samples\_split": 50, "max\_samples": 0.7, "criterion":
 \toprule
 class\_weight & criterion & max\_depth & max\_features & max\_samples & min\_samples\_leaf & min\_samples\_split & n\_estimators & mean\_score & sd\_score & mean\_fit\_time & mean\_score\_time & split0\_test\_score & split1\_test\_score & split2\_test\_score & split3\_test\_score & split4\_test\_score \\
 \midrule
-nan & entropy & 8 & log2 & 0.7 & 2 & 50 & 500 & 0.2691 & 0.0331 & 3.9767 & 0.1321 & 0.2775 & 0.3133 & 0.2925 & 0.2302 & 0.2318 \\
-nan & entropy & 8 & log2 & 0.7 & 1 & 50 & 500 & 0.2685 & 0.0332 & 4.0024 & 0.1207 & 0.2751 & 0.3132 & 0.2924 & 0.226 & 0.2357 \\
-nan & entropy & 10 & log2 & 0.7 & 1 & 50 & 500 & 0.2683 & 0.0336 & 4.313 & 0.1515 & 0.2697 & 0.3141 & 0.2957 & 0.2324 & 0.2294 \\
-nan & entropy & 10 & log2 & 0.7 & 2 & 50 & 500 & 0.2678 & 0.0348 & 4.6221 & 0.1456 & 0.27 & 0.3155 & 0.2955 & 0.228 & 0.2299 \\
-nan & entropy & 10 & log2 & 0.7 & 1 & 50 & 300 & 0.2677 & 0.0336 & 2.5247 & 0.0807 & 0.2665 & 0.3138 & 0.2962 & 0.2342 & 0.2278 \\
+balanced & gini & 16 & sqrt & 0.5 & 5 & 10 & 500 & 0.1299 & 0.0453 & 4.7742 & 0.1921 & 0.123 & 0.0743 & 0.2129 & 0.1238 & 0.1155 \\
+balanced & gini & 12 & sqrt & 0.5 & 5 & 10 & 500 & 0.1298 & 0.0453 & 4.1847 & 0.1461 & 0.123 & 0.0764 & 0.2135 & 0.1245 & 0.1117 \\
+balanced & gini & 12 & 0.2 & 0.5 & 10 & 10 & 300 & 0.1298 & 0.0445 & 3.1265 & 0.1 & 0.1192 & 0.0788 & 0.2124 & 0.1269 & 0.1117 \\
+balanced & gini & 16 & sqrt & 0.5 & 10 & 10 & 500 & 0.1298 & 0.0439 & 4.6145 & 0.1677 & 0.1214 & 0.0767 & 0.2107 & 0.1218 & 0.1184 \\
+balanced & gini & 12 & sqrt & 0.5 & 10 & 10 & 300 & 0.1298 & 0.0424 & 2.4192 & 0.0876 & 0.1198 & 0.0806 & 0.209 & 0.1213 & 0.118 \\
 \bottomrule
 \end{tabular}
 \par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}

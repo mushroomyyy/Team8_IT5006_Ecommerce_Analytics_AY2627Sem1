@@ -1,7 +1,8 @@
 Code,Model,Train,CV mean +/- SD,Validation,June,July,August
-C0,No-skill baseline,8.22,8.88 +/- 4.31,9.61,1.46,4.24,7.87
-C1,Logistic (all),25.71,16.38 +/- 2.52,29.84,7.29,9.95,12.25
-C2,Logistic (CV-stepwise),18.33,17.50 +/- 3.81,29.99,7.13,9.95,12.25
-C2B,Logistic (BIC),25.38,17.09 +/- 2.20,30.42,7.13,9.79,13.01
-C3,Random Forest (tuned),34.45,22.39 +/- 3.37,24.60,7.29,8.97,10.59
-C3d,Random Forest (default),88.32,21.25 +/- 5.20,23.58,6.97,10.44,9.53
+C0,No-skill baseline,7.16,7.43 +/- 4.37,9.34,1.30,2.80,7.00
+C1,Logistic (all),24.36,12.77 +/- 2.59,30.80,6.50,8.72,9.28
+C2,Logistic (CV-stepwise),14.90,12.63 +/- 3.56,19.85,3.74,6.09,6.24
+C2B,Logistic (BIC),24.29,12.95 +/- 2.81,30.22,6.34,8.72,9.44
+C3,Random Forest (tuned),39.10,15.50 +/- 6.04,24.82,6.18,7.07,7.00
+C3d,Random Forest (default),76.20,13.28 +/- 5.49,24.53,5.69,7.73,8.07
+C4,Decision tree (tuned),34.10,14.45 +/- 7.21,20.58,4.39,6.41,6.85

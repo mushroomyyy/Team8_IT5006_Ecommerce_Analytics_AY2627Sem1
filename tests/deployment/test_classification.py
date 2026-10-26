@@ -28,38 +28,70 @@ class ClassificationTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[2]
         run = json.loads((root / "results/simple_to_complex/classification/run_metadata.json").read_text())
         metadata = self.service.metadata
+        code = run["selected_model"]
         self.assertEqual(metadata, load_stats())
+        self.assertEqual(metadata["model_code"], code)
         self.assertEqual(metadata["train_rows"], run["row_counts"]["history"])
-        self.assertEqual(metadata["best_params"], run["rf_best_params"])
-        actual = self.service.model.named_steps["classifier"].get_params()
-        for name, value in metadata["best_params"].items():
-            self.assertEqual(actual[name], value)
-        self.assertEqual(actual["random_state"], 42)
+        if metadata["family"] == "forest":
+            self.assertEqual(metadata["best_params"], run["rf_best_params"])
+        if metadata["family"] == "tree":
+            self.assertEqual(metadata["best_params"], run["tree_best_params"])
+        if metadata["family"] == "linear":
+            self.assertEqual(metadata["selected_features"], run["selected_variables"][code])
+        else:
+            actual = self.service.model.named_steps["classifier"].get_params()
+            for name, value in metadata["best_params"].items():
+                self.assertEqual(actual[name], value)
+            self.assertEqual(actual["random_state"], 42)
         self.assertEqual(metadata["features"], run["features"])
         self.assertEqual(metadata["export_verification"]["sample_training_overlap"], 0)
         self.assertAlmostEqual(metadata["export_verification"]["june_ap"],
-                               run["headline_june"]["C3"]["avg_precision"], places=10)
+                               run["headline_june"][code]["avg_precision"], places=10)
         self.assertAlmostEqual(metadata["evaluation"]["June"]["avg_precision"],
-                               run["headline_june"]["C3"]["avg_precision"], places=15)
+                               run["headline_june"][code]["avg_precision"], places=15)
         metrics = pd.read_csv(root / "results/simple_to_complex/classification/model_results_long.csv",
                               float_precision="round_trip")
-        expected = metrics[metrics["model"].eq("C3")].set_index("split").drop(columns="model").to_dict(orient="index")
+        expected = metrics[metrics["model"].eq(code)].set_index("split").drop(columns="model").to_dict(orient="index")
         self.assertEqual(metadata["evaluation"], expected)
-        self.assertEqual(metadata["fingerprints"]["notebook_normalized"], run["fingerprints"]["C3"])
-        self.assertEqual(metadata["fingerprints"]["notebook_reference"], run["fingerprints"]["C3"])
+        self.assertEqual(metadata["fingerprints"]["artifact"], run["fingerprints"][code])
+        self.assertEqual(metadata["fingerprints"]["notebook_reference"], run["fingerprints"][code])
+        self.assertTrue(metadata["model_version"].startswith(f"phase2-{code.lower()}-"))
+
+    def test_operating_threshold_and_validation_choice_come_from_the_notebook(self):
+        root = Path(__file__).resolve().parents[2]
+        run = json.loads((root / "results/simple_to_complex/classification/run_metadata.json").read_text())
+        metadata = self.service.metadata
+        self.assertEqual(metadata["threshold"], run["operating_threshold"])
+        self.assertNotEqual(metadata["threshold"], .5)
+        self.assertIn("Validation", metadata["threshold_policy"])
+        self.assertEqual(metadata["selection_rule"], run["selection_rule"])
+        self.assertEqual(metadata["selected_by_order_bootstrap"], run["selected_by_order_bootstrap"])
+        chosen = [row["Code"] for row in metadata["selection"] if row["selected"]]
+        self.assertEqual(chosen, [run["selected_model"]])
+        confusion = pd.DataFrame(metadata["confusion"])
+        self.assertEqual(set(confusion["Code"]), {run["selected_model"]})
+        self.assertEqual(set(confusion["split"]), {"Validation", "June"})
+        self.assertEqual(len(confusion["cut-off"].unique()), 2)
+        self.assertTrue({row["cut_off"] for row in metadata["false_negatives"]} - {"0.5"})
 
     def test_replay_is_feature_only_and_spans_june(self):
         replay = json.loads((DATA / "classification_june_orders.json").read_text())
         outcomes = json.loads((DATA / "classification_june_outcomes.json").read_text())
         columns = set(self.service.metadata["features"]["numeric"] + self.service.metadata["features"]["categorical"] + ["order_id"])
         rows = [row for day_rows in replay["days"].values() for row in day_rows]
-        self.assertEqual(len(rows), 6164)
+        run = json.loads((Path(__file__).resolve().parents[2] / "results/simple_to_complex/classification/run_metadata.json").read_text())
+        # Cancellation is unknown at approval, so the worklist keeps canceled orders and marks their outcome.
+        values = list(outcomes["outcomes"].values())
+        self.assertEqual(len(rows), run["row_counts"]["june_scored"] + values.count("canceled"))
         self.assertEqual(len({row["order_id"] for row in rows}), len(rows))
         for row in rows:
             self.assertEqual(set(row), columns)
         self.assertEqual(set(outcomes["outcomes"]), {row["order_id"] for row in rows})
         self.assertTrue(outcomes["display_only"])
-        self.assertEqual(sum(value is None for value in outcomes["outcomes"].values()), 9)
+        self.assertGreater(values.count("canceled"), 0)
+        self.assertTrue(all(value in (None, 0, 1, "canceled") for value in values))
+        self.assertEqual(sum(value in (0, 1) for value in values), run["row_counts"]["june_known"])
+        self.assertEqual(sum(value is None for value in values), run["row_counts"]["june_scored"] - run["row_counts"]["june_known"])
         sample_ids = {row["order_id"] for row in self.samples}
         self.assertEqual(len(sample_ids), 30)
         represented_days = [day for day, day_rows in replay["days"].items()
@@ -78,11 +110,12 @@ class ClassificationTests(unittest.TestCase):
             self.assertEqual(meta["baseline_features"][name], ranges["median"])
         distribution = meta["june_score_distribution"]
         scores = distribution["sorted_scores"]
-        self.assertEqual(len(scores), 6164)
+        self.assertEqual(len(scores), distribution["n_orders"])
         self.assertEqual(scores, sorted(scores))
-        self.assertEqual(sum(bin_["count"] for bin_ in distribution["histogram"]), 6164)
+        self.assertEqual(sum(bin_["count"] for bin_ in distribution["histogram"]), len(scores))
         self.assertEqual(distribution["top_10_percent_boundary"], float(np.quantile(scores, .9)))
-        self.assertEqual(set(meta["global_importance"]), {"Validation", "June"})
+        expected_keys = {"linear": {"Coefficients"}, "tree": {"Validation", "June"}, "forest": {"Validation", "June"}}
+        self.assertEqual(set(meta["global_importance"]), expected_keys[meta["family"]])
 
     def test_service_preserves_full_precision_probabilities(self):
         frame = self.service.validate_features(self.features)
@@ -91,7 +124,7 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(result["late_probability"], expected)
         self.assertNotIn("is_predicted_late", result)
         self.assertNotIn("recommended_action", result)
-        self.assertEqual(result["model_code"], "C3")
+        self.assertEqual(result["model_code"], self.service.metadata["model_code"])
 
     def test_entire_june_scores_preserve_artifact_and_reference(self):
         replay = json.loads((DATA / "classification_june_orders.json").read_text())
@@ -101,9 +134,11 @@ class ClassificationTests(unittest.TestCase):
         actual = self.service.probabilities(frame)
         expected = self.service.model.predict_proba(frame)[:, self.service.positive_index]
         np.testing.assert_array_equal(actual, expected)
-        # Export metadata records every June score, so this also detects changed
-        # preprocessing, positive-class selection and model artifact regressions.
-        np.testing.assert_allclose(np.sort(actual), self.service.metadata["june_score_distribution"]["sorted_scores"], rtol=0, atol=1e-15)
+        # Export metadata records every evaluated June score (canceled orders excluded), so this also
+        # detects changed preprocessing, positive-class selection and model artifact regressions.
+        outcomes = json.loads((DATA / "classification_june_outcomes.json").read_text())["outcomes"]
+        evaluated = np.array([outcomes[row["order_id"]] != "canceled" for row in rows])
+        np.testing.assert_allclose(np.sort(actual[evaluated]), self.service.metadata["june_score_distribution"]["sorted_scores"], rtol=0, atol=1e-15)
 
     def test_optional_missing_numeric_is_imputed(self):
         row = {**self.features, "payment_value_sum": None}

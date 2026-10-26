@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Refit check for C2B on June</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>C2B</th>
+      <th>avg_precision</th>
+      <th>roc_auc</th>
+      <th>brier</th>
+      <th>precision_top10</th>
+      <th>top10_lift</th>
+      <th>n_known</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fitted on Train only</td>
+      <td>0.0712</td>
+      <td>0.7547</td>
+      <td>0.0190</td>
+      <td>0.0650</td>
+      <td>3.4438</td>
+      <td>6134</td>
+    </tr>
+    <tr>
+      <td>Refitted on history before 2 June</td>
+      <td>0.0815</td>
+      <td>0.7294</td>
+      <td>0.0198</td>
+      <td>0.0634</td>
+      <td>3.3577</td>
+      <td>6134</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

@@ -1,0 +1,45 @@
+Term,Basis,Days per unit,95% CI per unit,Days per 1 SD,95% CI per 1 SD,p-value
+order_approved_day_of_week_sin,n/a,,,,,<0.001
+order_approved_day_of_week_cos,n/a,,,,,0.033
+order_approved_month_sin,n/a,,,,,<0.001
+order_approved_month_cos,n/a,,,,,<0.001
+order_item_count,per 1 unit,-0.765,-0.958 to -0.571,-0.409,-0.512 to -0.306,<0.001
+order_seller_count,per 1 unit,-3.799,-4.265 to -3.333,-0.454,-0.509 to -0.398,<0.001
+log_order_frieght_value_sum,per doubling,0.733,0.520 to 0.947,0.534,0.378 to 0.689,<0.001
+log_order_product_weight_g_sum,per doubling,0.087,0.014 to 0.160,0.171,0.028 to 0.314,0.019
+log_seller_dist_km_mean,per doubling,0.539,0.473 to 0.604,1.034,0.908 to 1.159,<0.001
+promised_lead_days,per 1 unit,-0.763,-0.783 to -0.743,-5.683,-5.832 to -5.535,<0.001
+log_approval_lag_hours,per doubling,0.076,0.039 to 0.113,0.159,0.082 to 0.236,<0.001
+log_order_product_volume_cm3_sum,per doubling,0.123,0.059 to 0.187,0.238,0.114 to 0.361,<0.001
+order_product_photos_mean,per 1 unit,-0.094,-0.137 to -0.052,-0.162,-0.235 to -0.089,<0.001
+is_weekend_approval,per 1 unit,-0.479,-0.768 to -0.190,-0.199,-0.320 to -0.079,0.001
+is_black_friday_period,per 1 unit,3.373,3.021 to 3.725,0.977,0.875 to 1.079,<0.001
+is_december_peak,per 1 unit,1.185,0.905 to 1.465,0.395,0.302 to 0.488,<0.001
+log_orders_approved_prev_7d,per doubling,0.365,0.138 to 0.591,0.204,0.077 to 0.330,0.002
+customer_state_AC,vs reference level,1.349,-1.078 to 3.776,,,0.276
+customer_state_AL,vs reference level,9.495,7.971 to 11.019,,,<0.001
+customer_state_AM,vs reference level,7.192,4.842 to 9.542,,,<0.001
+customer_state_AP,vs reference level,3.706,1.175 to 6.238,,,0.004
+customer_state_BA,vs reference level,4.259,3.759 to 4.759,,,<0.001
+customer_state_CE,vs reference level,4.197,3.465 to 4.930,,,<0.001
+customer_state_DF,vs reference level,0.901,0.365 to 1.437,,,<0.001
+customer_state_ES,vs reference level,1.95,1.444 to 2.457,,,<0.001
+customer_state_GO,vs reference level,2.216,1.676 to 2.757,,,<0.001
+customer_state_MA,vs reference level,5.555,4.586 to 6.524,,,<0.001
+customer_state_MG,vs reference level,-0.265,-0.517 to -0.014,,,0.039
+customer_state_MS,vs reference level,1.277,0.497 to 2.058,,,0.001
+customer_state_MT,vs reference level,2.403,1.630 to 3.177,,,<0.001
+customer_state_PA,vs reference level,5.252,4.367 to 6.136,,,<0.001
+customer_state_PB,vs reference level,5.246,3.969 to 6.523,,,<0.001
+customer_state_PE,vs reference level,3.73,2.976 to 4.485,,,<0.001
+customer_state_PI,vs reference level,2.857,1.651 to 4.064,,,<0.001
+customer_state_PR,vs reference level,0.219,-0.124 to 0.562,,,0.211
+customer_state_RJ,vs reference level,3.436,3.133 to 3.739,,,<0.001
+customer_state_RN,vs reference level,3.256,2.044 to 4.468,,,<0.001
+customer_state_RO,vs reference level,1.073,-0.226 to 2.371,,,0.106
+customer_state_RR,vs reference level,4.54,-1.418 to 10.498,,,0.135
+customer_state_RS,vs reference level,1.989,1.619 to 2.360,,,<0.001
+customer_state_SC,vs reference level,2.919,2.486 to 3.353,,,<0.001
+customer_state_SE,vs reference level,6.3,4.828 to 7.772,,,<0.001
+customer_state_TO,vs reference level,2.139,0.800 to 3.478,,,0.002
+route_type_2. All same-state,vs reference level,-0.814,-1.085 to -0.544,,,<0.001

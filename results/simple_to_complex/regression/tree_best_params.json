@@ -1,0 +1,20 @@
+{
+  "best_params": {
+    "max_depth": 4,
+    "min_samples_leaf": 5
+  },
+  "metadata": {
+    "task": "regression",
+    "scoring": "neg_root_mean_squared_error",
+    "candidates": 80,
+    "tie_tolerance": 0.0001,
+    "train_rows": 45371,
+    "n_cv_folds": 5,
+    "best_cv_mean": -8.64995440152693,
+    "best_cv_sd": 0.9942918885946233,
+    "best_n_leaves": 16,
+    "seconds": 27.1,
+    "random_state": 42,
+    "run_date": "2026-10-26T23:17:28"
+  }
+}

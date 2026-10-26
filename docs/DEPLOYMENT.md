@@ -14,26 +14,30 @@ Python versions match the previous apps' settings; the model API and local
 artifact checks retain Python 3.13.5. Both old Streamlit apps were deleted only
 after their replacements passed hosted checks. See [verification](VERIFICATION.md).
 
-## Published release — 25 October 2026
+**Current change: model switch to C2B and R2B.** The deployed models are now C2B
+(`phase2-c2b-logistic-2018-06-02`) and R2B (`phase2-r2b-ols-2018-06-02`), replacing
+C3 and R1. Locally verified on 26-27 October 2026; **live Render re-verification is
+pending** and is done after the team merges to `main` and Render redeploys.
 
-Andrew approved publication. Merge commit `456262a` is on remote `main`, and Render
+## Previous release (C3/R1) — 25 October 2026
+
+Andrew approved publication of the repository reorganization. Merge commit `456262a` is on remote `main`, and Render
 deploy `dep-dbeto2g473hc739eqrig` is live after a 1m21s build/deployment. The service's
-Dockerfile path is `./deployment/Dockerfile.api`. Public HTTP checks, unchanged
-model versions, hosted/local prediction agreement and the 10/10 batch example pass.
+Dockerfile path is `./deployment/Dockerfile.api`. Public HTTP checks, the C3/R1
+model versions then served, hosted/local prediction agreement and the 10/10 batch example pass.
 Detailed live verification records and screenshots are retained locally. The working branch was
 never pushed. At this release, the Streamlit replacements were pending; they
 were completed on 26 October 2026 as recorded above.
 
 ## Historical migration release gate
 
-`codex/repo-reorg` is a local-only working branch. Do not push it or create a PR
-from it. Finish the local verification checks, then
-Andrew reviews and approves the result. Only after that decision, merge the local
-branch into `main` and push `main`. Jordan's `model-deployment-r1` branch remains
+`ta-feedback-rework` carries the model switch and is not yet merged. Finish the
+local verification checks, then Andrew reviews and approves the result. Only after
+that decision, merge into `main` and push `main`; a push without `[skip render]`
+rebuilds the Render service. Jordan's `model-deployment-r1` branch remains
 untouched; do not merge, delete or rebase it.
 
-Coordinate the merge with Jordan because both old Streamlit entry points disappear
-when remote `main` changes. The new app paths require replacement applications.
+Coordinate with Jordan about the Streamlit replacement apps, which also build from `main`.
 
 ## Existing Render service
 
@@ -48,16 +52,16 @@ when remote `main` changes. The new app paths require replacement applications.
 | Region / plan | Singapore / free (unchanged) |
 | Environment | `PORT=10000` |
 
-Before publishing `main`, inspect the service in Render. For a manually configured
-service, update Settings → Build & Deploy → Dockerfile Path to the new path at
-release time. For a Blueprint-managed service, confirm the `render.yaml` change
-is applied. Keep the branch, URL, service name and remaining settings unchanged.
+The service, branch (`main`), Dockerfile path, health check and environment
+variables are unchanged by the model switch, so no Render settings need editing.
 Deploy the newly approved `main` commit; do not add `[skip render]` to this merge.
 Verify the live commit matches it and wait for `/health` to become healthy.
 
 The API image installs `deployment/requirements-api.txt` with
 `deployment/constraints-api.txt`. It copies only `deployment/api/`, its package
-initializer, and the four runtime model/metadata files. It never trains models.
+initializer, and the four runtime model/metadata files
+(`classification_model.joblib`, `regression_model.joblib` and their
+`*_model_stats.json`). It never trains models.
 The Dockerfile-specific `deployment/Dockerfile.api.dockerignore` excludes the app
 and its data; the root ignore file also supports the UI build, which needs them.
 
@@ -67,7 +71,7 @@ After deployment:
 python -m deployment.scripts.verify_http https://team8-delivery-api.onrender.com
 ```
 
-Confirm both model versions are unchanged, Swagger loads, and documented single
+Confirm `/health` reports `phase2-c2b-logistic-2018-06-02` and `phase2-r2b-ols-2018-06-02`, `/model-info` exposes C2B's `threshold` and `threshold_policy`, Swagger loads, and documented single
 and batch examples score successfully. Observe logs for import or model-loading
 failures. Local checks do not establish live success.
 
@@ -85,6 +89,9 @@ docker run --rm --name team8-api-reorg -p 10000:10000 team8-api
 # In another shell:
 python -m deployment.scripts.verify_http http://127.0.0.1:10000
 ```
+
+On 26-27 October 2026 a linux/amd64 build of this image served the C2B/R2B
+versions on `/health`, and `verify_http` passed all checks against it.
 
 Optional UI container:
 
@@ -127,6 +134,5 @@ loaded successfully, its filters updated the metrics and its charts rendered.
 - 422 input errors: use `/model-info` categories and the exact feature schema.
 - Missing raw data: notebooks and Phase 1 use `data/olist_csv.zip`; the model API
   does not need that ZIP or `src/`.
-- Packaging equivalence tests need full Git history. They read the original R1
-  artifact at fixed commit `bfea55986f266b4208a8c58f932bf67666391b92`, so moving
-  Jordan's branch cannot silently change the comparison input.
+- `/health` shows unexpected model versions: confirm the deploy used the intended
+  `main` commit; the versions are inside each `*_model_stats.json`.

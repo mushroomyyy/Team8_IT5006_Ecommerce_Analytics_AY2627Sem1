@@ -5,7 +5,7 @@
 ```text
 Browser -> Streamlit Python server
            -> packaged historical inputs -> cutoff eligibility
-           -> POST /predict/batch -> Render fitted C3 + R1 pipelines
+           -> POST /predict/batch -> Render fitted C2B + R2B pipelines
            <- predictions         <- fitted preprocessing + inference
            -> risk ranking, top-X% follow-up, worklist and downloads
 Explicit outcome reveal -> separate local outcome file -> retrospective metrics
@@ -20,7 +20,9 @@ No fitted model or preprocessing is loaded by Streamlit.
 
 Render provides only inference, input validation, health, metadata and aggregate
 monitoring. Both services share 24 engineered approval-time features (21 numeric,
-3 categorical). Query `GET /model-info` for names, categories, ranges and provenance.
+3 categorical); the API accepts all 24 and each model uses its own selected subset,
+ignoring the rest. Query `GET /model-info` for names, categories, ranges, selected
+features and provenance.
 The misspelling `order_frieght_value_sum` is part of the existing model contract.
 No future delivery values or outcomes are model inputs.
 
@@ -42,47 +44,63 @@ on explicit reveal. Changing date or policy hides revealed outcomes again.
 
 ## Selected fitted models
 
-- **C3**: tuned Random Forest, 500 trees, entropy, depth 8, leaf minimum 2,
-  split minimum 50, `max_features=log2`, bootstrap fraction 0.7, no class weighting.
-  Numeric median imputation and reference-coded one-hot encoding are fitted
-  inside its pipeline. Risk is the positive-class score, without a fixed 0.5
-  decision or a calibration guarantee. No monthly percentile decides follow-up.
-- **R1**: all-feature OLS with fitted log1p transformations, cyclic month/weekday,
-  mixed-route merging, numeric imputation/scaling and reference encoding.
+Models were chosen on Validation only: a day-level bootstrap of each candidate
+against the Validation leader, then the simplest tied model. CV only tunes and
+selects features inside a model family, and June is an independent held-out test.
+
+- **C2B**: plain logistic regression on 13 BIC-selected features
+  (`phase2-c2b-logistic-2018-06-02`). Log1p of skewed amounts, sine/cosine calendar
+  terms, median imputation, standardisation and reference-coded one-hot encoding
+  are fitted inside its pipeline. Risk is the positive-class score, not a
+  calibrated probability. Its operating cut-off is `threshold` in the metadata
+  (0.1282): the probability that maximises F1 on Validation for the Train-only
+  fit, applied unchanged to the June refit and later months, never chosen on June.
+  `/model-info` exposes `threshold` and `threshold_policy`. A flag is a screening
+  aid, not a guarantee; the default 0.5 flags almost nothing because late orders
+  are rare. No monthly percentile decides follow-up.
+- **R2B**: OLS on 17 BIC-selected features (`phase2-r2b-ols-2018-06-02`), with the
+  same fitted transformations, cyclic month/weekday, mixed-route merging, numeric
+  imputation/scaling and reference encoding.
   Target: `min(delivery_date - approval_date, 45) - (promise_date - approval_date)`
   in calendar days. Negative values mean early relative to promise, positive late.
   This is a capped delivery offset, not an uncapped duration or guaranteed arrival.
   The serving wrapper clips raw predictions to `[-promised_lead_days,
-  45-promised_lead_days]`, matching Phase 2 evaluation. Raw output is also exposed.
-  If promised lead is null, fitted imputation supports the raw estimate but the
-  wrapper cannot apply this bound; the result explicitly explains that limitation.
+  45-promised_lead_days]`, i.e. a 0-45 day lead time, matching Phase 2 evaluation.
+  Raw output is also exposed. If promised lead is null, fitted imputation supports
+  the raw estimate but the wrapper cannot apply this bound; the result explicitly
+  explains that limitation.
 
-Both artifacts preserve fitted preprocessing. C3 bytes are moved unchanged from
-the pre-integration working tree. R1 is not retrained: only its custom transformer
-class import path changes to `deployment.api.transforms.ExpandColumns`, so inference
-works without Phase 2 imports. `regression_packaging.json` records source and
-packaged SHA256 hashes and exact pre/post serialization equality for all 6,164
-June rows. `manifest.json` hashes the current packaged files.
+They replace the earlier tuned Random Forest (C3) and all-feature OLS (R1), which
+remain candidates in the Validation tables. Artifacts are
+`deployment/artifacts/classification_model.joblib` and `regression_model.joblib`
+(stable names; the model code and version are in the metadata). `manifest.json`
+hashes the current packaged files. Both models are fitted with the custom
+`ExpandColumns` transformer bound to `deployment.api.transforms`, so inference
+works without Phase 2 imports.
 
-Metadata inside the original fitted artifacts remains provenance. Legacy threshold
-fields, monthly score distributions, baselines and importance tables are excluded
-from HTTP model metadata. The classifier response contains risk and input-range
-warnings, without late/not-late decisions.
+HTTP model metadata omits only the June score distribution, importance tables and
+baseline values. The classifier response contains risk and input-range warnings;
+the late/not-late flag is applied by comparing the score with `threshold`, as the
+app's single-order panel does.
 
 The historical refit was available on 2 June 2018, using known outcomes strictly
 before that date and approvals from 18 April 2017 through 17 April 2018, with a
-45-day waiting buffer. C3 uses 63,592 history rows; R1 uses 62,841. Source notebooks
-and result tables remain under `notebooks/`, `src/` and `results/`. The submitted report selected C3 and R1;
-June guided selection, while July/August are frozen-model monitoring.
+45-day waiting buffer. Canceled and unavailable orders are excluded from training
+and all evaluation. C2B uses 62,840 history rows; R2B uses 62,841. Source
+notebooks and result tables remain under `notebooks/`, `src/` and `results/`.
 
-Historical June C3 AP is about 11.22%; R1 RMSE is about 7.369 days and MAE 5.81 days.
-The report's monthly top-30% captured 76/137 known late orders (~55.5%). Those are
-Phase 2 cohort results, not a promise for the implemented daily filtered policy.
+Held-out June (refit on history): C2B average precision about 8.15% with ROC-AUC
+0.729 and a top-10% lift of 3.36 (top 10% captures 33.6% of known late orders);
+R2B RMSE about 7.374 days and MAE 5.81 days. At the cut-off C2B flags 6.3% of
+June orders, catching 34 of 116 known late orders (precision 8.7%, recall 29.3%);
+at 0.5 it flags none. July and August are frozen-model monitoring, where ROC-AUC
+falls to 0.591 and 0.560. These are Phase 2 cohort results, not a promise for the
+implemented daily filtered policy.
 
 ## Daily simulation
 
 - Current dates: **2 June–30 August 2018**; batch date: previous calendar day.
-  June guided model selection; July and August are frozen-model monitoring months.
+  June is the held-out test month; July and August are frozen-model monitoring.
   The cohort is approved orders, not purchase dates or a cumulative unresolved queue.
 - Source timestamps have no offset. Treat them as Brazilian local wall time
   (America/Sao_Paulo convention), without conversion to Singapore/UTC.
@@ -93,10 +111,12 @@ Phase 2 cohort results, not a promise for the implemented daily filtered policy.
   current date is **less than or equal to** the configured minimum days remaining
   are excluded. Default 1 means exclude due today, tomorrow or earlier.
 - Cancellation timestamps are absent. Final canceled/unavailable status never
-  drives as-of eligibility. R1 training/evaluation excluded these final-status
-  rows; this population difference is a disclosed limitation.
+  drives as-of eligibility, so these orders stay on the daily worklist. Both models'
+  training and evaluation exclude them, and replay views show their outcome as
+  "Canceled", outside late-caught and late-rate denominators; this population
+  difference is a disclosed limitation.
 - Validate model inputs and expose per-order exclusions for invalid inputs.
-- Rank eligible orders by C3 risk descending, then order ID ascending for ties.
+- Rank eligible orders by C2B risk descending, then order ID ascending for ties.
   Select `ceil(review_proportion * eligible_count)`; zero selects none and positive
   proportions can select one order in a small batch. Default 30% is a demo setting.
   Exclusion reason counts may overlap; excluded counts always count distinct orders.
@@ -116,12 +136,13 @@ approval-day-plus-45-days inclusive evaluation rule, preserving unknowns.
 ## Retrospective daily evaluation
 
 Outcomes remain hidden until an explicit action in Streamlit reads the separate outcome file and evaluates
-the **same already-scored worklist**, without another prediction request. Metrics report totals, known, unknown and late counts for
+the **same already-scored worklist**, without another prediction request. Metrics report totals, known, unknown, canceled and late counts for
 **all**, **eligible** and **selected** populations. Selected late rate uses known
 selected outcomes; eligible coverage uses known late eligible orders; all-order
 coverage uses all known late orders, including excluded orders. Zero denominators
-return null. Unknowns are not silently treated as on-time. The application makes
-no claim that June is untouched validation of the chosen daily assumptions.
+return null. Unknowns are not silently treated as on-time. Canceled
+outcomes are shown separately and counted in neither. June is the models' held-out
+test month, but the daily policy settings remain demonstration assumptions.
 
 ## Validation and reproduction
 
@@ -135,12 +156,19 @@ Export utilities require the original source tables/bundled ZIP and Phase 2 modu
 ```bash
 python -m deployment.export.train_classification  # offline refit; not required to serve
 python -m deployment.export.train_regression      # offline refit; not required to serve
-python -m deployment.export.package_regression    # repackage original fixed-commit artifact, no fit
-python -m deployment.export.export_simulation     # snapshot export, no model fit; refresh manifest last
+python -m deployment.export.export_simulation     # snapshot export, no model fit; rewrites the manifest
+python -m deployment.scripts.score_replay         # pre-score the replay with the packaged models
+python -m deployment.export.export_eda            # refresh the Explore tables
+python -m deployment.scripts.evaluate_daily       # writes docs/daily_policy_evaluation.json
 ```
 
+Run them in this order. Both trainers share `deployment/export/common.py`: they
+read `selected_model` from the notebook run metadata, refit it on the June history,
+verify June AP/RMSE and fitted-state fingerprints against the notebook, and rebind
+`ExpandColumns` to `deployment/api/transforms.py` so the API never imports `src`.
+
 Do not retrain casually: the checked-in fitted models and export provenance are
-the intended deployment inputs. Original regression branch is preserved in Git.
+the intended deployment inputs.
 The separate course technical HTML guide could not be located; course PDF and
 professor deployment examples were reviewed instead.
 
@@ -192,13 +220,12 @@ Historical dates and outcome reveal are Streamlit operations, not API endpoints.
 ## Month-end review
 
 - `deployment/scripts/score_replay.py` pre-scores all 18,960 June–August replay
-  orders with the packaged C3/R1 artifacts (identical to the deployed API per
-  `render_model_equivalence.json`) into `deployment/app/data/replay_scores.json`.
+  orders with the packaged C2B/R2B artifacts into `deployment/app/data/replay_scores.json`.
 - Each month replays every morning with the daily list rules; outcomes are
-  attached only after ranking. Comparisons: whole-month C3 ranking (Phase 2
-  style), random calls, and the same daily rules ranked by R1's predicted days
-  from promise.
-- `deployment/app/data/simulation_timing.json` holds R1's Phase 2 target per order
+  attached only after ranking. Comparisons: whole-month ranking by the
+  risk model (Phase 2 style), random calls, and the same daily rules ranked by
+  R2B's predicted days from promise.
+- `deployment/app/data/simulation_timing.json` holds R2B's Phase 2 target per order
   (`attach_regression_actuals`, 45-day cap, final canceled/unavailable excluded).
-  June reproduces the reported R1 RMSE 7.369 and MAE 5.81.
+  June reproduces the reported R2B RMSE 7.374 and MAE 5.81.
 

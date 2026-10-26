@@ -78,15 +78,28 @@ class PolicyTests(unittest.TestCase):
         policy = self.run_policy()
         revealed = retrospective(policy, {"c": 1, "a": None, "past": 1, "at": 0, "b": 0, "future": 0})
         m = revealed["metrics"]
-        self.assertEqual(m["all"], {"total": 8, "known": 5, "unknown": 3, "late": 2})
-        self.assertEqual(m["eligible"], {"total": 5, "known": 4, "unknown": 1, "late": 1})
-        self.assertEqual(m["selected"], {"total": 2, "known": 1, "unknown": 1, "late": 1})
+        self.assertEqual(m["all"], {"total": 8, "known": 5, "unknown": 3, "canceled": 0, "late": 2})
+        self.assertEqual(m["eligible"], {"total": 5, "known": 4, "unknown": 1, "canceled": 0, "late": 1})
+        self.assertEqual(m["selected"], {"total": 2, "known": 1, "unknown": 1, "canceled": 0, "late": 1})
         self.assertEqual(m["selected_late_rate"], 1)
         self.assertEqual(m["eligible_late_coverage"], 1)
         self.assertEqual(m["all_late_coverage"], .5)
         empty = retrospective(self.run_policy(0), {})["metrics"]
         self.assertIsNone(empty["selected_late_rate"])
         self.assertIsNone(empty["eligible_late_coverage"])
+
+    def test_canceled_orders_stay_on_the_worklist_but_leave_every_rate_denominator(self):
+        policy = self.run_policy()
+        outcomes = {"c": 1, "a": "canceled", "past": 1, "at": 0, "b": 0, "future": 0}
+        m = retrospective(policy, outcomes)["metrics"]
+        self.assertEqual(m["all"], {"total": 8, "known": 5, "unknown": 2, "canceled": 1, "late": 2})
+        self.assertEqual(m["selected"], {"total": 2, "known": 1, "unknown": 0, "canceled": 1, "late": 1})
+        self.assertEqual(m["selected_late_rate"], 1)
+        scores = {row["order_id"]: [row["features"]["score"], -1.] for row in self.data["days"]["2018-06-01"]}
+        replay = month_replay(self.data, scores, outcomes, 1, "2018-06")
+        pooled = month_summary(replay, 1)["pooled"]
+        self.assertEqual(pooled["selected_known"], m["eligible"]["known"])  # the canceled order is not in the hit-rate denominator
+        self.assertEqual((pooled["known_all"], pooled["total"], pooled["late_all"]), (m["all"]["known"], 8, 2))
 
     def test_month_replay_matches_daily_worklists_and_counts_unknowns(self):
         scores = {row["order_id"]: [row["features"]["score"], -1.] for row in self.data["days"]["2018-06-01"]}

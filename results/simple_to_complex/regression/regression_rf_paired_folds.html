@@ -1,0 +1,59 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Fold-wise CV RMSE differences (Nadeau-Bengio corrected 95% interval)</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>comparison</th>
+      <th>metric</th>
+      <th>mean_diff</th>
+      <th>sd_diff</th>
+      <th>ci_low</th>
+      <th>ci_high</th>
+      <th>folds_better</th>
+      <th>fold_diffs</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R3 - R3d</td>
+      <td>rmse</td>
+      <td>-0.400844</td>
+      <td>0.451647</td>
+      <td>-1.302285</td>
+      <td>0.500597</td>
+      <td>5/5</td>
+      <td>-0.1037, -0.4404, -0.0968, -0.1938, -1.1695</td>
+    </tr>
+    <tr>
+      <td>R3 - R4</td>
+      <td>rmse</td>
+      <td>-0.338501</td>
+      <td>0.208653</td>
+      <td>-0.754950</td>
+      <td>0.077948</td>
+      <td>5/5</td>
+      <td>-0.2440, -0.1578, -0.6838, -0.3772, -0.2297</td>
+    </tr>
+    <tr>
+      <td>R3d - R4</td>
+      <td>rmse</td>
+      <td>0.062343</td>
+      <td>0.579114</td>
+      <td>-1.093508</td>
+      <td>1.218194</td>
+      <td>3/5</td>
+      <td>-0.1403, +0.2826, -0.5870, -0.1834, +0.9398</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

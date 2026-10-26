@@ -18,8 +18,9 @@ from .model_labels import MODEL_LABELS, display_name
 
 MODEL_COLORS = {'C0': figs.GRAY, 'R0': figs.GRAY, 'R0a': figs.GRAY, 'R0b': figs.SLATE, 'C1': figs.BLUE, 'R1': figs.BLUE,
                 'C2': figs.AQUA, 'R2': figs.AQUA, 'C2B': figs.YELLOW, 'R2B': figs.YELLOW,
-                'C3': figs.ORANGE, 'R3': figs.ORANGE, 'C3d': '#8e5bd1', 'R3d': '#8e5bd1'}
-MODEL_MARKERS = {'C3d': 's', 'R3d': 's', 'C0': 'x', 'R0': 'x', 'R0a': 'x', 'R0b': 'D'}
+                'C3': figs.ORANGE, 'R3': figs.ORANGE, 'C3d': '#8e5bd1', 'R3d': '#8e5bd1',
+                'C4': '#8c564b', 'R4': '#8c564b'}
+MODEL_MARKERS = {'C3d': 's', 'R3d': 's', 'C4': '^', 'R4': '^', 'C0': 'x', 'R0': 'x', 'R0a': 'x', 'R0b': 'D'}
 
 
 def _color(model):
@@ -163,17 +164,21 @@ def plot_effects_forest(table, effect_label, save_path=None, title=None, top=15)
     """Forest plot of per-1-SD effects with 95% CIs from `interpretation.coefficient_table`.
 
     Odds ratios (log axis) for classification, days for regression. Terms with huge
-    standard errors (not identified) should be removed first.
+    standard errors (not identified) should be removed first. A model with categorical
+    units only has no per-SD effects; its category-versus-reference effects are shown instead.
     """
-    data = table[table['effect_per_sd'].notna()].copy()
+    effect = 'effect_per_sd' if table['effect_per_sd'].notna().any() else 'effect_per_unit'
+    data = table[table[effect].notna()].copy()
     data['strength'] = (data['coef'] / data['se']).abs()
     data = data.nlargest(top, 'strength').iloc[::-1]
     odds = data['effect_type'].iloc[0] == 'odds ratio'
+    if effect == 'effect_per_unit':
+        effect_label = effect_label.replace('per 1 SD', 'versus the reference category')
     with plt.rc_context(figs.STYLE):
         fig, ax = plt.subplots(figsize=(8, 0.36 * len(data) + 1.6))
         y = np.arange(len(data))
-        ax.errorbar(data['effect_per_sd'], y, xerr=[data['effect_per_sd'] - data['effect_per_sd_low'],
-                    data['effect_per_sd_high'] - data['effect_per_sd']], fmt='o', color=figs.BLUE, capsize=3)
+        ax.errorbar(data[effect], y, xerr=[data[effect] - data[f'{effect}_low'],
+                    data[f'{effect}_high'] - data[effect]], fmt='o', color=figs.BLUE, capsize=3)
         ax.axvline(1 if odds else 0, color=figs.GRAY, ls='--', lw=1)
         if odds:
             ax.set_xscale('log')

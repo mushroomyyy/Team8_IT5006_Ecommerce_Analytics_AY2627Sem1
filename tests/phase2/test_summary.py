@@ -46,7 +46,7 @@ class SummaryTests(unittest.TestCase):
 
     def test_table_lookup_by_title(self):
         table = self.tasks[0].table('classification_drift', 'drift')
-        self.assertEqual(len(table), 5)
+        self.assertEqual(len(table), 6)
         with self.assertRaises(KeyError):
             self.tasks[0].table('classification_drift', 'missing')
 
@@ -54,7 +54,7 @@ class SummaryTests(unittest.TestCase):
         frame = sm.ladder_frame(self.tasks[0])
         c1 = frame[(frame['model'] == 'C1') & (frame['split'] == 'CV')].iloc[0]
         self.assertAlmostEqual(c1['value'], 100 * (0.2 + 0.02))
-        self.assertEqual(len(frame), 15)
+        self.assertEqual(len(frame), 18)
 
     def test_model_key_reads_feature_counts_from_metadata(self):
         text = '\n'.join(sm.model_key_markdown(self.tasks))

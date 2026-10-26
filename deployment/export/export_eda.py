@@ -8,7 +8,8 @@ Definitions follow the Phase 2 report: approved orders (approval Jan 2017 to
 Aug 2018), approval date as the time axis, late labels evaluated at approval +
 45 days (late if delivered after the promised day or still undelivered once it
 has passed; unknown otherwise), and days from promise = min(lead days, 45) -
-promised lead days with canceled/unavailable orders excluded.
+promised lead days. Canceled/unavailable orders have no delivery outcome, so they are
+neither late nor on time and carry no late label or days from promise.
 """
 from __future__ import annotations
 import hashlib
@@ -71,6 +72,8 @@ def order_table(data, frame):
     label_map = labels.set_index('order_id')
     out['late'] = out['order_id'].map(label_map['actual_label']).astype('Int8')
     out['label_status'] = out['order_id'].map(label_map['label_status'])
+    out.loc[canceled.values, 'late'] = pd.NA
+    out.loc[canceled.values, 'label_status'] = 'canceled_or_unavailable'
     target = actuals.set_index('order_id')['actual_target'].astype('Float64')
     out['days_from_promise'] = out['order_id'].map(target)
     out.loc[canceled.values, 'days_from_promise'] = pd.NA

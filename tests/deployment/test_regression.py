@@ -1,4 +1,4 @@
-"""Packaged R1 precision, clipping, validation and inference contract checks."""
+"""Packaged regression model precision, clipping, validation and inference contract checks."""
 from __future__ import annotations
 
 import json
@@ -36,6 +36,36 @@ class RegressionTests(unittest.TestCase):
         self.assertFalse(result["clipping_applied"])
         self.assertEqual(result["predicted_days_from_promise"], result["raw_days_from_promise"])
 
+    def test_model_code_and_run_metadata_come_from_the_notebook(self):
+        root = Path(__file__).resolve().parents[2]
+        run = json.loads((root / "results/simple_to_complex/regression/run_metadata.json").read_text())
+        code = run["selected_model"]
+        metadata = self.model.metadata
+        self.assertEqual(metadata["model_code"], code)
+        self.assertEqual(self.model.predict(self.features)["model_code"], code)
+        self.assertEqual(metadata["fingerprints"]["artifact"], run["fingerprints"][code])
+        self.assertAlmostEqual(metadata["export_verification"]["june_rmse"], run["headline_june"][code]["rmse"], places=10)
+        self.assertEqual(metadata["train_rows"], run["row_counts"]["history"])
+        self.assertEqual([row["Code"] for row in metadata["selection"] if row["selected"]], [code])
+
+    def test_subset_model_accepts_and_ignores_the_full_feature_payload(self):
+        selected = set(self.model.metadata["selected_features"])
+        all_features = set(self.model.feature_cols)
+        self.assertEqual(set(self.features), all_features)
+        ignored = sorted(all_features - selected)
+        if not ignored:
+            self.skipTest("The selected model uses every feature")
+        numeric_ranges = ClassificationService().metadata["numeric_ranges"]
+        continuous = [name for name in ignored if numeric_ranges.get(name, {}).get("type") == "continuous"]
+        self.assertTrue(continuous, "Expected an ignored continuous feature to perturb")
+        base = self.model.predict(self.features)["raw_days_from_promise"]
+        perturbed = {**self.features, continuous[0]: numeric_ranges[continuous[0]]["p99"]}
+        self.assertNotEqual(perturbed[continuous[0]], self.features[continuous[0]])
+        self.assertEqual(self.model.predict(perturbed)["raw_days_from_promise"], base)
+        # A selected feature does move the prediction.
+        moved = {**self.features, "promised_lead_days": self.features["promised_lead_days"] + 5}
+        self.assertNotEqual(self.model.predict(moved)["raw_days_from_promise"], base)
+
     def test_both_services_share_strict_validation(self):
         for model in (self.model, ClassificationService()):
             for override in ({"payment_value_sum": "10"}, {"customer_state": None}, {"order_status": "delivered"}, {"is_weekend_approval": 2}):
@@ -57,7 +87,7 @@ class RegressionTests(unittest.TestCase):
             self.assertGreaterEqual(duration, 0)
             self.assertLessEqual(duration, 45)
 
-    def test_http_batch_single_and_independent_r1_agree(self):
+    def test_http_batch_single_and_independent_regression_agree(self):
         with TestClient(api.app) as client:
             single = client.post("/predict", json={"features": self.features})
             independent = client.post("/predict/regression", json={"features": self.features})

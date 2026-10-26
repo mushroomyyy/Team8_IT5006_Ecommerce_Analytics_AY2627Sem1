@@ -1,4 +1,4 @@
-"""Integrated C3/R1 inference service for approval-time feature rows."""
+"""Integrated classification and regression inference service for approval-time feature rows."""
 from __future__ import annotations
 
 import logging
@@ -45,7 +45,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title="Team 8 Delivery Operations API", version="2.1.0", lifespan=lifespan,
-              description="Approval-time C3 late-delivery risk and R1 days from promised delivery date.")
+              description="Approval-time late-delivery risk and days from the promised delivery date; model codes are reported in each response.")
 
 
 # Invented order used to prefill Swagger "Try it out" (no real transaction values);
@@ -206,9 +206,9 @@ def logs_summary():
 
 
 # Fitted bundle metadata is preserved for reproducibility. HTTP metadata
-# describes inference rather than historical demo distributions or old policies.
+# describes inference rather than historical demo distributions.
 OMITTED_METADATA_FIELDS = frozenset({
-    "threshold", "threshold_policy", "june_score_distribution", "global_importance", "baseline_features",
+    "june_score_distribution", "global_importance", "baseline_features",
 })
 
 
