@@ -185,7 +185,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.get("/openapi.json").json()["info"]["version"], "2.1.0")
 
     def test_metadata_filters_demo_policy_fields_without_mutating_bundle(self):
-        metadata = {**METADATA, "threshold": .5, "threshold_policy": "legacy", "june_score_distribution": {"sorted_scores": [.1]},
+        metadata = {**METADATA, "threshold": .12, "threshold_policy": "Validation F1", "june_score_distribution": {"sorted_scores": [.1]},
                     "global_importance": {}, "baseline_features": {}, "numeric_ranges": {}, "evaluation": {"June": {}},
                     "train_rows": 100}
         with patch.object(FakeService, "metadata", metadata):
@@ -197,7 +197,7 @@ class ApiTests(unittest.TestCase):
                     result = result["classification"]
                 for field in api.OMITTED_METADATA_FIELDS:
                     self.assertNotIn(field, result)
-                for field in ("evaluation", "numeric_ranges", "features", "categories", "train_rows"):
+                for field in ("evaluation", "numeric_ranges", "features", "categories", "train_rows", "threshold", "threshold_policy"):
                     self.assertEqual(result[field], metadata[field])
             self.assertIn("threshold", FakeService.metadata)
             self.assertIn("june_score_distribution", FakeService.metadata)

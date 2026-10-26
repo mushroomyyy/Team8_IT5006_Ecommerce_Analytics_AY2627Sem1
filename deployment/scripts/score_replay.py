@@ -1,8 +1,7 @@
 """Pre-score every June–August replay order for the month-end review page.
 
 Run from root: python -m deployment.scripts.score_replay
-Uses the same packaged C3/R1 artifacts that the API serves (see
-docs/render_model_equivalence.json). Scores depend only on approval-time
+Uses the same packaged classification and regression artifacts that the API serves. Scores depend only on approval-time
 features; outcomes are never read here.
 """
 from __future__ import annotations
@@ -42,7 +41,8 @@ def score_replay():
     result={'schema_version':1,
             'generated_at_utc':datetime.now(timezone.utc).isoformat(timespec='seconds'),
             'models':{'classification':c.metadata['model_version'],'regression':r.metadata['model_version']},
-            'source':'Packaged C3/R1 artifacts, identical to the deployed API per render_model_equivalence.json.',
+            'model_codes':{'classification':c.metadata['model_code'],'regression':r.metadata['model_code']},
+            'source':'Packaged classification and regression artifacts, identical to those the deployed API serves.',
             'columns':['late_probability','predicted_days_from_promise'],
             'scores':scores}
     OUTPUT.write_text(json.dumps(result,separators=(',',':'))+'\n')

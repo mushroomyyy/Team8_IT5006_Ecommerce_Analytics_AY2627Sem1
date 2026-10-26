@@ -121,7 +121,7 @@ class ClassificationUiTests(unittest.TestCase):
         self.widget('button', 'Reveal eventual outcomes').click().run(timeout=20)
         self.assertEqual(self.post.call_count, calls)
         self.assertIn('simulation_outcomes.json', self.json_reads)
-        self.assertTrue(any('Unknown outcomes' in c.value for c in self.app.caption))
+        self.assertTrue(any('Unknown and canceled outcomes' in c.value for c in self.app.caption))
         table = next(d.value for d in self.app.dataframe if 'Population' in d.value.columns)
         self.assertEqual(list(table['Population']), ['all', 'eligible', 'selected'])
         self.assertEqual(list(table['unknown']), [1, 1, 0])
@@ -332,7 +332,7 @@ class ClassificationUiTests(unittest.TestCase):
         self.assertEqual(mae.value, '3.5 days')  # |-2.5 - 1| and |-2.5 + 6|
         self.app.radio(key='month_pick').set_value('2018-06').run(timeout=20)
         self.assertFalse(self.app.exception)
-        self.assertTrue(any('Selection month' in w.value for w in self.app.warning))
+        self.assertTrue(any('Test month' in i.value for i in self.app.info))
         self.assertEqual(next(m for m in self.app.metric if m.label == 'Late deliveries caught').value, '2 of 2')
 
     def test_example_batch_csv_matches_upload_template(self):
@@ -364,6 +364,27 @@ class ClassificationUiTests(unittest.TestCase):
         self.assertFalse(self.app.exception)
         filtered = int(next(m for m in self.app.metric if m.label == 'Approved orders').value.replace(',', ''))
         self.assertLess(filtered, total)
+
+    def test_models_page_shows_validation_choice_and_operating_cutoff(self):
+        self.app.sidebar.radio[0].set_value('Models and guidance').run(timeout=20)
+        self.assertFalse(self.app.exception)
+        frames = [d.value for d in self.app.dataframe]
+        choice = next(f for f in frames if 'Decision' in f)
+        self.assertEqual(choice['Code'].tolist(), [r['Code'] for r in self.stats['selection']])
+        self.assertEqual(choice.loc[choice['Code'].eq(self.stats['model_code']), 'Decision'].iloc[0], 'selected: simplest model tied with the leader')
+        confusion = next(f for f in frames if 'Late, missed' in f)
+        self.assertEqual(len(confusion), len(self.stats['confusion']))
+        text = ' '.join(m.value for m in [*self.app.markdown, *self.app.subheader])
+        self.assertIn(f"{self.stats['threshold']:.1%}", text)
+        self.assertIn(self.stats['model_code'], text)  # labels come from the metadata, not from fixed model names
+        self.assertEqual(len(self.app.tabs), 3)  # false negatives by state, route and promised lead time
+
+    def test_no_fixed_model_codes_in_app_or_api_code(self):
+        import re
+        sources = [*ROOT.joinpath('app').glob('*.py'), *ROOT.joinpath('api').glob('*.py')]
+        for path in sources:
+            if path.name == 'model_names.py': continue  # The label map names every code on purpose.
+            self.assertIsNone(re.search(r'\b(C[0-4]|R[0-4])[a-dB]?\b', path.read_text()), path.name)
 
     def test_supporting_pages_and_frontend_isolation(self):
         for page in ['Batch API demo', 'Models and guidance', 'Month-end review', 'Start here']:

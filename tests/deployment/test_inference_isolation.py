@@ -22,8 +22,8 @@ class InferenceIsolationTests(unittest.TestCase):
                             ignore=shutil.ignore_patterns("__pycache__"))
             artifacts = package / "artifacts"
             artifacts.mkdir()
-            for name in ("classification_c3_rf.joblib", "classification_model_stats.json",
-                         "regression_r1_ols.joblib", "regression_model_stats.json"):
+            for name in ("classification_model.joblib", "classification_model_stats.json",
+                         "regression_model.joblib", "regression_model_stats.json"):
                 shutil.copy(root / "deployment/artifacts" / name, artifacts / name)
             code = '''
 import importlib.abc, math, sys

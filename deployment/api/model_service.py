@@ -13,7 +13,7 @@ import numpy as np
 from .feature_validation import validate_features
 
 
-DEFAULT_ARTIFACT = Path(__file__).resolve().parents[1] / "artifacts" / "regression_r1_ols.joblib"
+DEFAULT_ARTIFACT = Path(__file__).resolve().parents[1] / "artifacts" / "regression_model.joblib"
 
 
 class ModelService:

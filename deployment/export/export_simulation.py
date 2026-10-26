@@ -16,6 +16,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from src.data import load_olist_data
+from src.datasets import EXCLUDED_STATUSES
 from src.features import add_extra_features, build_feature_table
 from src.labels import attach_prediction_labels, attach_regression_actuals
 
@@ -37,7 +38,7 @@ def export():
                  'limitations': [
                      'Historical approval features are reconstructed from final item, payment, seller and catalogue snapshots; their change histories are unavailable.',
                      'Cancellation timestamps are unavailable. Final canceled/unavailable status is never used for operational eligibility.',
-                     'Regression training and Phase 2 evaluation excluded final canceled/unavailable orders; serving the full approval cohort extends that population.',
+                     'Both models were trained and evaluated without final canceled/unavailable orders; the worklist still contains them because cancellation is unknown at approval, and their outcome is shown as canceled.',
                      'Missing categorical values or unsupported features are excluded as invalid model inputs with an explicit reason.',
                      'Source timestamps have no offset; dates use Brazilian local wall time without conversion.',
                  ]}
@@ -53,18 +54,20 @@ def export():
                            'delivered_at': stamp('order_delivered_customer_date'), 'features': features})
         snapshots['days'][day.strftime('%Y-%m-%d')] = result
     labels = attach_prediction_labels(rows[['order_id']].assign(predicted_probability=0.0), data['orders'], lookback=45)
-    outcomes = {'schema_version': 1, 'display_only': True,
-                'label_policy': 'Phase 2 labels as of approval day + 45 days inclusive; unknown outcomes remain null.',
-                'outcomes': {row.order_id: None if pd.isna(row.actual_label) else int(row.actual_label)
-                             for row in labels.itertuples()}}
-    # R1's own target, for retrospective accuracy only: same 45-day capping and per-cohort
-    # evaluation date as Phase 2, excluding final canceled/unavailable orders as R1 evaluation did.
-    actuals = attach_regression_actuals(rows[['order_id']], data['orders'], waiting_period=45)
     status = data['orders'].set_index('order_id')['order_status']
-    excluded = actuals['order_id'].map(status).isin(['canceled', 'unavailable'])
+    canceled = labels['order_id'].map(status).isin(EXCLUDED_STATUSES)
+    outcomes = {'schema_version': 1, 'display_only': True,
+                'label_policy': 'Phase 2 labels as of approval day + 45 days inclusive; unknown outcomes remain null; '
+                                'final canceled/unavailable orders are marked "canceled" (no delivery outcome, as in Phase 2).',
+                'outcomes': {row.order_id: 'canceled' if skip else None if pd.isna(row.actual_label) else int(row.actual_label)
+                             for row, skip in zip(labels.itertuples(), canceled)}}
+    # The regression target, for retrospective accuracy only: same 45-day capping and per-cohort
+    # evaluation date as Phase 2, excluding final canceled/unavailable orders as its evaluation did.
+    actuals = attach_regression_actuals(rows[['order_id']], data['orders'], waiting_period=45)
+    excluded = actuals['order_id'].map(status).isin(EXCLUDED_STATUSES)
     timing = {'schema_version': 1, 'display_only': True,
-              'target_policy': 'Phase 2 R1 target: min(delivered - approved, 45) - (promised - approved) days, evaluated at approval + 45 days; '
-                               'final canceled/unavailable orders excluded as in R1 evaluation; unknown remain null.',
+              'target_policy': 'Phase 2 regression target: min(delivered - approved, 45) - (promised - approved) days, evaluated at approval + 45 days; '
+                               'final canceled/unavailable orders excluded as in Phase 2 evaluation; unknown remain null.',
               'actual_days_from_promise': {row.order_id: None if (skip or pd.isna(row.actual_target)) else float(row.actual_target)
                                            for row, skip in zip(actuals.itertuples(), excluded)}}
     for filename, payload in [('simulation_orders.json', snapshots), ('simulation_outcomes.json', outcomes), ('simulation_timing.json', timing)]:

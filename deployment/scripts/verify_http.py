@@ -71,8 +71,8 @@ def verify(base):
     schema = call('/openapi.json')
     if any(path in schema['paths'] for path in ('/samples', '/simulation', '/worklist', '/outcomes', '/explain')):
         raise RuntimeError('Removed demonstration/explanation route remains in OpenAPI')
-    if any(name in metadata['classification'] for name in ('threshold', 'june_score_distribution', 'baseline_features')):
-        raise RuntimeError('Historical demo policy remains in inference metadata')
+    if any(name in metadata['classification'] for name in ('june_score_distribution', 'baseline_features')):
+        raise RuntimeError('Historical demo distributions remain in inference metadata')
     with urlopen(base+'/docs', timeout=90) as docs:
         if docs.status != 200: raise RuntimeError('Swagger unavailable')
     return {'base_url': base, 'health': health, 'api_version': schema['info']['version'], 'checks': ['health', 'model-info', 'single-batch numerical equivalence (1e-12 tolerance)',

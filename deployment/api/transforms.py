@@ -1,8 +1,8 @@
-"""Standalone fitted R1 column transformer.
+"""Standalone fitted column transformer of the linear models.
 
 ExpandColumns is copied without behavioural changes from src/linear_transforms.py.
-The artifact is rebound to this import path without fitting; export verification
-compares every June replay prediction exactly against the original artifact.
+The exporters rebind a fitted linear model to this import path without refitting and
+assert that its predictions are unchanged.
 """
 import numpy as np
 import pandas as pd

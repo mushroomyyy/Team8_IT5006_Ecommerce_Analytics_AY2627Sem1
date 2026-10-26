@@ -1,4 +1,4 @@
-"""Load the C3 pipeline and run all model work behind the HTTP boundary."""
+"""Load the selected classification pipeline and run all model work behind the HTTP boundary."""
 from __future__ import annotations
 
 import json
@@ -12,7 +12,7 @@ import numpy as np
 from .feature_validation import validate_features
 
 ARTIFACTS = Path(__file__).resolve().parents[1] / "artifacts"
-DEFAULT_ARTIFACT = ARTIFACTS / "classification_c3_rf.joblib"
+DEFAULT_ARTIFACT = ARTIFACTS / "classification_model.joblib"
 
 
 class ClassificationService:
