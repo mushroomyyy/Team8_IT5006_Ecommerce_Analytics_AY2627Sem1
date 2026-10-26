@@ -2,8 +2,17 @@
 
 The Team 8 Delivery Operations API serves the two Phase 2 models over HTTPS:
 
-- **C3** (tuned Random Forest): late-delivery risk, used to **rank** orders.
-- **R1** (OLS): predicted days from the promised delivery date (negative = early).
+- **C2B** (logistic regression, 13 BIC-selected features): late-delivery risk, used to
+  **rank** orders. `/model-info` also gives its operating cut-off (`threshold`, the
+  F1-maximising probability on Validation) and `threshold_policy`.
+- **R2B** (OLS, 17 BIC-selected features): predicted days from the promised delivery
+  date (negative = early), bounded to a 0-45 day lead time.
+
+> **Local verification only.** The models above passed Docker and HTTP checks on
+> 26-27 October 2026. The live Render service is redeployed after the merge to
+> `main`; until that is re-verified it may still serve the previous C3/R1 versions.
+> Check `/health` for the model versions actually being served. The response
+> examples below were captured from the packaged models run locally on 27 October 2026.
 
 | | |
 |---|---|
@@ -25,10 +34,10 @@ then **Execute**. Every prediction endpoint is prefilled with a valid example or
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/health` | Service status and loaded model versions; 503 if a model failed to load |
-| GET | `/model-info` | Feature schema, allowed categories and metadata for both models |
+| GET | `/model-info` | Feature schema, allowed categories, selected features and metadata for both models, including C2B's `threshold` and `threshold_policy` |
 | GET | `/model-info/classification`, `/model-info/regression` | The same, for one model |
-| POST | `/predict` | C3 and R1 for one order |
-| POST | `/predict/batch` | C3 and R1 for 1–1,000 orders in one call |
+| POST | `/predict` | C2B and R2B for one order |
+| POST | `/predict/batch` | C2B and R2B for 1–1,000 orders in one call |
 | POST | `/predict/classification`, `/predict/regression` | One model for one order |
 | GET | `/logs/summary` | Live monitoring: request and prediction counts, mean risk, recent drift warnings |
 
@@ -36,7 +45,8 @@ then **Execute**. Every prediction endpoint is prefilled with a valid example or
 
 Every prediction request carries a `features` object with **exactly** these 24
 keys, all known when payment is approved. `GET /model-info` lists them and the
-allowed category values.
+allowed category values. Each model uses its own selected subset (`selected_features`
+in `/model-info`) and ignores the rest, but all 24 must still be sent and valid.
 
 | Feature | Type | Rule |
 |---|---|---|
@@ -59,8 +69,8 @@ A complete, invented example order (no real transaction data) is in
 
 ## Examples
 
-Responses below were captured from the live API on 25 October 2026 using the
-invented example order (the first call woke the service in 32 seconds).
+Responses below were captured on 27 October 2026 from the packaged C2B/R2B models
+run locally (not from the live service), using the invented example order.
 
 ### Check the service
 
@@ -70,7 +80,7 @@ curl https://team8-delivery-api.onrender.com/health
 
 ```json
 {"status": "ok", "model_loaded": true,
- "models": {"classification": "phase2-c3-rf-2018-06-02", "regression": "phase2-r1-ols-2026-10-09"}}
+ "models": {"classification": "phase2-c2b-logistic-2018-06-02", "regression": "phase2-r2b-ols-2018-06-02"}}
 ```
 
 ### Score one order
@@ -84,22 +94,22 @@ curl -X POST https://team8-delivery-api.onrender.com/predict \
 ```json
 {
   "classification": {
-    "late_probability": 0.08615292702183011,
+    "late_probability": 0.05184186498640409,
     "drift_warnings": [],
     "score_interpretation": "Estimated late-delivery risk; not a calibrated guarantee.",
-    "model_code": "C3",
-    "model_version": "phase2-c3-rf-2018-06-02"
+    "model_code": "C2B",
+    "model_version": "phase2-c2b-logistic-2018-06-02"
   },
   "regression": {
-    "predicted_days_from_promise": -9.891597429987769,
-    "raw_days_from_promise": -9.891597429987769,
+    "predicted_days_from_promise": -9.88466003218192,
+    "raw_days_from_promise": -9.88466003218192,
     "late_by_days": 0.0,
-    "early_by_days": 9.891597429987769,
+    "early_by_days": 9.88466003218192,
     "clipping_applied": true,
     "clipping_policy": "Predicted approval-to-delivery duration bounded to 0–45 days, matching Phase 2 evaluation.",
     "target": "days from promised delivery date; negative means early, positive means late",
-    "model_code": "R1",
-    "model_version": "phase2-r1-ols-2026-10-09"
+    "model_code": "R2B",
+    "model_version": "phase2-r2b-ols-2018-06-02"
   }
 }
 ```
@@ -108,10 +118,10 @@ How to read it:
 
 | Field | Meaning |
 |---|---|
-| `classification.late_probability` | C3 late-delivery risk score, 0–1. Use it to rank orders; it is not a calibrated probability. |
+| `classification.late_probability` | C2B late-delivery risk score, 0–1. Use it to rank orders; it is not a calibrated probability. Compare it with `threshold` from `/model-info` (0.1282) for a flag; the response itself carries no flag. |
 | `classification.drift_warnings` | Inputs outside the training 1st–99th percentile (empty when none) |
-| `regression.predicted_days_from_promise` | R1 days from the promised date: negative = early, positive = late. Approval-to-delivery is bounded to 0–45 days when the promise is known, as in Phase 2. |
-| `regression.raw_days_from_promise` | R1 before that bounding |
+| `regression.predicted_days_from_promise` | R2B days from the promised date: negative = early, positive = late. Approval-to-delivery is bounded to a 0–45 day lead time when the promise is known, as in Phase 2. |
+| `regression.raw_days_from_promise` | R2B before that bounding |
 | `regression.late_by_days`, `regression.early_by_days` | The prediction split into lateness and earliness |
 | `model_version` | Exact fitted model that produced the score |
 
@@ -140,11 +150,11 @@ Results come back in the same order, each with its `index` and `order_id`
       "order_id": "example-1",
       "prediction": {
         "classification": {
-          "late_probability": 0.08615292702183011,
+          "late_probability": 0.05184186498640409,
           "…": "…"
         },
         "regression": {
-          "predicted_days_from_promise": -9.891597429987769,
+          "predicted_days_from_promise": -9.88466003218192,
           "…": "…"
         }
       }
@@ -154,11 +164,11 @@ Results come back in the same order, each with its `index` and `order_id`
       "order_id": "example-2",
       "prediction": {
         "classification": {
-          "late_probability": 0.1829060192433015,
+          "late_probability": 0.12239671108893478,
           "…": "…"
         },
         "regression": {
-          "predicted_days_from_promise": 6.3987583762126405,
+          "predicted_days_from_promise": -0.028580405005691034,
           "…": "…"
         }
       }
@@ -196,7 +206,7 @@ requests.get(BASE + "/health", timeout=90).raise_for_status()   # wakes the serv
 response = requests.post(BASE + "/predict", json={"features": features}, timeout=60)
 response.raise_for_status()
 result = response.json()
-print(result["classification"]["late_probability"])
+print(result["classification"]["late_probability"])  # compare with threshold from /model-info
 print(result["regression"]["predicted_days_from_promise"])
 
 batch = requests.post(BASE + "/predict/batch", timeout=60, json={"rows": [
@@ -208,6 +218,8 @@ for row in batch["results"]:
 ```
 
 ### Monitoring
+
+The example below is illustrative (values from the previous deployment).
 
 ```bash
 curl https://team8-delivery-api.onrender.com/logs/summary

@@ -33,7 +33,7 @@ All numbers below come from `results/feature_selection/` (written by `python -m 
 
 ## Data used for the audit
 
-- Only the Train rows of the June run: **45,972 classification** and **45,371 regression** orders, approved before 19 March 2018, with outcomes known when Validation begins. These are exactly the `train_df` rows of the two notebooks (checked: identical order IDs in both).
+- Only the Train rows of the June run: **45,368 classification** and **45,371 regression** orders, approved before 19 March 2018, with outcomes known when Validation begins, canceled and unavailable orders excluded. These are exactly the `train_df` rows of the two notebooks (checked: identical order IDs in both).
 - Labels are used only to define these eligible populations. No Validation outcome, later-month outcome or model score is used to choose a predictor.
 - Numeric VIF is computed on each task's median-imputed numeric matrix, with an intercept (correlation-matrix form). Constants and exact linear dependencies have infinite VIF.
 
@@ -41,12 +41,12 @@ All numbers below come from `results/feature_selection/` (written by `python -m 
 
 | Check | Classification rows | Regression rows | Share equal (tolerance 1e-8) |
 |---|---:|---:|---|
-| `order_revenue_sum` − (`order_pdt_price_sum` + `order_frieght_value_sum`) | 45,560 | 45,371 | 100% (max difference 4e-13) |
-| `payment_value_sum` − sum of per-method payment values | 45,972 | 45,371 | 100% (max difference 2e-13) |
-| `seller_dist_km_max` = `seller_dist_km_mean` | 45,308 | 45,121 | 98.96% (classification), 98.96% (regression) |
-| `seller_dist_km_mean` = `seller_dist_km_min` | 45,308 | 45,121 | 98.96% (classification), 98.96% (regression) |
+| `order_revenue_sum` − (`order_pdt_price_sum` + `order_frieght_value_sum`) | 45,368 | 45,371 | 100% (max difference 4e-13) |
+| `payment_value_sum` − sum of per-method payment values | 45,368 | 45,371 | 100% (max difference 2e-13) |
+| `seller_dist_km_max` = `seller_dist_km_mean` | 45,118 | 45,121 | 98.96% (classification), 98.96% (regression) |
+| `seller_dist_km_mean` = `seller_dist_km_min` | 45,118 | 45,121 | 98.96% (classification), 98.96% (regression) |
 
-The 412 classification orders missing from the revenue check (45,972 − 45,560) have no item rows, so product price and revenue are missing; payment total is present for all of them.
+Every Train order now has item rows. Before canceled and unavailable orders were excluded from classification, 412 classification Train orders had no item rows (all canceled or unavailable), so their product price and revenue were missing.
 
 ## Funnel: 41 → 24 raw features
 
@@ -58,7 +58,7 @@ The 412 classification orders missing from the revenue check (45,972 − 45,560)
 | 3. Iterative joint VIF ≤ 5 | 3 | 21 | Repeatedly drop the column with the greatest VIF in either task (`payment_value_sum` exempt) until every VIF ≤ 5 in both: `order_pdt_price_sum` (VIF 65.93 classification / 23,818.87 regression), `seller_zip_code_prefix_count` (18.11 / 18.11), `seller_city_count` (5.91 / 5.91) |
 | **Final** | **18** | **21** | + 3 categorical (`customer_state`, `route_type`, `payment_combination`) = **24 raw features** |
 
-Before selection, several VIFs were infinite (payment columns and, in regression, price/freight/revenue) and the distance summaries exceeded 5 million. After selection the largest numeric VIF is **3.76 (classification) / 3.79 (regression)**, for `order_frieght_value_sum`. Full trace with the VIF of each column at its removal: `removal_trace.csv`.
+Before selection, several VIFs were infinite (payment columns and, in regression, price/freight/revenue) and the distance summaries exceeded 5 million. After selection the largest numeric VIF is **3.79 in both tasks**, for `order_frieght_value_sum`. Full trace with the VIF of each column at its removal: `removal_trace.csv`.
 
 `payment_combination` is built by `add_extra_features`: the sorted set of payment types used by an order, joined with `+` (e.g. `credit_card+voucher`; `no_payment` if none recorded). In the Train rows it has five levels: `credit_card`, `boleto`, `credit_card+voucher`, `voucher`, `debit_card`.
 
@@ -96,7 +96,7 @@ Numeric VIF after selection, classification / regression (`numeric_vif_after.csv
 | Feature | VIF |
 |---|---|
 | `payment_value_sum` | 1.64 / 1.66 |
-| `order_frieght_value_sum` | 3.76 / 3.79 |
+| `order_frieght_value_sum` | 3.79 / 3.79 |
 | `freight_to_price_ratio` | 1.30 / 1.31 |
 | `payment_installments_max` | 1.19 / 1.20 |
 
@@ -109,8 +109,8 @@ Numeric VIF after selection, classification / regression (`numeric_vif_after.csv
 
 ## Decisions
 
-1. **Keep `payment_value_sum` rather than `order_pdt_price_sum`.** The two are near-duplicates (Spearman 0.99 in both tasks). Payment total is present for every order, including the 412 classification training orders with no item rows (price and revenue missing), so it needs no imputation. It is therefore exempt from the iterative VIF stage, which then removes product price.
-2. **Keep both `seller_dist_km_mean` and `route_type`.** In the encoded design, distance has the largest VIF, **6.04 (classification) / 6.22 (regression)**, because it overlaps the route dummies: the median seller distance is about 100 km for all-same-state orders, 350 km for mixed routes and 663 km for all-interstate orders. They describe different things: distance measures how far the goods travel, route measures whether the shipment crosses a state border. This is the **single documented exception** to VIF ≤ 5 in the encoded design.
+1. **Keep `payment_value_sum` rather than `order_pdt_price_sum`.** The two are near-duplicates (Spearman 0.99 in both tasks). Payment total is present for every order, including orders with no item rows (price and revenue missing), so it needs no imputation. It is therefore exempt from the iterative VIF stage, which then removes product price.
+2. **Keep both `seller_dist_km_mean` and `route_type`.** In the encoded design, distance has the largest VIF, **6.22 in both tasks**, because it overlaps the route dummies: the median seller distance is about 100 km for all-same-state orders, 350 km for mixed routes and 663 km for all-interstate orders. They describe different things: distance measures how far the goods travel, route measures whether the shipment crosses a state border. This is the **single documented exception** to VIF ≤ 5 in the encoded design.
 3. **Keep the nonlinear calendar flags.** `is_weekend_approval`, `is_black_friday_period` and `is_december_peak` are deterministic functions of day of week, month and day of month. Because the functions are nonlinear, VIF (a linear diagnostic) cannot detect the dependence; their VIFs are only 2.16–2.36. They are kept deliberately: they give the linear models step effects that tree models can find for themselves.
 
 ## Encoding: 24 raw features → 53 columns
@@ -125,7 +125,7 @@ Each row has exactly one level of each categorical, so a complete set of dummies
 | `payment_combination` | 5 | `credit_card` (single method) | 4 |
 | **Total** | | | **53** |
 
-Without reference coding the design would have 55 columns. With reference coding (`encoded_design_rank.csv`), the centred 53-column matrix has rank 53 in both tasks (full rank with an intercept). The largest encoded VIF is 6.04 (classification) / 6.22 (regression), for `seller_dist_km_mean` (decision 2). Next are `order_frieght_value_sum` (3.87 / 3.91), `order_product_weight_g_sum` (3.41 / 3.42), `order_product_volume_cm3_sum` (3.37 / 3.38) and `route_type_2. All same-state` (2.86 / 2.94). Every `customer_state` dummy is ≤ 1.74, and every `payment_combination` dummy is ≤ 1.79 (`reference_coded_vif.csv`).
+Without reference coding the design would have 55 columns. With reference coding (`encoded_design_rank.csv`), the centred 53-column matrix has rank 53 in both tasks (full rank with an intercept). The largest encoded VIF is 6.22 in both tasks, for `seller_dist_km_mean` (decision 2). Next are `order_frieght_value_sum` (3.90 / 3.91), `order_product_weight_g_sum` (3.41 / 3.42), `order_product_volume_cm3_sum` (3.37 / 3.38) and `route_type_2. All same-state` (2.94 / 2.94). Every `customer_state` dummy is ≤ 1.74, and every `payment_combination` dummy is ≤ 1.79 (`reference_coded_vif.csv`).
 
 ## Transformations for linear models
 
@@ -153,4 +153,4 @@ Applied only to the OLS and logistic models (trees are invariant to monotone tra
 
 ## Report-ready paragraph
 
-*To limit multicollinearity, we selected one shared feature set before modelling, using only the Train orders of both tasks (45,972 classification and 45,371 regression orders) and no evaluation outcomes. From 41 approval-time predictors (39 numeric, 2 categorical), we removed 2 constant columns, then 13 redundant columns on domain grounds: an exact accounting identity (revenue = price + freight), seller-distance summaries identical to the mean for about 99% of orders, week of year, and eight per-method payment columns, which we replaced with total payment and a categorical payment-method combination. An iterative variance inflation factor (VIF) procedure across both tasks then removed product price, seller postcode count and seller city count. This left 21 numeric predictors with maximum VIF 3.79, plus customer state, route type and payment combination: 24 raw features in total. Dropping one reference level per categorical avoids the dummy-variable trap and gives a 53-column design that is full rank in both tasks. The only encoded VIF above 5 is seller distance (6.04 classification, 6.22 regression), which overlaps route type; we kept both because distance and crossing a state border are distinct logistics factors. Because VIF is linear, the deterministic calendar flags were kept deliberately as nonlinear effects. The selection is fixed from Train data and applied unchanged to all folds and months.*
+*To limit multicollinearity, we selected one shared feature set before modelling, using only the Train orders of both tasks (45,368 classification and 45,371 regression orders, canceled and unavailable orders excluded) and no evaluation outcomes. From 41 approval-time predictors (39 numeric, 2 categorical), we removed 2 constant columns, then 13 redundant columns on domain grounds: an exact accounting identity (revenue = price + freight), seller-distance summaries identical to the mean for about 99% of orders, week of year, and eight per-method payment columns, which we replaced with total payment and a categorical payment-method combination. An iterative variance inflation factor (VIF) procedure across both tasks then removed product price, seller postcode count and seller city count. This left 21 numeric predictors with maximum VIF 3.79, plus customer state, route type and payment combination: 24 raw features in total. Dropping one reference level per categorical avoids the dummy-variable trap and gives a 53-column design that is full rank in both tasks. The only encoded VIF above 5 is seller distance (6.22 in both tasks), which overlaps route type; we kept both because distance and crossing a state border are distinct logistics factors. Because VIF is linear, the deterministic calendar flags were kept deliberately as nonlinear effects. The selection is fixed from Train data and applied unchanged to all folds and months.*
