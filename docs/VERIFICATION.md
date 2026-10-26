@@ -1,12 +1,36 @@
 # Verification record
 
-Latest local checks: 26-27 October 2026 (Singapore), Python 3.13.5, for the switch to C2B and R2B. 180 tests pass, the Docker image serves the new model versions and `verify_http` passes against it. **Live Render re-verification of C2B/R2B is pending** the post-merge redeploy.
+Latest live checks: 27 October 2026 (Singapore). The C2B/R2B release is merged
+and pushed to `main` as `cfd8f41`. Render deploy `dep-dbfnp8ajnfac73clqoeg`
+succeeded in 56.4 seconds. All eight live HTTP check groups pass and the hosted
+synthetic-example predictions match the local packaged models. All 180 local tests pass.
+
+## C2B/R2B release verified live — 27 October 2026
+
+- `/health` serves `phase2-c2b-logistic-2018-06-02` and
+  `phase2-r2b-ols-2018-06-02`. `/model-info` exposes C2B's Validation-selected
+  threshold, `0.12819778362486173`, and its policy.
+- Live verification covers health, model metadata, single/batch agreement,
+  independent/integrated agreement, invalid-input 422s, removed-route 404s,
+  inference-only OpenAPI/metadata and Swagger. TLS verification remained enabled;
+  the local Python invocation used the installed certifi CA bundle.
+- Delivery Watch auto-updated at https://team8-delivery-watch.streamlit.app/.
+  Its sidebar shows **API connected · C2B + R2B**. Models and guidance renders
+  the 13-feature C2B and 17-feature R2B identities, model-selection tables,
+  confusion metrics and false-negative analysis.
+- Daily simulation scores all 129 eligible approvals for 2 July 2018 using the
+  live API, with 39 selected at the default 30% follow-up proportion. Outcomes
+  remain hidden initially. These two pages were checked after release; the
+  other pages were not rechecked in this run.
+- [Machine-readable live verification](render_c2b_r2b_verification.json).
+- Render settings are unchanged: `main`, `deployment/Dockerfile.api`, `/health`,
+  Singapore/free and `PORT=10000`. No rollback was needed.
 
 The Streamlit verification dated 26 October 2026 and every entry dated 25 October 2026 or earlier describe the previous C3/R1 deployment (C3 tuned Random Forest, R1 all-feature OLS), including the `docs/render_*.json` and `docs/streamlit_live_api_verification.json` records, which are left unchanged.
 
 ## Model switch to C2B and R2B — 26-27 October 2026
 
-Local checks only; nothing here has been verified on the live service.
+Pre-release local checks; live verification is recorded above.
 
 - Deployed models are now C2B (`phase2-c2b-logistic-2018-06-02`, 13 BIC-selected
   features, operating cut-off 0.1282 from Validation) and R2B
@@ -33,8 +57,8 @@ Local checks only; nothing here has been verified on the live service.
 - C2B on June: average precision 0.0815, ROC-AUC 0.729; at the cut-off it flags
   6.3% of orders (34 of 116 known late caught); at 0.5 it flags none. R2B on June:
   RMSE 7.374, MAE 5.81 days. Monitoring ROC-AUC: July 0.591, August 0.560.
-- **Pending:** Render redeploy from `main` and live HTTPS verification of the new
-  versions; verification of the existing Streamlit apps after the model switch.
+- Completed on 27 October 2026: release merge, Render redeploy, live HTTP checks
+  and hosted Streamlit model-guidance/daily-simulation checks (see above).
 
 ## Streamlit replacements verified — 26 October 2026 (previous C3/R1 deployment)
 

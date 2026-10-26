@@ -1,0 +1,42 @@
+{
+  "base_url": "https://team8-delivery-api.onrender.com",
+  "health": {
+    "status": "ok",
+    "model_loaded": true,
+    "models": {
+      "classification": "phase2-c2b-logistic-2018-06-02",
+      "regression": "phase2-r2b-ols-2018-06-02"
+    }
+  },
+  "api_version": "2.1.0",
+  "checks": [
+    "health",
+    "model-info",
+    "single-batch numerical equivalence (1e-12 tolerance)",
+    "independent-integrated model equivalence",
+    "invalid single/empty batch 422",
+    "removed demo and explanation routes 404",
+    "inference-only OpenAPI/metadata",
+    "Swagger"
+  ],
+  "elapsed_seconds": 1.396,
+  "verified_at": "2026-10-27T00:17:47.127882+08:00",
+  "source_commit": "cfd8f417d059173aaaa2eb28392505f721517416",
+  "render_deploy_id": "dep-dbfnp8ajnfac73clqoeg",
+  "render_duration_seconds": 56.4,
+  "hosted_local_synthetic_prediction_equivalent": true,
+  "classification_threshold": 0.12819778362486173,
+  "streamlit_browser_checks": {
+    "url": "https://team8-delivery-watch.streamlit.app/",
+    "sidebar": "API connected \u00b7 C2B + R2B",
+    "guidance": "C2B 13 features and R2B 17 features; selection and confusion tables render",
+    "daily_simulation": {
+      "simulated_date": "2018-07-02",
+      "scored_orders": 129,
+      "eligible_orders": 129,
+      "excluded_orders": 0,
+      "selected_orders": 39
+    },
+    "scope": "Models and guidance and Daily simulation checked after release; other pages not rechecked in this run."
+  }
+}

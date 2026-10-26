@@ -13,6 +13,9 @@ to a deployed operations application (Phase 3).
 | API docs (Swagger, with examples) | https://team8-delivery-api.onrender.com/docs |
 
 The free API sleeps when idle; the first request can take 30–60 seconds to wake it.
+The C2B/R2B release (`cfd8f41`) was deployed and verified on 27 October 2026.
+Render serves the new model versions, and Delivery Watch connects to them.
+See the [live verification](docs/render_c2b_r2b_verification.json).
 The directory migration is merged into `main`; Render was redeployed and verified
 on 25 October 2026. Both replacement Streamlit apps were deployed and verified on
 26 October 2026, using Python 3.14 and the migrated entry points. The old apps

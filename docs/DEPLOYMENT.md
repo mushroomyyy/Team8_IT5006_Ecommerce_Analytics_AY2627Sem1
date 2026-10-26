@@ -16,8 +16,11 @@ after their replacements passed hosted checks. See [verification](VERIFICATION.m
 
 **Current change: model switch to C2B and R2B.** The deployed models are now C2B
 (`phase2-c2b-logistic-2018-06-02`) and R2B (`phase2-r2b-ols-2018-06-02`), replacing
-C3 and R1. Locally verified on 26-27 October 2026; **live Render re-verification is
-pending** and is done after the team merges to `main` and Render redeploys.
+C3 and R1. Merged and pushed to `main` as `cfd8f41` on 27 October 2026. Render deploy
+`dep-dbfnp8ajnfac73clqoeg` succeeded in 56.4 seconds; all eight live HTTP
+check groups pass and hosted predictions match local packaged models. Delivery
+Watch shows C2B/R2B and its daily worklist scores successfully. See the
+[live verification record](render_c2b_r2b_verification.json).
 
 ## Previous release (C3/R1) — 25 October 2026
 
@@ -31,13 +34,10 @@ were completed on 26 October 2026 as recorded above.
 
 ## Historical migration release gate
 
-`ta-feedback-rework` carries the model switch and is not yet merged. Finish the
-local verification checks, then Andrew reviews and approves the result. Only after
-that decision, merge into `main` and push `main`; a push without `[skip render]`
-rebuilds the Render service. Jordan's `model-deployment-r1` branch remains
-untouched; do not merge, delete or rebase it.
-
-Coordinate with Jordan about the Streamlit replacement apps, which also build from `main`.
+`ta-feedback-rework` was merged into `main` as `cfd8f41` for this release.
+The merge commit triggered Render's auto-deploy. Jordan's `model-deployment-r1`
+branch was not changed. The existing Streamlit apps also update from `main`;
+Delivery Watch's new model guidance and daily simulation were verified after release.
 
 ## Existing Render service
 

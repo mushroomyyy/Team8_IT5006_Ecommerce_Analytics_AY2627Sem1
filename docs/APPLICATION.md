@@ -99,11 +99,12 @@ the Render API at https://team8-delivery-api.onrender.com
 ([Swagger](https://team8-delivery-api.onrender.com/docs)) was verified live on
 25 October 2026 serving the previous C3/R1 models.
 
-This branch switches the deployed models to C2B and R2B. It was verified locally on
-26-27 October 2026 (Docker build served the new versions; `verify_http` passed
-all checks; 180 tests pass). **Live Render re-verification is pending**: the team
-redeploys after merging, so do not assume the live service serves C2B/R2B until
-that check is recorded.
+The C2B/R2B model switch was merged and pushed as `cfd8f41` and verified live on
+27 October 2026. Render deploy `dep-dbfnp8ajnfac73clqoeg` succeeded; all eight
+HTTP check groups pass and hosted predictions match the local packaged models.
+Delivery Watch shows **API connected · C2B + R2B**, renders the new model-choice
+and confusion tables, and scores the default daily list (129 orders, 39 selected).
+All 180 local tests pass. See the [live verification](render_c2b_r2b_verification.json).
 
 Both replacement Streamlit apps were deployed from `main` at commit
 `453076cf41a27e92c9850ae37f109283b09e9196` and verified on 26 October 2026:
