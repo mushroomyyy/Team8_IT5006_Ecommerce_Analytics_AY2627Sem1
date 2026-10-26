@@ -4,9 +4,26 @@ import pandas as pd
 
 from src import data_audits as audits
 from src.feature_selection import candidate_feature_status, candidate_feature_table
+from src.validation_timelines import cohort_counts
 
 
 class DataAuditTests(unittest.TestCase):
+    def test_timeline_excludes_same_day_deliveries_for_both_tasks(self):
+        rows = pd.DataFrame({
+            'order_id': ['same_day', 'next_day', 'undelivered', 'canceled'],
+            'order_status': ['delivered', 'delivered', 'shipped', 'canceled'],
+            'order_approved_dt': pd.to_datetime(['2018-07-01'] * 4),
+            'order_approved_at': pd.to_datetime(['2018-07-01 09:00'] * 4),
+            'order_delivered_customer_date': pd.to_datetime(
+                ['2018-07-01 17:00', '2018-07-02', None, None], format='mixed'),
+            'order_estimated_delivery_date': pd.to_datetime(['2018-07-10'] * 4),
+        })
+        for task in ('classification', 'regression'):
+            with self.subTest(task=task):
+                counts = cohort_counts(rows, rows, task, '2018-07-01', 45)
+                self.assertEqual(counts['scored'], 2)
+                self.assertEqual(counts['evaluated'], 2)
+
     def test_candidate_groups_cover_41_features(self):
         self.assertEqual(candidate_feature_table()['count'].sum(), 41)
         self.assertEqual(len(candidate_feature_status()), 41)

@@ -1,0 +1,53 @@
+{
+  "verified_at": "2026-10-27T00:53:12.184666+08:00",
+  "execution": "All four notebooks, sequentially, top to bottom in fresh kernels",
+  "elapsed_seconds": 375.2,
+  "cached_rf_search": true,
+  "cached_tree_search": true,
+  "notebooks": [
+    {
+      "notebook": "notebooks/01_data_features_multicollinearity.ipynb",
+      "executed_code_cells": 34,
+      "completed_without_errors": true
+    },
+    {
+      "notebook": "notebooks/02_classification.ipynb",
+      "executed_code_cells": 47,
+      "completed_without_errors": true
+    },
+    {
+      "notebook": "notebooks/03_regression.ipynb",
+      "executed_code_cells": 42,
+      "completed_without_errors": true
+    },
+    {
+      "notebook": "notebooks/04_summary.ipynb",
+      "executed_code_cells": 7,
+      "completed_without_errors": true
+    }
+  ],
+  "tests": {
+    "passed": 181,
+    "subtests_passed": 68
+  },
+  "selected_models": [
+    "C2B",
+    "R2B"
+  ],
+  "selected_model_metrics_exactly_reproduced": true,
+  "selected_feature_sets_and_fitted_fingerprints_unchanged": true,
+  "classification_operating_threshold_unchanged": true,
+  "deployment_artifact_files_byte_identical": true,
+  "numerical_variation": {
+    "default_classifier_C3d_July_AP_absolute_difference": 7.305335829321802e-08,
+    "default_classifier_C3d_July_ROC_AUC_absolute_difference": 3.188999228020961e-07,
+    "largest_regression_metric_absolute_difference": 3.552713678800501e-15,
+    "reported_rounded_headline_results_unchanged": true
+  },
+  "cohort_helper_correction": {
+    "regression_July_scored": 6078,
+    "regression_July_evaluated": 6078,
+    "regression_August_scored": 6561,
+    "regression_August_evaluated": 6561
+  }
+}

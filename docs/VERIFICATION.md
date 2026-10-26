@@ -1,5 +1,28 @@
 # Verification record
 
+## Full notebook rerun — 27 October 2026
+
+All four current notebooks ran sequentially, top to bottom in fresh kernels, in
+375.2 seconds with cached Random Forest and decision-tree search results. No code
+cell failed. The full suite passes 181 tests and 68 subtests.
+
+- C2B and R2B remain selected. Their saved per-split and CV metrics reproduce
+  exactly; selected feature sets, operating threshold and fitted-state fingerprints
+  are unchanged. Deployment artifact files are byte-identical and need no rebuild.
+- Default classifier C3d's July AP differs by 7.31e-8 and ROC-AUC by 3.19e-7.
+  Other model-metric differences are at floating-point precision (regression at
+  most 3.56e-15). Reported rounded headline results are unchanged.
+- The reporting helper now uses the scoring eligibility rule for both tasks.
+  Regression July is 6,078 scored/evaluated; August is 6,561 scored/evaluated.
+  Notebook 01's table and timeline, including the image embedded in Notebook 02,
+  have been regenerated.
+- Notebook displays now group primary and supporting metrics, show F1 beside
+  precision/recall at 0.5, and clarify percentage scales and shared thresholds.
+  Narratives qualify retrospective June assessment and the parsimony heuristic;
+  an interval containing zero does not establish equivalence.
+- [Machine-readable rerun verification](notebook_rerun_verification.json).
+
+
 Latest live checks: 27 October 2026 (Singapore). The C2B/R2B release is merged
 and pushed to `main` as `cfd8f41`. Render deploy `dep-dbfnp8ajnfac73clqoeg`
 succeeded in 56.4 seconds. All eight live HTTP check groups pass and the hosted

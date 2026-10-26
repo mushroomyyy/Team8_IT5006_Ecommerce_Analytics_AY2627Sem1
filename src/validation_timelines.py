@@ -21,16 +21,17 @@ MONTHS = [('Test (June)', '2018-06-01', 'test'), ('Monitoring (July)', '2018-07-
 def cohort_counts(final_df, orders, task, month_start, lookback):
     """Orders approved in a month that are scored, and those whose outcome is known at +45 days.
 
-    Classification scores orders that were not already delivered on their approval day.
+    Both tasks score only orders not already delivered on their approval day.
     Canceled and unavailable orders are excluded from both tasks, as in evaluation.
     """
     start = pd.Timestamp(month_start)
     end = start + pd.offsets.MonthEnd(0)
     cohort = final_df[final_df['order_approved_dt'].between(start, end)
                       & ~final_df['order_status'].isin(EXCLUDED_STATUSES)]
+    delivered = pd.to_datetime(cohort['order_delivered_customer_date']).dt.normalize()
+    approved = pd.to_datetime(cohort['order_approved_dt']).dt.normalize()
+    cohort = cohort[delivered.isna() | delivered.gt(approved)]
     if task == 'classification':
-        delivered = pd.to_datetime(cohort['order_delivered_customer_date']).dt.normalize()
-        cohort = cohort[delivered.isna() | delivered.gt(cohort['order_approved_dt'])]
         stub = cohort[['order_id', 'order_approved_dt']].assign(predicted_probability=0.0)
         evaluated = attach_prediction_labels(stub, orders, lookback=lookback)['actual_label'].notna().sum()
     else:
@@ -151,7 +152,7 @@ def plot_validation_timelines(timelines, output_path, gap_days=45):
                      ha='left', fontsize=14, fontweight='bold')
         fig.subplots_adjust(left=0.1, right=0.97, top=0.86, bottom=0.11)
         fig.text(0.1, 0.005,
-                 'All decisions use Train only. Validation is a diagnostic. Test (June) is scored daily by models refit '
+                 'Hyperparameters and feature subsets use Train CV; model choice and the operating threshold use Validation.\nTest (June) is scored daily by models refit '
                  'on all outcomes known before 2 June.\nMonitoring scores the same frozen models on July and August '
                  'with no refit. "Evaluated" counts orders whose outcome is known 45 days after approval.',
                  ha='left', va='bottom', fontsize=8.5, color=INK2)
