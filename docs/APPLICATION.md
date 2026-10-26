@@ -97,11 +97,17 @@ https://team8-delivery-api.onrender.com
 unchanged, hosted/local predictions agree, and the documented batch succeeds
 10/10. The detailed verification records are retained locally.
 
-Both Streamlit replacement deployments are pending Jordan. Their old main-file
-paths have been removed. The previous Delivery Watch URL was
-https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/;
-it is not a verified deployment of the reorganized layout. Follow the
-[deployment settings](DEPLOYMENT.md). For API clients, see [API.md](API.md).
+Both replacement Streamlit apps were deployed from `main` at commit
+`453076cf41a27e92c9850ae37f109283b09e9196` and verified on 26 October 2026:
+
+- [Delivery Watch](https://team8-delivery-watch.streamlit.app/): `deployment/app/app.py`.
+- [Phase 1 dashboard](https://team8-olist-dashboard.streamlit.app/): `deployment/phase1_dashboard/streamlit_app.py`.
+
+Both use Python 3.14, matching the previous apps' runtime settings. Delivery
+Watch's seven pages and the 10/10 example batch passed hosted checks; Phase 1's
+filters and charts also passed. The old apps were deleted after verification.
+See [deployment settings](DEPLOYMENT.md) and the
+[verification record](VERIFICATION.md). For API clients, see [API.md](API.md).
 
 ## Refreshing packaged data
 

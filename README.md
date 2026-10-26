@@ -7,17 +7,17 @@ to a deployed operations application (Phase 3).
 
 | Live | URL |
 |---|---|
-| Delivery Watch (previous URL; replacement pending) | https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/ |
-| Phase 1 dashboard | Replacement URL pending Jordan's deployment |
+| Delivery Watch | https://team8-delivery-watch.streamlit.app/ |
+| Phase 1 dashboard | https://team8-olist-dashboard.streamlit.app/ |
 | Model API (FastAPI on Render) | https://team8-delivery-api.onrender.com |
 | API docs (Swagger, with examples) | https://team8-delivery-api.onrender.com/docs |
 
 The free API sleeps when idle; the first request can take 30–60 seconds to wake it.
 The directory migration is merged into `main`; Render was redeployed and verified
-on 25 October 2026. Jordan must now replace both Streamlit apps; see
-[deployment settings](docs/DEPLOYMENT.md). Their old entry points have been
-removed, so the previous URLs may no longer load. New URLs will be recorded after
-deployment. The API service and URL are unchanged.
+on 25 October 2026. Both replacement Streamlit apps were deployed and verified on
+26 October 2026, using Python 3.14 and the migrated entry points. The old apps
+have been deleted. See [deployment settings](docs/DEPLOYMENT.md) and the
+[verification record](docs/VERIFICATION.md). The API service and URL are unchanged.
 
 ## Selected models
 
@@ -116,7 +116,8 @@ package location; C3's model file was moved unchanged.
 
 ## Setup
 
-Python 3.13.5 matches the deployed services and fitted artifacts.
+Python 3.13.5 matches the model API and fitted artifacts. The hosted Streamlit
+apps use Python 3.14, matching their previous app settings.
 
 ```bash
 python3.13 -m venv .venv
@@ -171,5 +172,5 @@ python -m pytest tests/phase2 -q
 
 Hosting uses the smaller dependency sets under `deployment/`. A normal push to
 `main` redeploys Render; its Dockerfile setting must match the new path before
-that push. Both Streamlit entry points need replacement apps after the migration.
+that push. Both migrated Streamlit entry points now have verified replacement apps.
 The final report and presentation are maintained separately by the team.

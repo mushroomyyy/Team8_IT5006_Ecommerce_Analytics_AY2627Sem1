@@ -1,9 +1,46 @@
 # Verification record
 
 Latest reorganization checks: 25 October 2026 (Singapore), Python 3.13.5.
-The current layout has 165 passing tests, preserved results and notebook outputs, container/API checks and both app smoke checks. The approved migration is merged into remote `main` as `456262a`; Render is redeployed and verified. Replacement Streamlit URLs remain pending Jordan's deployments.
+The current layout has 165 passing tests, preserved results and notebook outputs, container/API checks and both app smoke checks. The approved migration is merged into remote `main` as `456262a`; Render is redeployed and verified. Both replacement Streamlit apps were deployed and verified on 26 October 2026, as recorded below.
 
-## Reorganization published — 25 October 2026
+## Streamlit replacements verified — 26 October 2026
+
+- Owner: `mushroomyyy`. Both apps were created from repository `main` at source
+  commit `453076cf41a27e92c9850ae37f109283b09e9196`.
+- Delivery Watch: https://team8-delivery-watch.streamlit.app/ using
+  `deployment/app/app.py`, its adjacent requirements and the Render API URL secret.
+- Phase 1: https://team8-olist-dashboard.streamlit.app/ using
+  `deployment/phase1_dashboard/streamlit_app.py`, its adjacent requirements and no secrets.
+- Both hosted apps use Python 3.14, matching the runtime selected in each old
+  app's settings. The local frontend checks used Python 3.13; this does not
+  change the Python 3.13.5 model API runtime or fitted artifacts.
+- All seven Delivery Watch pages passed hosted browser checks. Start here loads;
+  the default 2 July 2018 daily list has 129 scored orders and 39 selected.
+  Next day shows 162/49; previous day restores 129/39. Revealed outcomes reset
+  on date changes. The worklist download contains 129 CSV rows.
+- July month-end review shows 127 of 318 late deliveries caught. Explore defaults
+  to 98,958 approved orders and renders 24 charts; advancing the starting month
+  to February 2017 changes the count to 98,198, and restoring January returns
+  98,958. No application exceptions appeared.
+- Single-order prediction returns both C3 risk and R1 signed days from promise.
+  Uploading `docs/examples/batch_example.csv` through the hosted app and scoring
+  it produces a downloadable CSV with 10/10 successful rows and finite results
+  from both models. Both model versions and guidance render correctly.
+- Phase 1 loads the bundled data and renders its charts without an application
+  exception or observed memory kill. The default filter shows 98,676 orders;
+  selecting delivered orders gives 95,804, and restoring all orders gives 98,676.
+- The public Delivery Watch root URL was checked in a fresh browser session.
+  An incomplete initial background-tab render was resolved by opening a fresh
+  session; the sidebar and navigation then rendered without a code change.
+- The live Render HTTP verifier passes all eight check groups, with model
+  versions `phase2-c3-rf-2018-06-02` and `phase2-r1-ols-2026-10-09` unchanged.
+- Existing local UI and simulation checks: 39 tests and 14 subtests passed.
+- Both old Streamlit apps were deleted after replacement verification. The
+  Streamlit dashboard now lists only the two migrated entry points above.
+- No outstanding failed deployment checks. Separately maintained slides/PDF,
+  final report and previously shared links still need the team's new URLs.
+
+## Reorganization published — 25 October 2026 (historical)
 
 - Render deploy `dep-dbeto2g473hc739eqrig` serves merge `456262a` using
   `./deployment/Dockerfile.api`; the dashboard reports Live after 1m21s.

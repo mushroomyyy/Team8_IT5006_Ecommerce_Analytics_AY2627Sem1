@@ -1,11 +1,18 @@
 # Deploy the reorganized repository
 
 The existing Render API stays at https://team8-delivery-api.onrender.com
-([Swagger](https://team8-delivery-api.onrender.com/docs)). The previous Delivery
-Watch app URL is
-https://team8it5006ecommerceanalyticsay2627sem1-77gyui7xuhhsalu3sxrslc.streamlit.app/;
-The migration is now in `main`; Jordan must replace it and the Phase 1 dashboard.
-New URLs are pending. The detailed collaborator handoff is retained locally.
+([Swagger](https://team8-delivery-api.onrender.com/docs)). Both replacement
+Streamlit apps were deployed from `main` at commit
+`453076cf41a27e92c9850ae37f109283b09e9196` and verified on 26 October 2026:
+
+| App | URL | Main file | Python |
+|---|---|---|---|
+| Delivery Watch | https://team8-delivery-watch.streamlit.app/ | `deployment/app/app.py` | 3.14 |
+| Phase 1 dashboard | https://team8-olist-dashboard.streamlit.app/ | `deployment/phase1_dashboard/streamlit_app.py` | 3.14 |
+
+Python versions match the previous apps' settings; the model API and local
+artifact checks retain Python 3.13.5. Both old Streamlit apps were deleted only
+after their replacements passed hosted checks. See [verification](VERIFICATION.md).
 
 ## Published release — 25 October 2026
 
@@ -14,9 +21,10 @@ deploy `dep-dbeto2g473hc739eqrig` is live after a 1m21s build/deployment. The se
 Dockerfile path is `./deployment/Dockerfile.api`. Public HTTP checks, unchanged
 model versions, hosted/local prediction agreement and the 10/10 batch example pass.
 Detailed live verification records and screenshots are retained locally. The working branch was
-never pushed. The Streamlit handoff below is still pending.
+never pushed. At this release, the Streamlit replacements were pending; they
+were completed on 26 October 2026 as recorded above.
 
-## Release gate
+## Historical migration release gate
 
 `codex/repo-reorg` is a local-only working branch. Do not push it or create a PR
 from it. Finish the local verification checks, then
@@ -99,16 +107,17 @@ launcher is `deployment/phase1_dashboard/streamlit_app.py`.
 
 ## Streamlit
 
-Jordan creates both replacement apps from `main`; the detailed handoff and
-smoke checks are retained locally. Delivery Watch
-uses the adjacent `deployment/app/requirements.txt` and the secret:
+Both live apps deploy from `main` using the paths and runtimes listed above.
+Delivery Watch uses the adjacent `deployment/app/requirements.txt` and the secret:
 
 ```toml
 DELIVERY_API_URL = "https://team8-delivery-api.onrender.com"
 ```
 
-Phase 1 uses `deployment/phase1_dashboard/requirements.txt` and no secrets. Do not
-claim the new apps are live until Jordan supplies the URLs and checks pass.
+Phase 1 uses `deployment/phase1_dashboard/requirements.txt` and no secrets.
+Its launcher sets `OLIST_HOSTED_RELEASE=1` and extracts `data/olist_csv.zip`
+into a temporary cache. First load can take a minute. The hosted dashboard
+loaded successfully, its filters updated the metrics and its charts rendered.
 
 ## Troubleshooting
 
