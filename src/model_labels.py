@@ -73,3 +73,55 @@ def model_key_table(codes, n_features=None):
     return pd.DataFrame({'Code': list(codes), 'Model': [short_label(c) for c in codes],
                          'Description': [description(c) for c in codes],
                          'Features': [n_features.get(c, '-') for c in codes]})
+
+
+# Readable names for raw features and fitted terms, used on effect plots.
+FEATURE_LABELS = {
+    'promised_lead_days': 'Promised lead time', 'approval_lag_hours': 'Purchase-to-approval lag',
+    'orders_approved_prev_7d': 'Prior 7-day approvals', 'seller_dist_km_mean': 'Mean seller distance',
+    'order_item_count': 'Item count', 'order_seller_count': 'Seller count',
+    'order_frieght_value_sum': 'Freight value', 'order_product_weight_g_sum': 'Product weight',
+    'order_product_volume_cm3_sum': 'Product volume', 'order_product_photos_mean': 'Product photos',
+    'order_product_category_count': 'Category count', 'seller_state_count': 'Seller state count',
+    'payment_value_sum': 'Payment value', 'payment_installments_max': 'Instalments',
+    'freight_to_price_ratio': 'Freight-to-price ratio', 'is_weekend_approval': 'Weekend approval',
+    'is_black_friday_period': 'Black Friday period', 'is_december_peak': 'December peak',
+    'order_approved_month': 'Approval month', 'order_approved_day_of_week': 'Approval weekday',
+    'order_approved_day_of_month': 'Approval day of month',
+}
+STATE_NAMES = {
+    'AC': 'Acre', 'AL': 'Alagoas', 'AM': 'Amazonas', 'AP': 'Amapá', 'BA': 'Bahia', 'CE': 'Ceará',
+    'DF': 'Distrito Federal', 'ES': 'Espírito Santo', 'GO': 'Goiás', 'MA': 'Maranhão', 'MG': 'Minas Gerais',
+    'MS': 'Mato Grosso do Sul', 'MT': 'Mato Grosso', 'PA': 'Pará', 'PB': 'Paraíba', 'PE': 'Pernambuco',
+    'PI': 'Piauí', 'PR': 'Paraná', 'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte', 'RO': 'Rondônia',
+    'RR': 'Roraima', 'RS': 'Rio Grande do Sul', 'SC': 'Santa Catarina', 'SE': 'Sergipe', 'SP': 'São Paulo',
+    'TO': 'Tocantins',
+}
+
+
+def term_label(term, per_unit=False):
+    """Readable name for a fitted term, e.g. 'customer_state_AL' -> 'Alagoas vs São Paulo'.
+
+    `per_unit=True` adds the unit of a per-unit effect (doubling, +1 day, yes vs no);
+    per-SD plots leave it off because their axis already says per 1 SD.
+    """
+    if term.startswith('customer_state_'):
+        return f"{STATE_NAMES.get(term[15:], term[15:])} vs São Paulo"
+    if term.startswith('route_type_'):
+        return f"{term.split('. ', 1)[-1]} vs all interstate"
+    if term.startswith('payment_combination_'):
+        return f"Payment {term[20:].replace('_', ' ')} vs credit card"
+    for suffix, name in (('_sin', 'sine'), ('_cos', 'cosine')):
+        if term.endswith(suffix):
+            return f"{FEATURE_LABELS.get(term[:-4], term[:-4])} ({name})"
+    logged = term.startswith('log_')
+    feature = term[4:] if logged else term
+    name = FEATURE_LABELS.get(feature, feature.replace('_', ' '))
+    if not per_unit:
+        return f'{name} (log)' if logged else name
+    if logged:
+        return f'{name}: doubling'
+    if feature.startswith('is_'):
+        return f'{name}: yes vs no'
+    return f'{name}: +1 day' if feature in ('promised_lead_days',) else f'{name}: +1 unit'
+

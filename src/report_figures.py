@@ -164,8 +164,8 @@ def plot_buffer_audit(review, target_pct=99.0, save_path=None):
             _style(ax, 'y')
         axes[0].set_ylabel('Orders with a known label (%)')
         axes[0].legend(title='Run date', loc='lower right', title_fontsize=9)
-        axes[-1].text(axes[-1].get_xlim()[1], target_pct, f' {target_pct:g}% target', color=RED,
-                      va='bottom', ha='right', fontsize=9)
+        axes[-1].text(axes[-1].get_xlim()[0], target_pct - 0.6, f' {target_pct:g}% target', color=RED,
+                      va='top', ha='left', fontsize=9)
         _titles(fig, 'Label completeness by buffer length',
                 'Share of training-window orders whose late label is known on the run date.')
         _finish(fig, save_path)
@@ -242,3 +242,51 @@ def plot_cyclic_calendar(save_path=None):
                 f'As a number, December and January are {gap_raw} apart; on the circle they are '
                 f'{gap_circle:.2f} apart, like any other neighbouring months.')
         _finish(fig, save_path)
+
+
+def plot_review_outcomes(table, save_path=None):
+    """Stacked on-time and late orders by review-score group, with the late rate labelled."""
+    with plt.rc_context(STYLE):
+        fig, ax = plt.subplots(figsize=(8, 4.6))
+        fig.subplots_adjust(left=0.11, right=0.98, top=0.8, bottom=0.2)
+        x = np.arange(len(table))
+        on_time = table['orders'] - table['late']
+        ax.bar(x, on_time, width=0.62, color=BLUE, label='On time')
+        ax.bar(x, table['late'], width=0.62, bottom=on_time, color=ORANGE, label='Late')
+        for i, row in table.iterrows():
+            ax.text(i, row['orders'] * 1.01, f"{row['late_rate_pct']:.1f}% late", ha='center', va='bottom')
+        ax.set_xticks(x, table['review_group'].astype(str).str.replace('-', '–'))
+        ax.set(xlabel='Latest review score per order', ylabel='Orders with a known label and a review')
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f'{v:,.0f}'))
+        ax.set_ylim(0, table['orders'].max() * 1.12)
+        _style(ax, 'y')
+        ax.legend(loc='upper left')
+        _titles(fig, 'Review scores and retrospective delivery outcomes',
+                'Approvals January 2017–August 2018; canceled, unavailable and already-delivered approvals excluded.\n'
+                'Labels at approval + 45 days. Descriptive association only.')
+        _finish(fig, save_path)
+
+
+def plot_daily_approvals(daily, save_path=None):
+    """Eligible approvals per day (left axis) and the late rate among known labels (right axis)."""
+    with plt.rc_context(STYLE):
+        fig, ax = plt.subplots(figsize=(10, 4.6))
+        fig.subplots_adjust(left=0.08, right=0.92, top=0.8, bottom=0.14)
+        ax.plot(daily['approval_day'], daily['orders'], color=BLUE, linewidth=0.9)
+        ax.set_ylabel('Eligible approved orders', color=BLUE)
+        right = ax.twinx()
+        right.plot(daily['approval_day'], daily['late_rate_pct'], color=ORANGE, linewidth=0.9)
+        right.set_ylabel('Late rate among known labels (%)', color=ORANGE)
+        right.set_ylim(0, 100)
+        for axis in (ax, right):
+            axis.tick_params(length=0)
+            axis.spines['top'].set_visible(False)
+        ax.grid(axis='y', color=GRID, linewidth=0.8)
+        ax.set_axisbelow(True)
+        ax.set_xlabel('Approval date')
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
+        _titles(fig, 'Daily approvals and retrospective late-delivery rate',
+                'January 2017–August 2018; canceled, unavailable and already-delivered approvals excluded.\n'
+                'Counts keep unknown labels; late rates use outcomes known at approval + 45 days.')
+        _finish(fig, save_path)
+

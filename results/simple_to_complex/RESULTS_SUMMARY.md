@@ -1064,12 +1064,15 @@ The previous pipeline's headline was LightGBM with June AP 15.09% and June MAE 4
 | `figures/01_cv_folds_classification.png` |
 | `figures/01_cv_folds_regression.png` |
 | `figures/01_cyclic_calendar.png` |
+| `figures/01_daily_approvals.png` |
 | `figures/01_label_buffer_audit.png` |
 | `figures/01_label_buffer_audit_zoomed.png` |
+| `figures/01_review_outcomes.png` |
 | `figures/01_skewness_before_after.png` |
 | `figures/01_validation_timeline.png` |
 | `figures/01_waiting_period_audit.png` |
 | `figures/02_c2_odds_ratios.png` |
+| `figures/02_c2b_odds_ratios.png` |
 | `figures/02_calibration.png` |
 | `figures/02_curvature_partial_residuals.png` |
 | `figures/02_drift_ap.png` |
@@ -1077,6 +1080,7 @@ The previous pipeline's headline was LightGBM with June AP 15.09% and June MAE 4
 | `figures/02_june_decile_lift.png` |
 | `figures/02_model_comparison_ap.png` |
 | `figures/02_pr_curves.png` |
+| `figures/02_resampling_ap.png` |
 | `figures/02_resampling_calibration.png` |
 | `figures/02_resampling_cv_metrics.png` |
 | `figures/02_rf_importance_june.png` |

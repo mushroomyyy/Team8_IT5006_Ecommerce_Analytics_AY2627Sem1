@@ -11,6 +11,15 @@ class ModelLabelTests(unittest.TestCase):
             self.assertTrue(ml.short_label(code) and ml.description(code), code)
         self.assertEqual(len(ml.MODEL_LABELS), 15)
 
+    def test_term_label_reads_states_routes_and_units(self):
+        self.assertEqual(ml.term_label('customer_state_AL'), 'Alagoas vs São Paulo')
+        self.assertEqual(ml.term_label('route_type_2. All same-state'), 'All same-state vs all interstate')
+        self.assertEqual(ml.term_label('log_seller_dist_km_mean', per_unit=True), 'Mean seller distance: doubling')
+        self.assertEqual(ml.term_label('log_seller_dist_km_mean'), 'Mean seller distance (log)')
+        self.assertEqual(ml.term_label('is_black_friday_period', per_unit=True), 'Black Friday period: yes vs no')
+        self.assertEqual(ml.term_label('promised_lead_days', per_unit=True), 'Promised lead time: +1 day')
+        self.assertEqual(ml.term_label('order_approved_month_sin'), 'Approval month (sine)')
+
     def test_display_name(self):
         self.assertEqual(ml.display_name('C2'), 'C2 · Logistic (CV-stepwise)')
         with self.assertRaises(KeyError):

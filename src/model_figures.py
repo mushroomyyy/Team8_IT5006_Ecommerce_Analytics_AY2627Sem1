@@ -7,6 +7,7 @@ returns the figure. Model colours are fixed so a model looks the same in every f
 import os
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter, LogLocator, NullLocator
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -14,7 +15,7 @@ from scipy import stats
 from sklearn.calibration import calibration_curve
 
 from . import report_figures as figs
-from .model_labels import MODEL_LABELS, display_name
+from .model_labels import MODEL_LABELS, display_name, term_label
 
 MODEL_COLORS = {'C0': figs.GRAY, 'R0': figs.GRAY, 'R0a': figs.GRAY, 'R0b': figs.SLATE, 'C1': figs.BLUE, 'R1': figs.BLUE,
                 'C2': figs.AQUA, 'R2': figs.AQUA, 'C2B': figs.YELLOW, 'R2B': figs.YELLOW,
@@ -160,17 +161,23 @@ def plot_calibration(panels, save_path=None, n_bins=10, title='Calibration', xla
         return _finish(fig, title, save_path)
 
 
-def plot_effects_forest(table, effect_label, save_path=None, title=None, top=15):
-    """Forest plot of per-1-SD effects with 95% CIs from `interpretation.coefficient_table`.
+def plot_effects_forest(table, effect_label, save_path=None, title=None, top=15, terms=None, per_unit=False):
+    """Forest plot of effects with 95% CIs from `interpretation.coefficient_table`.
 
-    Odds ratios (log axis) for classification, days for regression. Terms with huge
-    standard errors (not identified) should be removed first. A model with categorical
-    units only has no per-SD effects; its category-versus-reference effects are shown instead.
+    Odds ratios (log axis) for classification, days for regression. By default the `top`
+    strongest per-1-SD effects are shown; `per_unit=True` shows per-unit effects (per day,
+    per doubling, category vs reference) and `terms` picks and orders the terms instead.
+    Terms with huge standard errors (not identified) should be removed first. A model with
+    categorical units only has no per-SD effects; its category-versus-reference effects are
+    shown instead. Terms are labelled with `model_labels.term_label`.
     """
-    effect = 'effect_per_sd' if table['effect_per_sd'].notna().any() else 'effect_per_unit'
+    effect = 'effect_per_sd' if table['effect_per_sd'].notna().any() and not per_unit else 'effect_per_unit'
     data = table[table[effect].notna()].copy()
     data['strength'] = (data['coef'] / data['se']).abs()
-    data = data.nlargest(top, 'strength').iloc[::-1]
+    if terms is not None:
+        data = data.set_index('term').loc[list(terms)].reset_index().iloc[::-1]
+    else:
+        data = data.nlargest(top, 'strength').iloc[::-1]
     odds = data['effect_type'].iloc[0] == 'odds ratio'
     if effect == 'effect_per_unit':
         effect_label = effect_label.replace('per 1 SD', 'versus the reference category')
@@ -182,8 +189,11 @@ def plot_effects_forest(table, effect_label, save_path=None, title=None, top=15)
         ax.axvline(1 if odds else 0, color=figs.GRAY, ls='--', lw=1)
         if odds:
             ax.set_xscale('log')
-        ax.set_yticks(y, data['term'])
-        ax.set(xlabel=effect_label, ylabel='Model term')
+            ax.xaxis.set_major_locator(LogLocator(base=2))
+            ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f'{v:g}'))
+            ax.xaxis.set_minor_locator(NullLocator())
+        ax.set_yticks(y, [term_label(t, per_unit=effect == 'effect_per_unit') for t in data['term']])
+        ax.set(xlabel=effect_label)
         figs._style(ax, 'x')
         return _finish(fig, title or 'Effects per 1 SD with 95% confidence intervals', save_path)
 
@@ -200,23 +210,31 @@ def plot_importance(table, xlabel, save_path=None, title='Permutation importance
         return _finish(fig, title, save_path)
 
 
-def plot_resampling_comparison(summary, labels, save_path=None, title='Class-imbalance handling'):
-    """CV mean +/- SD of AP, ROC-AUC, Brier and top-10% precision by resampling strategy and model."""
-    metrics = [('avg_precision', 'CV average precision'), ('roc_auc', 'CV ROC-AUC'),
-               ('brier', 'CV Brier score (lower is better)'), ('precision_top10', 'CV top-10% precision')]
+RESAMPLING_METRICS = [('avg_precision', 'CV average precision', 1), ('roc_auc', 'CV ROC-AUC', 1),
+                      ('brier', 'CV Brier score (lower is better)', 1),
+                      ('precision_top10', 'CV top-10% precision', 1)]
+
+
+def plot_resampling_comparison(summary, labels, save_path=None, title='Class-imbalance handling',
+                               metrics=RESAMPLING_METRICS):
+    """CV mean +/- SD by resampling strategy and model, one panel per (metric, label, scale)."""
     with plt.rc_context(figs.STYLE):
-        fig, axes = plt.subplots(1, 4, figsize=(15, 4.2))
+        fig, axes = plt.subplots(1, len(metrics), figsize=(max(8, 3.75 * len(metrics) + 1), 4.4), squeeze=False)
+        axes = axes[0]
         strategies = list(dict.fromkeys(summary['strategy']))
-        for ax, (metric, label) in zip(axes, metrics):
+        for ax, (metric, label, scale) in zip(axes, metrics):
             for i, model in enumerate(dict.fromkeys(summary['model'])):
                 rows = summary[summary['model'] == model].set_index('strategy').loc[strategies]
                 x = np.arange(len(strategies)) + (i - 0.5) * 0.2
-                ax.errorbar(x, rows[f'cv_{metric}_mean'], yerr=rows[f'cv_{metric}_std'], fmt='o',
+                ax.errorbar(x, scale * rows[f'cv_{metric}_mean'], yerr=scale * rows[f'cv_{metric}_std'], fmt='o',
                             color=_color(model), capsize=3, label=_name(model))
             ax.set_xticks(range(len(strategies)), [labels[s] for s in strategies], rotation=30, ha='right')
             ax.set(ylabel=label, xlabel='Resampling inside each training fold')
             figs._style(ax, 'y')
-        axes[0].legend()
+        if len(metrics) == 1:
+            axes[0].legend(loc='lower center', bbox_to_anchor=(0.5, 1.0), ncol=2)
+        else:
+            axes[0].legend()
         return _finish(fig, title, save_path)
 
 
@@ -341,7 +359,7 @@ def plot_predicted_vs_actual(panels, save_path=None, title='Predicted versus act
 
 
 def plot_ols_diagnostics(fitted, residual, route_type, state, save_path=None, top_states=8,
-                         title='OLS residual diagnostics (Train, R1)'):
+                         title='OLS residual diagnostics (Train)'):
     """Residual versus fitted, normal Q-Q, residuals by route type and by the most common states.
 
     `residual`, `fitted`, `route_type` and `state` are aligned per order. Spread that grows

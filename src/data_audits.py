@@ -8,7 +8,7 @@ import pandas as pd
 
 from .datasets import EXCLUDED_STATUSES, RUN_DATE
 from .features import LEAKAGE_COLS
-from .labels import get_required_dates, labels_as_of, regression_targets_as_of
+from .labels import attach_prediction_labels, get_required_dates, labels_as_of, regression_targets_as_of
 from .linear_transforms import linear_design, skewness_table
 from .feature_selection import numeric_vif
 
@@ -209,3 +209,44 @@ def linear_design_vif(task_data, log_cols, cyclic=True, merge_mixed_route=True):
                                  log_cols=log_cols, cyclic=cyclic, merge_mixed_route=merge_mixed_route)
     vif = numeric_vif(design)
     return pd.DataFrame({'task': task_data.task, 'feature': vif.index, 'vif': vif.to_numpy()})
+
+
+def retrospective_outcomes(olist, final_df, lookback, first_month='2017-01', last_month='2018-08'):
+    """Eligible approvals with their retrospective late label and latest review score.
+
+    Eligible means approved in the analysis months, not canceled or unavailable and not
+    already delivered on the approval day (the population the daily scoring sees). Labels
+    are assessed at approval + `lookback` days; the review is the order's latest by
+    answer time. Used for the descriptive report figures only.
+    """
+    months = final_df['partition_yyyymm'].between(first_month, last_month)
+    delivered = pd.to_datetime(final_df['order_delivered_customer_date']).dt.normalize()
+    eligible = (months & ~final_df['order_status'].isin(EXCLUDED_STATUSES)
+                & (delivered.isna() | delivered.gt(final_df['order_approved_dt'])))
+    rows = final_df.loc[eligible, ['order_id', 'order_approved_dt']]
+    labels = attach_prediction_labels(rows.assign(predicted_probability=0.0), olist['orders'], lookback=lookback)
+    reviews = (olist['reviews'].sort_values(['order_id', 'review_answer_timestamp', 'review_creation_date'])
+               .groupby('order_id')['review_score'].last())
+    return pd.DataFrame({'order_id': rows['order_id'].to_numpy(),
+                         'approval_day': rows['order_approved_dt'].to_numpy(),
+                         'late': labels['actual_label'].to_numpy(),
+                         'review_score': rows['order_id'].map(reviews).to_numpy()})
+
+
+def review_outcome_table(outcomes):
+    """Late rate by review-score group among orders with a known label and a review."""
+    known = outcomes.dropna(subset=['late', 'review_score']).copy()
+    known['review_group'] = pd.cut(known['review_score'], bins=[0, 2, 4, 5],
+                                   labels=['Low (1-2)', 'Mid (3-4)', 'High (5)'])
+    table = known.groupby('review_group', observed=True)['late'].agg(orders='size', late='sum')
+    table['late_rate_pct'] = 100 * table['late'] / table['orders']
+    return table.reset_index()
+
+
+def daily_outcome_table(outcomes):
+    """Eligible approvals per day and the late rate among their known labels."""
+    daily = outcomes.groupby('approval_day').agg(orders=('order_id', 'size'), known=('late', 'count'),
+                                                 late=('late', 'sum'))
+    daily['late_rate_pct'] = 100 * daily['late'] / daily['known'].where(daily['known'] > 0)
+    return daily.reset_index()
+
