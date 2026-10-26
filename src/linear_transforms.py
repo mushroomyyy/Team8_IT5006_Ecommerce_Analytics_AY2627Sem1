@@ -142,6 +142,8 @@ def encoded_scales(preprocessor):
     encoder = _encoder(preprocessor)
     for block, transformer, columns in encoder.transformers_:
         if block == 'numeric':
+            if not len(columns):  # A subset with categorical units only has no numeric scale
+                return pd.Series(dtype=float)
             return pd.Series(transformer.named_steps['scaler'].scale_, index=list(columns))
     raise ValueError('Preprocessor has no scaled numeric block')
 

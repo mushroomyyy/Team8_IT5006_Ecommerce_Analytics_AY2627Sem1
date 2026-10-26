@@ -18,8 +18,8 @@ WAITING_PERIOD = LOOKBACK
 VALIDATION_DAYS = 30
 N_CV_FOLDS = 5
 CV_VALIDATION_DAYS = 30
-EXCLUDED_STATUSES = ['canceled', 'unavailable']  # Never delivered: no delivery outcome
-EXPECTED_TRAIN_ROWS = {'classification': 45972, 'regression': 45371}
+EXCLUDED_STATUSES = ['canceled', 'unavailable']  # Never delivered: no delivery outcome (both tasks)
+EXPECTED_TRAIN_ROWS = {'classification': 45368, 'regression': 45371}
 SCORING = {'classification': 'average_precision', 'regression': 'neg_root_mean_squared_error'}
 
 
@@ -73,6 +73,8 @@ def build_task_data(task, final_df, check_counts=True):
     assert not set(num_cols + cat_cols) & set(LEAKAGE_COLS), 'Outcome columns used as features'
     start, end, _ = get_required_dates(RUN_DATE, lookback=LOOKBACK, pXd=PXD, verbose=False)
     window = final_df[final_df['order_approved_dt'].between(start, end)]
+    # Canceled and unavailable orders never get a delivery outcome, so neither task labels them
+    window = window[~window['order_status'].isin(EXCLUDED_STATUSES)]
 
     if task == 'classification':
         audit = labels_as_of(window.drop_duplicates('order_id'), run_date=RUN_DATE)
@@ -84,7 +86,6 @@ def build_task_data(task, final_df, check_counts=True):
 
         audit_col = 'label_as_of_run'
     else:
-        window = window[~window['order_status'].isin(EXCLUDED_STATUSES)]
         audit = regression_targets_as_of(window, run_date=RUN_DATE, waiting_period=WAITING_PERIOD)
         history = audit[audit['target_as_of_run'].notna()].copy()
         history['y'] = history['target_as_of_run'].astype(float)

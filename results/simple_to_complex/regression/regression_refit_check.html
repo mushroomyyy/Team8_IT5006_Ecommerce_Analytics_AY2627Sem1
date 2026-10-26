@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Refit check for R2B on June</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>R2B</th>
+      <th>rmse</th>
+      <th>mae</th>
+      <th>r2</th>
+      <th>bias</th>
+      <th>rmse_late</th>
+      <th>rmse_on_time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fitted on Train only</td>
+      <td>7.0847</td>
+      <td>5.4868</td>
+      <td>0.4335</td>
+      <td>3.7092</td>
+      <td>26.2098</td>
+      <td>6.1181</td>
+    </tr>
+    <tr>
+      <td>Refitted on history before 2 June</td>
+      <td>7.3738</td>
+      <td>5.8108</td>
+      <td>0.3863</td>
+      <td>4.0990</td>
+      <td>25.5998</td>
+      <td>6.5043</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>

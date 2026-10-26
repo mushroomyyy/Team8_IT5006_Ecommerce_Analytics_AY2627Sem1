@@ -9,7 +9,7 @@ class ModelLabelTests(unittest.TestCase):
     def test_every_code_has_short_label_and_description(self):
         for code in ml.CLASSIFICATION_CODES + ml.REGRESSION_CODES:
             self.assertTrue(ml.short_label(code) and ml.description(code), code)
-        self.assertEqual(len(ml.MODEL_LABELS), 13)
+        self.assertEqual(len(ml.MODEL_LABELS), 15)
 
     def test_display_name(self):
         self.assertEqual(ml.display_name('C2'), 'C2 · Logistic (CV-stepwise)')

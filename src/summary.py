@@ -50,22 +50,23 @@ class TaskSpec:
     linear_models: tuple
     forest: str
     forest_default: str
+    tree: str
 
 
 TASKS = {
     'classification': TaskSpec(
         name='classification', title='Classification: will the order arrive late?',
         rungs=(('Baseline', 'C0'), ('Linear, all', 'C1'), ('Linear, selected', 'C2'),
-               ('RF, default', 'C3d'), ('RF, tuned', 'C3')),
+               ('Single tree', 'C4'), ('RF, default', 'C3d'), ('RF, tuned', 'C3')),
         metric='avg_precision', metric_label='Average precision (AP, %)', scale=100.0, score_sign=1.0,
-        effect_stem='classification_odds_ratios', effect_is_ratio=True, linear_models=('C1', 'C2'), forest='C3', forest_default='C3d',
+        effect_stem='classification_odds_ratios', effect_is_ratio=True, linear_models=('C1', 'C2'), forest='C3', forest_default='C3d', tree='C4',
         ),
     'regression': TaskSpec(
         name='regression', title='Regression: days from the promised delivery date',
         rungs=(('Baseline', 'R0a'), ('Linear, all', 'R1'), ('Linear, selected', 'R2'),
-               ('RF, default', 'R3d'), ('RF, tuned', 'R3')),
+               ('Single tree', 'R4'), ('RF, default', 'R3d'), ('RF, tuned', 'R3')),
         metric='rmse', metric_label='RMSE (days)', scale=1.0, score_sign=-1.0,
-        effect_stem='regression_coefficients', effect_is_ratio=False, linear_models=('R1', 'R2'), forest='R3', forest_default='R3d',
+        effect_stem='regression_coefficients', effect_is_ratio=False, linear_models=('R1', 'R2'), forest='R3', forest_default='R3d', tree='R4',
         ),
 }
 
@@ -435,7 +436,15 @@ def _classification_extras(task, root, number):
     figures = [('02_roc_curves.png', 'ROC curves, Validation and June'),
                ('02_pr_curves.png', 'Precision-recall curves, Validation and June'),
                ('02_calibration.png', 'Calibration'), ('02_june_decile_lift.png', 'June risk deciles: capture and lift')]
-    return [number('Class-weight sensitivity'), '', frame_markdown(weights), '',
+    confusion = task.table('classification_confusion', 'Confusion counts')
+    selected = task.metadata['selected_model']
+    false_negatives = task.table('classification_false_negatives', 'missed by')
+    return [number('Operating cut-off and confusion counts'), '',
+            f"Cut-off chosen on Validation (F1-maximising, {display_name(selected)}): "
+            f"{task.metadata['operating_threshold']:.4f}; applied unchanged to June.", '',
+            frame_markdown(confusion[confusion['Code'] == selected]), '',
+            number('June late orders missed (false negatives)'), '', frame_markdown(false_negatives), '',
+            number('Class-weight sensitivity'), '', frame_markdown(weights), '',
             number('Class-imbalance experiment'), '',
             f"Resampling happened inside the CV training folds only. Result: {verdict}; "
             f"a clear CV AP gain for any option: {meta['clear_ap_gain_any']}.", '', frame_markdown(shown), '',
@@ -446,11 +455,22 @@ def _regression_extras(task, root, number):
     by_outcome = task.table('regression_error_by_outcome', 'late versus on-time')
     late_flag = task.table('regression_late_flag', 'derived late flag')
     figures = [('03_predicted_vs_actual.png', 'Predicted versus actual days'),
-               ('03_ols_diagnostics.png', 'R1 diagnostics')]
+               ('03_ols_diagnostics.png', f"{task.metadata['selected_model']} diagnostics")]
     return [number('Error by outcome and derived late flag'), '',
             '**RMSE and MAE for late versus on-time orders (days)**', '', frame_markdown(by_outcome), '',
             '**Derived late flag (prediction > 0 days) versus the classification label**', '', frame_markdown(late_flag), '',
             number('Figures'), '', *_figure_links(root, figures)]
+
+
+def _selection(task):
+    meta, prefix = task.metadata, task.spec.name
+    table = task.table(f'{prefix}_model_selection', 'Model choice on Validation')
+    refit = task.table(f'{prefix}_refit_check', 'Refit check')
+    return [f"Rule: {meta['selection_rule']}.", '',
+            f"**Selected: {display_name(meta['selected_model'])}** (order-level bootstrap sensitivity selects "
+            f"{meta['selected_by_order_bootstrap']}).", '', frame_markdown(table), '',
+            '**Refit check on Test (June): the selected specification fitted on Train only versus refitted on history**', '',
+            frame_markdown(refit)]
 
 
 def task_section(task, chapter, root):
@@ -464,11 +484,14 @@ def task_section(task, chapter, root):
         ('Selection overlap: CV-stepwise, BIC, AIC and Lasso', _overlap(task)),
         ('Random Forest search and sensitivity', _rf_search(task)),
         ('Evaluation tables (Train, CV, Validation, Test (June), Monitoring)', _evaluation_tables(task)),
+        ('Model choice on Validation (day-level bootstrap)', _selection(task)),
         ('Success criteria', [frame_markdown(task.table(prefix + 'success_criteria', 'success criteria'))]),
         ('Overfitting gaps (Train minus CV mean)',
          [frame_markdown(task.table(prefix + 'overfitting_gaps', 'overfitting gap'))]),
         ('Random Forest tuning gain (tuned minus default)',
          [frame_markdown(task.table(prefix + 'rf_tuning_gain', 'tuned'))]),
+        ('Fold-wise CV differences: tuned vs default forest, forest vs single tree',
+         [frame_markdown(task.table(prefix + 'rf_paired_folds', 'Fold-wise'))]),
         ('Top odds ratios with 95% CIs' if spec.effect_is_ratio else 'Top coefficients with 95% CIs (HC3)',
          _effects(task)),
         ('Hypothesis check', [frame_markdown(task.table(prefix + 'hypothesis_check', 'Hypothesis check'))]),
@@ -492,7 +515,7 @@ def feature_counts(task):
     meta = task.metadata
     counts = {code: len(units) for code, units in meta['selected_variables'].items() if code in MODEL_LABELS}
     n_raw = len(meta['features']['numeric']) + len(meta['features']['categorical'])
-    return {**counts, task.spec.forest: n_raw, task.spec.forest_default: n_raw}
+    return {**counts, task.spec.forest: n_raw, task.spec.forest_default: n_raw, task.spec.tree: n_raw}
 
 
 def model_key_markdown(tasks):
@@ -517,9 +540,10 @@ def what_changed(tasks):
     mae_rows = [[m, short_label(m), f'{june_mae[m]:.2f}'] for _, m in reg.spec.rungs if m in june_mae]
     return ['## 4. What changed vs the previous pipeline', '',
             f"The previous pipeline's headline was {old['model']} with June AP {old['june_ap_percent']}% and June MAE "
-            f"{old['june_mae_days']} days, chosen as the winner on June outcomes. The new pipeline selects no winner: "
-            "every model is scored the same way on Train, CV, Validation, Test (June) and Monitoring (July, August), and "
-            "June is the Test set. The cohorts and protocol differ, so the old numbers are context, not a like-for-like comparison.",
+            f"{old['june_mae_days']} days, chosen as the winner on June outcomes. The new pipeline chooses on Validation only "
+            "(day-level bootstrap, simplest tied model): every model is scored the same way on Train, CV, Validation, Test (June) "
+            "and Monitoring (July, August), and June is an independent Test set. The cohorts and protocol differ, so the old "
+            "numbers are context, not a like-for-like comparison.",
             '', '**New pipeline, Test (June) AP (%)**', '', md_table(['Code', 'Model', 'June AP (%)'], new_rows), '',
             '**New pipeline, Test (June) MAE (days)**', '', md_table(['Code', 'Model', 'June MAE (days)'], mae_rows), '']
 
@@ -537,8 +561,11 @@ def build_markdown(tasks, root):
     head = ['# Results summary: simple to complex', '',
             'Generated by `python -m src.summary` from the exported tables and metadata only; nothing is refitted. '
             'Protocol: Train (in-sample), CV (5 chronological folds inside Train), Validation (30-day out-of-time holdout), '
-            'Test (June) and Monitoring (July, August) scored by frozen models. No model is selected. '
+            'Test (June) and Monitoring (July, August) scored by frozen models. CV tunes and selects features inside each family; '
+            'Validation alone chooses between models (day-level bootstrap against the Validation leader; the simplest tied model wins); '
+            'June never enters a choice. Canceled and unavailable orders are excluded from both tasks. '
             'Primary metrics: AP for classification, RMSE for regression.', '',
+            f"**Selected models: {display_name(cls.metadata['selected_model'])} and {display_name(reg.metadata['selected_model'])}.**", '',
             '## Model key', '',
             'Codes are the stable keys used in every table, figure and export; the report should write '
             '"Code · short label" (for example "C2 · Logistic (CV-stepwise)") on first mention. '

@@ -99,6 +99,7 @@ def numeric_vif(frame):
 def training_rows(features):
     """Train rows of both tasks, rebuilt independently of `build_task_data` (sizes are asserted)."""
     window = features[features.order_approved_dt.between('2017-04-18', '2018-04-17')]
+    window = window[~window.order_status.isin(['canceled', 'unavailable'])]
     classification = labels_as_of(window, '2018-06-02')
     classification = classification[classification.label_as_of_run.notna()].copy()
     classification['y'] = classification.label_as_of_run.astype(int)
@@ -106,15 +107,14 @@ def training_rows(features):
     classification = available_training_rows(
         classification, '2018-03-19', 'y', lambda rows, date: labels_as_of(rows, date),
         'label_as_of_run')
-    regression = regression_targets_as_of(
-        window[~window.order_status.isin(['canceled', 'unavailable'])], '2018-06-02', 45)
+    regression = regression_targets_as_of(window, '2018-06-02', 45)
     regression = regression[regression.target_as_of_run.notna()].copy()
     regression['y'] = regression.target_as_of_run.astype(float)
     regression, _ = chronological_split(regression, test_days=30, gap_days=45)
     regression = available_training_rows(
         regression, '2018-03-19', 'y',
         lambda rows, date: regression_targets_as_of(rows, date, 45), 'target_as_of_run')
-    assert (len(classification), len(regression)) == (45972, 45371)
+    assert (len(classification), len(regression)) == (45368, 45371)
     return {'classification': classification, 'regression': regression}
 
 

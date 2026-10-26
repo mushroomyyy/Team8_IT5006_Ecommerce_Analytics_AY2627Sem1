@@ -1,0 +1,21 @@
+{
+  "best_params": {
+    "max_depth": 12,
+    "min_samples_leaf": 20,
+    "criterion": "gini"
+  },
+  "metadata": {
+    "task": "classification",
+    "scoring": "average_precision",
+    "candidates": 160,
+    "tie_tolerance": 0.0001,
+    "train_rows": 45368,
+    "n_cv_folds": 5,
+    "best_cv_mean": 0.10791743682318074,
+    "best_cv_sd": 0.035228795202870665,
+    "best_n_leaves": 344,
+    "seconds": 58.3,
+    "random_state": 42,
+    "run_date": "2026-10-26T23:16:52"
+  }
+}

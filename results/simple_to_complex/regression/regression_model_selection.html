@@ -1,0 +1,172 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>Model choice on Validation: day-level bootstrap against the leader</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Code</th>
+      <th>Model</th>
+      <th>validation</th>
+      <th>diff_vs_leader</th>
+      <th>ci_low</th>
+      <th>ci_high</th>
+      <th>leader</th>
+      <th>tied</th>
+      <th>family</th>
+      <th>parameters</th>
+      <th>selected</th>
+      <th>decision</th>
+      <th>order_ci_low</th>
+      <th>order_ci_high</th>
+      <th>order_tied</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R0a</td>
+      <td>Median baseline</td>
+      <td>9.8639</td>
+      <td>1.6596</td>
+      <td>1.4488</td>
+      <td>1.8748</td>
+      <td>False</td>
+      <td>False</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>False</td>
+      <td>baseline: not selectable</td>
+      <td>1.5622</td>
+      <td>1.7615</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>R0b</td>
+      <td>Olist promise</td>
+      <td>13.5503</td>
+      <td>5.3460</td>
+      <td>4.4877</td>
+      <td>6.1664</td>
+      <td>False</td>
+      <td>False</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>False</td>
+      <td>baseline: not selectable</td>
+      <td>5.0929</td>
+      <td>5.6064</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>R1</td>
+      <td>OLS (all)</td>
+      <td>8.2054</td>
+      <td>0.0011</td>
+      <td>-0.0068</td>
+      <td>0.0081</td>
+      <td>False</td>
+      <td>True</td>
+      <td>linear</td>
+      <td>55.0</td>
+      <td>False</td>
+      <td>tied, but a simpler tied model exists</td>
+      <td>-0.0052</td>
+      <td>0.0074</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>R2</td>
+      <td>OLS (CV-stepwise)</td>
+      <td>8.9265</td>
+      <td>0.7221</td>
+      <td>0.6577</td>
+      <td>0.7958</td>
+      <td>False</td>
+      <td>False</td>
+      <td>linear</td>
+      <td>2.0</td>
+      <td>False</td>
+      <td>not tied: interval excludes 0</td>
+      <td>0.6578</td>
+      <td>0.7885</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>R2B</td>
+      <td>OLS (BIC)</td>
+      <td>8.2043</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>True</td>
+      <td>True</td>
+      <td>linear</td>
+      <td>45.0</td>
+      <td>True</td>
+      <td>selected: simplest model tied with the leader</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>R4</td>
+      <td>Decision tree (tuned)</td>
+      <td>9.0134</td>
+      <td>0.8091</td>
+      <td>0.7031</td>
+      <td>0.9190</td>
+      <td>False</td>
+      <td>False</td>
+      <td>tree</td>
+      <td>16.0</td>
+      <td>False</td>
+      <td>not tied: interval excludes 0</td>
+      <td>0.7414</td>
+      <td>0.8773</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>R3</td>
+      <td>Random Forest (tuned)</td>
+      <td>8.3975</td>
+      <td>0.1931</td>
+      <td>0.1558</td>
+      <td>0.2308</td>
+      <td>False</td>
+      <td>False</td>
+      <td>forest</td>
+      <td>656824.0</td>
+      <td>False</td>
+      <td>not tied: interval excludes 0</td>
+      <td>0.1538</td>
+      <td>0.2347</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>R3d</td>
+      <td>Random Forest (default)</td>
+      <td>8.5563</td>
+      <td>0.3520</td>
+      <td>0.2768</td>
+      <td>0.4293</td>
+      <td>False</td>
+      <td>False</td>
+      <td>forest</td>
+      <td>2217209.0</td>
+      <td>False</td>
+      <td>not tied: interval excludes 0</td>
+      <td>0.2798</td>
+      <td>0.4231</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Differences are model minus leader (RMSE, days). Tied = 95% interval includes 0; the simplest tied model is selected. Order-level columns are a sensitivity check.</p>
+<p></p></section>
+</body></html>

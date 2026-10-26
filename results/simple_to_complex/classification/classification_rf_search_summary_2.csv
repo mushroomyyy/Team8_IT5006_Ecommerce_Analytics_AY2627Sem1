@@ -1,9 +1,9 @@
 Item,Value
 Stage A candidates,60
 Stage A trees,200
-Stage B candidates,24
+Stage B candidates,54
 Stage B trees,300 or 500
-Best CV AP (mean +/- SD),0.2691 +/- 0.0331
-Stage A best CV AP,0.2657
-"Search time (Stage A + B, s)",206
-Best parameters,"{""min_samples_split"": 50, ""max_samples"": 0.7, ""criterion"": ""entropy"", ""class_weight"": null, ""max_depth"": 8, ""min_samples_leaf"": 2, ""max_features"": ""log2"", ""n_estimators"": 500}"
+Best CV AP (mean +/- SD),0.1298 +/- 0.0453
+Stage A best CV AP,0.1292
+"Search time (Stage A + B, s)",298
+Best parameters,"{""min_samples_split"": 10, ""max_samples"": 0.5, ""criterion"": ""gini"", ""class_weight"": ""balanced"", ""max_depth"": 12, ""min_samples_leaf"": 5, ""max_features"": ""sqrt"", ""n_estimators"": 500}"

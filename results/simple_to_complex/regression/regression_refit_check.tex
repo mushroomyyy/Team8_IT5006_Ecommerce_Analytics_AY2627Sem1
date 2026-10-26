@@ -1,0 +1,16 @@
+% Requires \usepackage{booktabs}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Refit check for R2B on June}
+\begin{tabular}{lrrrrrr}
+\toprule
+R2B & rmse & mae & r2 & bias & rmse\_late & rmse\_on\_time \\
+\midrule
+Fitted on Train only & 7.0847 & 5.4868 & 0.4335 & 3.7092 & 26.2098 & 6.1181 \\
+Refitted on history before 2 June & 7.3738 & 5.8108 & 0.3863 & 4.099 & 25.5998 & 6.5043 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\begin{minipage}{\linewidth}\footnotesize \end{minipage}
+\end{table}
+

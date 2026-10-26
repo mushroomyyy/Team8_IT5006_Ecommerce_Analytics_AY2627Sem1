@@ -15,6 +15,7 @@ MODEL_LABELS = {
     'C3': ('Random Forest (tuned)',
            'Random Forest, raw 24 features, hyperparameters tuned by two-stage CV search'),
     'C3d': ('Random Forest (default)', 'Random Forest, raw 24 features, scikit-learn default hyperparameters'),
+    'C4': ('Decision tree (tuned)', 'Single decision tree, raw 24 features, depth, leaf size and split rule tuned by CV grid search'),
     'R0a': ('Median baseline', 'Predicts the Train median days from promise for every order'),
     'R0b': ('Olist promise',
             f'Predicts arrival exactly on the promised date (0 days), with the lead time capped at {LOOKBACK} days'),
@@ -24,9 +25,10 @@ MODEL_LABELS = {
     'R3': ('Random Forest (tuned)',
            'Random Forest, raw 24 features, hyperparameters tuned by two-stage CV search on RMSE'),
     'R3d': ('Random Forest (default)', 'Random Forest, raw 24 features, scikit-learn default hyperparameters'),
+    'R4': ('Decision tree (tuned)', 'Single decision tree, raw 24 features, depth and leaf size tuned by CV grid search on RMSE'),
 }
-CLASSIFICATION_CODES = ('C0', 'C1', 'C2', 'C2B', 'C3', 'C3d')
-REGRESSION_CODES = ('R0a', 'R0b', 'R1', 'R2', 'R2B', 'R3', 'R3d')
+CLASSIFICATION_CODES = ('C0', 'C1', 'C2', 'C2B', 'C4', 'C3', 'C3d')
+REGRESSION_CODES = ('R0a', 'R0b', 'R1', 'R2', 'R2B', 'R4', 'R3', 'R3d')
 
 
 def short_label(code):

@@ -1,0 +1,442 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:11pt "Times New Roman",serif;max-width:960px;margin:32px auto;}
+table{border-collapse:collapse;width:100%;margin:8px 0;}
+th,td{padding:4px 7px;text-align:right;}th:first-child,td:first-child{text-align:left;}
+thead{border-top:1.5px solid black;border-bottom:1px solid black;}
+tbody{border-bottom:1.5px solid black;}caption{text-align:left;font-weight:bold;}
+.note{font-size:10pt;}section{margin-bottom:24px;}
+</style></head><body>
+<section>
+<p><b>June late orders missed by C2B</b></p>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>cut_off</th>
+      <th>breakdown</th>
+      <th>group</th>
+      <th>late_orders</th>
+      <th>missed</th>
+      <th>miss_rate_pct</th>
+      <th>share_of_missed_pct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>SP</td>
+      <td>43</td>
+      <td>43</td>
+      <td>100.00</td>
+      <td>37.07</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>RJ</td>
+      <td>17</td>
+      <td>17</td>
+      <td>100.00</td>
+      <td>14.66</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>BA</td>
+      <td>13</td>
+      <td>13</td>
+      <td>100.00</td>
+      <td>11.21</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>PI</td>
+      <td>9</td>
+      <td>9</td>
+      <td>100.00</td>
+      <td>7.76</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>ES</td>
+      <td>6</td>
+      <td>6</td>
+      <td>100.00</td>
+      <td>5.17</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>MA</td>
+      <td>5</td>
+      <td>5</td>
+      <td>100.00</td>
+      <td>4.31</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>PE</td>
+      <td>4</td>
+      <td>4</td>
+      <td>100.00</td>
+      <td>3.45</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>DF</td>
+      <td>4</td>
+      <td>4</td>
+      <td>100.00</td>
+      <td>3.45</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>RS</td>
+      <td>4</td>
+      <td>4</td>
+      <td>100.00</td>
+      <td>3.45</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>SE</td>
+      <td>3</td>
+      <td>3</td>
+      <td>100.00</td>
+      <td>2.59</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>CE</td>
+      <td>2</td>
+      <td>2</td>
+      <td>100.00</td>
+      <td>1.72</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>GO</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>0.86</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>MG</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>0.86</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>MS</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>0.86</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>PB</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>0.86</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>RN</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>0.86</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>customer_state</td>
+      <td>MT</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>0.86</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>route_type</td>
+      <td>1. All interstate</td>
+      <td>81</td>
+      <td>81</td>
+      <td>100.00</td>
+      <td>69.83</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>route_type</td>
+      <td>2. All same-state</td>
+      <td>35</td>
+      <td>35</td>
+      <td>100.00</td>
+      <td>30.17</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>promised_lead_band</td>
+      <td>&gt; 28 days</td>
+      <td>41</td>
+      <td>41</td>
+      <td>100.00</td>
+      <td>35.34</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>promised_lead_band</td>
+      <td>22-28 days</td>
+      <td>37</td>
+      <td>37</td>
+      <td>100.00</td>
+      <td>31.90</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>promised_lead_band</td>
+      <td>15-21 days</td>
+      <td>21</td>
+      <td>21</td>
+      <td>100.00</td>
+      <td>18.10</td>
+    </tr>
+    <tr>
+      <td>0.5</td>
+      <td>promised_lead_band</td>
+      <td>&lt;= 14 days</td>
+      <td>17</td>
+      <td>17</td>
+      <td>100.00</td>
+      <td>14.66</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>SP</td>
+      <td>43</td>
+      <td>43</td>
+      <td>100.00</td>
+      <td>52.44</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>RJ</td>
+      <td>17</td>
+      <td>11</td>
+      <td>64.71</td>
+      <td>13.41</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>BA</td>
+      <td>13</td>
+      <td>8</td>
+      <td>61.54</td>
+      <td>9.76</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>ES</td>
+      <td>6</td>
+      <td>4</td>
+      <td>66.67</td>
+      <td>4.88</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>DF</td>
+      <td>4</td>
+      <td>4</td>
+      <td>100.00</td>
+      <td>4.88</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>RS</td>
+      <td>4</td>
+      <td>4</td>
+      <td>100.00</td>
+      <td>4.88</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>PE</td>
+      <td>4</td>
+      <td>3</td>
+      <td>75.00</td>
+      <td>3.66</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>PI</td>
+      <td>9</td>
+      <td>2</td>
+      <td>22.22</td>
+      <td>2.44</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>MG</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>1.22</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>MS</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>1.22</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>MT</td>
+      <td>1</td>
+      <td>1</td>
+      <td>100.00</td>
+      <td>1.22</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>GO</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>MA</td>
+      <td>5</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>CE</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>PB</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>RN</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>customer_state</td>
+      <td>SE</td>
+      <td>3</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>route_type</td>
+      <td>1. All interstate</td>
+      <td>81</td>
+      <td>47</td>
+      <td>58.02</td>
+      <td>57.32</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>route_type</td>
+      <td>2. All same-state</td>
+      <td>35</td>
+      <td>35</td>
+      <td>100.00</td>
+      <td>42.68</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>promised_lead_band</td>
+      <td>&gt; 28 days</td>
+      <td>41</td>
+      <td>32</td>
+      <td>78.05</td>
+      <td>39.02</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>promised_lead_band</td>
+      <td>22-28 days</td>
+      <td>37</td>
+      <td>18</td>
+      <td>48.65</td>
+      <td>21.95</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>promised_lead_band</td>
+      <td>&lt;= 14 days</td>
+      <td>17</td>
+      <td>17</td>
+      <td>100.00</td>
+      <td>20.73</td>
+    </tr>
+    <tr>
+      <td>Validation F1 cut-off (0.1282)</td>
+      <td>promised_lead_band</td>
+      <td>15-21 days</td>
+      <td>21</td>
+      <td>15</td>
+      <td>71.43</td>
+      <td>18.29</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note"></p>
+<p></p></section>
+</body></html>
