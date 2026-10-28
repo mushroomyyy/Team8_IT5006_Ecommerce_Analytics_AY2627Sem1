@@ -25,10 +25,12 @@ have been deleted. See [deployment settings](docs/DEPLOYMENT.md) and the
 ## Selected models
 
 Models are chosen on the Validation set only: the Validation leader, a day-level bootstrap
-of every model's difference from it, and the simplest model statistically tied with it.
-Cross-validation only tunes and selects features within each model family, and June is an
-independent test. Canceled and unavailable orders are excluded from training and evaluation
-because they have no delivery outcome.
+of every model's difference from it, and the simplest model with no clear difference from it
+(a comparison heuristic, not a test of equivalence). Cross-validation only tunes and selects
+features within each model family. The revised selection procedure excludes June outcomes.
+Because June was examined previously, its results are a retrospective test assessment.
+Canceled and unavailable orders are excluded from training and evaluation because they
+have no delivery outcome.
 
 - **C2B logistic regression (13 BIC-selected features)**: late-delivery risk, used to rank orders
   for follow-up; operating cut-off 0.128 chosen on Validation.

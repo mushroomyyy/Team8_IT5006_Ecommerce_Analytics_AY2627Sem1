@@ -56,14 +56,14 @@ class TaskSpec:
 TASKS = {
     'classification': TaskSpec(
         name='classification', title='Classification: will the order arrive late?',
-        rungs=(('Baseline', 'C0'), ('Linear, all', 'C1'), ('Linear, selected', 'C2'),
+        rungs=(('Baseline', 'C0'), ('Linear, all', 'C1'), ('Linear, CV-stepwise', 'C2'), ('Linear, BIC', 'C2B'),
                ('Single tree', 'C4'), ('RF, default', 'C3d'), ('RF, tuned', 'C3')),
         metric='avg_precision', metric_label='Average precision (AP, %)', scale=100.0, score_sign=1.0,
         effect_stem='classification_odds_ratios', effect_is_ratio=True, linear_models=('C1', 'C2'), forest='C3', forest_default='C3d', tree='C4',
         ),
     'regression': TaskSpec(
         name='regression', title='Regression: days from the promised delivery date',
-        rungs=(('Baseline', 'R0a'), ('Linear, all', 'R1'), ('Linear, selected', 'R2'),
+        rungs=(('Baseline', 'R0a'), ('Linear, all', 'R1'), ('Linear, CV-stepwise', 'R2'), ('Linear, BIC', 'R2B'),
                ('Single tree', 'R4'), ('RF, default', 'R3d'), ('RF, tuned', 'R3')),
         metric='rmse', metric_label='RMSE (days)', scale=1.0, score_sign=-1.0,
         effect_stem='regression_coefficients', effect_is_ratio=False, linear_models=('R1', 'R2'), forest='R3', forest_default='R3d', tree='R4',
@@ -140,11 +140,20 @@ def _rung_ticks(task):
     return [f"{model}\n{textwrap.fill(short_label(model), 14)}" for _, model in task.spec.rungs]
 
 
+def _set_rung_ticks(ax, task):
+    """Rung tick labels, with the Validation-selected model in bold."""
+    ax.set_xticks(range(len(task.spec.rungs)), _rung_ticks(task), fontsize=8.5)
+    selected = task.metadata.get('selected_model')
+    for label, (_, model) in zip(ax.get_xticklabels(), task.spec.rungs):
+        if model == selected:
+            label.set_fontweight('bold')
+
+
 def plot_ladder(tasks, save_path=None):
     """Primary metric along the simple-to-complex ladder on CV, Validation and Test (June)."""
     styles = {'CV': (figs.BLUE, 'o'), 'Validation': (figs.AQUA, 's'), 'June': (figs.ORANGE, 'D')}
     with plt.rc_context(figs.STYLE):
-        fig, axes = plt.subplots(1, len(tasks), figsize=(6.2 * len(tasks), 5))
+        fig, axes = plt.subplots(1, len(tasks), figsize=(7 * len(tasks), 5))
         for ax, task in zip(np.atleast_1d(axes), tasks):
             frame = ladder_frame(task)
             for split, (color, marker) in styles.items():
@@ -152,26 +161,26 @@ def plot_ladder(tasks, save_path=None):
                 ax.errorbar(range(len(part)), part['value'], yerr=part['sd'].to_numpy() if split == 'CV' else None,
                             color=color, marker=marker, ms=6, capsize=3, lw=1.6,
                             label='Test (June)' if split == 'June' else split)
-            ax.set_xticks(range(len(task.spec.rungs)), _rung_ticks(task), fontsize=8.5)
+            _set_rung_ticks(ax, task)
             ax.set(xlabel='Model rung, simple to complex', ylabel=task.spec.metric_label,
                    title=task.spec.title)
             ax.legend()
             figs._style(ax, 'y')
         return mf._finish(fig, 'Simple-to-complex ladder: primary metric by evaluation split', save_path,
-                          'CV error bars are +/- 1 SD over 5 chronological folds. No model is selected.')
+                          'CV error bars are +/- 1 SD over 5 chronological folds. Bold: the Validation-selected model.')
 
 
 def plot_overfitting_gaps(tasks, save_path=None):
     """Train minus CV mean gap of the primary metric for every rung."""
     with plt.rc_context(figs.STYLE):
-        fig, axes = plt.subplots(1, len(tasks), figsize=(6.2 * len(tasks), 4.8))
+        fig, axes = plt.subplots(1, len(tasks), figsize=(7 * len(tasks), 4.8))
         for ax, task in zip(np.atleast_1d(axes), tasks):
             spec = task.spec
             gaps = task.table(f'{spec.name}_overfitting_gaps', 'overfitting gap').set_index('Code')
             values = [float(gaps.loc[model, spec.metric]) * spec.scale for _, model in spec.rungs]
             ax.bar(range(len(values)), values, color=[mf.MODEL_COLORS[m] for _, m in spec.rungs])
             ax.axhline(0, color=figs.INK2, lw=0.8)
-            ax.set_xticks(range(len(values)), _rung_ticks(task), fontsize=8.5)
+            _set_rung_ticks(ax, task)
             unit = 'percentage points' if spec.scale == 100 else 'days'
             ax.set(xlabel='Model rung, simple to complex', ylabel=f'Train minus CV mean ({unit})', title=spec.title)
             figs._style(ax, 'y')
@@ -182,7 +191,7 @@ def plot_overfitting_gaps(tasks, save_path=None):
 def plot_drift_summary(tasks, save_path=None):
     """Primary metric from Test (June) to Monitoring (August), and the change over those months."""
     with plt.rc_context(figs.STYLE):
-        fig, axes = plt.subplots(2, len(tasks), figsize=(6.2 * len(tasks), 8.4))
+        fig, axes = plt.subplots(2, len(tasks), figsize=(7 * len(tasks), 8.4))
         for column, task in enumerate(tasks):
             spec = task.spec
             drift = task.table(f'{spec.name}_drift', 'drift')
@@ -198,7 +207,7 @@ def plot_drift_summary(tasks, save_path=None):
             change = [float(drift.loc[m, 'change_june_to_last']) * spec.scale for _, m in spec.rungs]
             bottom.bar(range(len(change)), change, color=[mf.MODEL_COLORS[m] for _, m in spec.rungs])
             bottom.axhline(0, color=figs.INK2, lw=0.8)
-            bottom.set_xticks(range(len(change)), _rung_ticks(task), fontsize=8.5)
+            _set_rung_ticks(bottom, task)
             unit = 'percentage points' if spec.scale == 100 else 'days'
             bottom.set(xlabel='Model rung, simple to complex', ylabel=f'August minus June ({unit})')
             figs._style(top, 'y')
@@ -541,8 +550,9 @@ def what_changed(tasks):
     return ['## 4. What changed vs the previous pipeline', '',
             f"The previous pipeline's headline was {old['model']} with June AP {old['june_ap_percent']}% and June MAE "
             f"{old['june_mae_days']} days, chosen as the winner on June outcomes. The new pipeline chooses on Validation only "
-            "(day-level bootstrap, simplest tied model): every model is scored the same way on Train, CV, Validation, Test (June) "
-            "and Monitoring (July, August), and June is an independent Test set. The cohorts and protocol differ, so the old "
+            "(day-level bootstrap; the simplest model with no clear difference from the leader): every model is scored the same way "
+            "on Train, CV, Validation, Test (June) and Monitoring (July, August). The revised selection procedure excludes June "
+            "outcomes; because June was examined previously, its results are a retrospective test assessment. The cohorts and protocol differ, so the old "
             "numbers are context, not a like-for-like comparison.",
             '', '**New pipeline, Test (June) AP (%)**', '', md_table(['Code', 'Model', 'June AP (%)'], new_rows), '',
             '**New pipeline, Test (June) MAE (days)**', '', md_table(['Code', 'Model', 'June MAE (days)'], mae_rows), '']
@@ -562,8 +572,9 @@ def build_markdown(tasks, root):
             'Generated by `python -m src.summary` from the exported tables and metadata only; nothing is refitted. '
             'Protocol: Train (in-sample), CV (5 chronological folds inside Train), Validation (30-day out-of-time holdout), '
             'Test (June) and Monitoring (July, August) scored by frozen models. CV tunes and selects features inside each family; '
-            'Validation alone chooses between models (day-level bootstrap against the Validation leader; the simplest tied model wins); '
-            'June never enters a choice. Canceled and unavailable orders are excluded from both tasks. '
+            'Validation alone chooses between models (day-level bootstrap against the Validation leader; the simplest model with no '
+            'clear difference wins, which does not establish equivalence); '
+            'June outcomes never enter a choice; because June was examined previously, its results are a retrospective test assessment. Canceled and unavailable orders are excluded from both tasks. '
             'Primary metrics: AP for classification, RMSE for regression.', '',
             f"**Selected models: {display_name(cls.metadata['selected_model'])} and {display_name(reg.metadata['selected_model'])}.**", '',
             '## Model key', '',
