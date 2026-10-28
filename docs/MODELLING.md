@@ -16,8 +16,8 @@ Every model is scored in the same way on the same orders. Tuning and variable se
 | Train | Approvals from 18 Apr 2017 to 1 Feb 2018 whose outcomes are known (in-sample scores) |
 | CV | 5 expanding, chronological folds inside Train: tuning and variable selection within each model family |
 | Validation | 30-day out-of-time holdout, 19 Mar to 17 Apr 2018: the only set that chooses between models |
-| Test (June) | June 2018 orders, scored by the chosen specification refitted on 2 June on all orders approved 18 Apr 2017 to 17 Apr 2018 (Train, gap and Validation; labels from deliveries recorded up to 1 June) |
-| Monitoring | July and August 2018, scored by the frozen June models (no refit, retune or reselection) |
+| Test (June) | Retrospective out-of-sample assessment (June outcomes were seen in Milestone 2 but are never used to fit, tune or select): June 2018 orders, scored by the chosen specification refitted on 2 June on all orders approved 18 Apr 2017 to 17 Apr 2018 (Train, gap and Validation; labels from deliveries recorded up to 1 June) |
+| Monitoring | Out-of-sample monitoring: July and August 2018, scored by the frozen June models (no refit, retune or reselection) |
 
 **Model choice.** The leader is the best Validation score. The 30 Validation approval days are resampled with replacement 2,000 times, every model is rescored on the same resamples, and each model's difference from the leader gets a 95% percentile interval. If a model's interval includes 0, no clear difference from the leader was detected under the comparison heuristic; this does not establish equivalence. Among such models the simplest was selected (linear, then single tree, then forest; within a family, fewer fitted parameters). An order-level bootstrap is reported as a sensitivity check. CV scores of tuned or selected models are optimistic because those choices were made on the same folds, so CV never chooses between families. `src/model_selection.py` implements the rule; the notebooks export the decision table and record `selected_model` in `run_metadata.json`.
 

@@ -27,8 +27,10 @@ have been deleted. See [deployment settings](docs/DEPLOYMENT.md) and the
 Models are chosen on the Validation set only: the Validation leader, a day-level bootstrap
 of every model's difference from it, and the simplest model with no clear difference from it
 (a comparison heuristic, not a test of equivalence). Cross-validation only tunes and selects
-features within each model family. The revised selection procedure excludes June outcomes.
-Because June was examined previously, its results are a retrospective test assessment.
+features within each model family. June is out of sample: no June outcome is used to fit,
+tune or select the models. Because June results were seen in Milestone 2, it is a
+retrospective out-of-sample assessment rather than an untouched test set. July and August
+are out-of-sample monitoring.
 Canceled and unavailable orders are excluded from training and evaluation because they
 have no delivery outcome.
 

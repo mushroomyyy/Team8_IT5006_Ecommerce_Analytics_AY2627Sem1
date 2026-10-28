@@ -551,8 +551,9 @@ def what_changed(tasks):
             f"The previous pipeline's headline was {old['model']} with June AP {old['june_ap_percent']}% and June MAE "
             f"{old['june_mae_days']} days, chosen as the winner on June outcomes. The new pipeline chooses on Validation only "
             "(day-level bootstrap; the simplest model with no clear difference from the leader): every model is scored the same way "
-            "on Train, CV, Validation, Test (June) and Monitoring (July, August). The revised selection procedure excludes June "
-            "outcomes; because June was examined previously, its results are a retrospective test assessment. The cohorts and protocol differ, so the old "
+            "on Train, CV, Validation, Test (June) and Monitoring (July, August). June is out of sample: no June outcome is used "
+            "to fit, tune or select the models. Because June results were seen in Milestone 2, it is a retrospective out-of-sample "
+            "assessment rather than an untouched test set. The cohorts and protocol differ, so the old "
             "numbers are context, not a like-for-like comparison.",
             '', '**New pipeline, Test (June) AP (%)**', '', md_table(['Code', 'Model', 'June AP (%)'], new_rows), '',
             '**New pipeline, Test (June) MAE (days)**', '', md_table(['Code', 'Model', 'June MAE (days)'], mae_rows), '']
@@ -574,7 +575,8 @@ def build_markdown(tasks, root):
             'Test (June) and Monitoring (July, August) scored by frozen models. CV tunes and selects features inside each family; '
             'Validation alone chooses between models (day-level bootstrap against the Validation leader; the simplest model with no '
             'clear difference wins, which does not establish equivalence); '
-            'June outcomes never enter a choice; because June was examined previously, its results are a retrospective test assessment. Canceled and unavailable orders are excluded from both tasks. '
+            'June is a retrospective out-of-sample assessment (not used for selection; its results were seen in Milestone 2) and '
+            'July and August are out-of-sample monitoring. Canceled and unavailable orders are excluded from both tasks. '
             'Primary metrics: AP for classification, RMSE for regression.', '',
             f"**Selected models: {display_name(cls.metadata['selected_model'])} and {display_name(reg.metadata['selected_model'])}.**", '',
             '## Model key', '',
