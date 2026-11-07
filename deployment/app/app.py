@@ -604,7 +604,7 @@ def month_page(live_metadata):
                     help='Share of followed-up orders (with known outcomes) that were eventually late. Random follow-up would match the month’s late rate.')
     delta = None if pooled['all_late_coverage'] is None or monthly is None else pooled['all_late_coverage'] - monthly
     cards[3].metric('Whole-month ranking', percent(monthly), None if delta is None else f'{delta * 100:+.1f} pts for the daily list', border=True,
-                    help='Phase 2 style: rank the whole month’s orders at once and take the same top share. Needs the whole month in hand, so it is not available on the day.')
+                    help='Rank the whole month’s orders at once and take the same top share. Needs the whole month in hand, so it is not available on the day.')
     left, right = st.columns(2)
     with left.container(border=True):
         st.markdown(f'**Late deliveries caught through {name.split()[0]}**')
@@ -627,7 +627,7 @@ def month_page(live_metadata):
         june_rmse = ((live_metadata or {}).get('regression') or {}).get('evaluation', {}).get('June', {}).get('rmse')
         cards = st.columns(4)
         cards[0].metric('Typical error (MAE)', f"{timing['mae']:.1f} days", help=f'Mean absolute gap between {timing_code}’s predicted and the actual days from promise.', border=True)
-        cards[1].metric('RMSE', f"{timing['rmse']:.2f} days", help='Penalises large misses more.' + (f' Phase 2 reported {june_rmse:.3f} days for June.' if june_rmse else ''), border=True)
+        cards[1].metric('RMSE', f"{timing['rmse']:.2f} days", help='Penalises large misses more.' + (f' Model evaluation: {june_rmse:.3f} days for June.' if june_rmse else ''), border=True)
         cards[2].metric(f'Actual vs {timing_code} (average days)', f"{timing['mean_actual']:+.1f} vs {timing['mean_predicted']:+.1f}",
                         f"{timing_code} {'later' if timing['bias'] > 0 else 'earlier'} by {abs(timing['bias']):.1f} days on average", delta_color='off', delta_arrow='off', border=True,
                         help=f'Days from promise (negative = early). {timing_code} erring later is the cautious direction for operations.')
@@ -647,7 +647,7 @@ def month_page(live_metadata):
     with st.expander('How these numbers are produced'):
         st.write('Each morning uses the daily list rules; outcomes are attached only after ranking.')
         st.write(f"Scores are pre-computed with the same {risk} and {timing_code} models the API serves (`python -m deployment.scripts.score_replay`), so this page works without the API.")
-        st.write('Late = Phase 2 label within 45 days of approval. Canceled and unavailable orders stay in the daily list (cancellation is unknown at approval) but have no outcome, so they never count as late or toward rates. Timing accuracy uses the Phase 2 target and excludes them.')
+        st.write('Late = delivered after the promised day, or still undelivered once it passed, checked 45 days after approval (the models’ label). Canceled and unavailable orders stay in the daily list (cancellation is unknown at approval) but have no outcome, so they never count as late or toward rates. Timing accuracy excludes them.')
         st.caption(f"Pre-scored models: {', '.join(f'{k} {v}' for k, v in results['models'].items())}")
     if live_metadata is not None:
         live = dict(model_versions(live_metadata))
@@ -792,8 +792,6 @@ def guidance(metadata, api_url=None):
             notes.append(f"{risk}’s AUC went from {first[f'{risk} AUC']:.2f} to {last[f'{risk} AUC']:.2f}.")
         if first[f'{timing} RMSE'] is not None and last[f'{timing} RMSE'] is not None:
             notes.append(f"{timing}’s RMSE went from {first[f'{timing} RMSE']:.1f} to {last[f'{timing} RMSE']:.1f} days.")
-        if len(notes) == 3 and first[f'{risk} AUC'] > last[f'{risk} AUC']:
-            notes.append(f'Next step: retrain {risk}, or rank with {timing}’s buffer.')
         st.write('\n'.join(f'- {note}' for note in notes) or 'No monitoring results are available.')
     with st.container(border=True):
         st.markdown('**How to use the scores**')
@@ -830,7 +828,7 @@ GUIDE = [
      'The same daily list replayed for a whole month: how many late deliveries it caught, how effort trades off against catches, and how accurate the timing model was.',
      'It opens on July. Compare July and August (monitoring months the models never saw) with June (their retrospective out-of-sample test month).'),
     ('Explore the data',
-     'The data behind the models, from all 98,958 approved orders (January 2017 to August 2018): what drives late deliveries, plus our other two candidate problems (repeat purchases and reviews) and the models’ outputs.',
+     'The data behind the models, from all 98,958 approved orders (January 2017 to August 2018): delivery performance, sellers, customers (repeat purchases and reviews) and the models’ outputs.',
      'Filter by month, state, route or category, then move through the tabs.'),
     ('Single-order API demo',
      'One order sent to the live API, showing both predictions: late-delivery risk and days from the promised date.',

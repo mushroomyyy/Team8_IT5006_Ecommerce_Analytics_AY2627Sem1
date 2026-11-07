@@ -360,6 +360,8 @@ class ClassificationUiTests(unittest.TestCase):
         self.assertEqual(self.post.call_count, posts)
         total = int(next(m for m in self.app.metric if m.label == 'Approved orders').value.replace(',', ''))
         self.assertGreater(total, 90000)
+        late = next(m for m in self.app.metric if m.label == 'Late-delivery rate').value
+        self.assertEqual(late, '6.8%')  # delivered orders only, as in the exploratory analysis
         self.app.multiselect(key='eda_states').set_value(['SP']).run(timeout=60)
         self.assertFalse(self.app.exception)
         filtered = int(next(m for m in self.app.metric if m.label == 'Approved orders').value.replace(',', ''))

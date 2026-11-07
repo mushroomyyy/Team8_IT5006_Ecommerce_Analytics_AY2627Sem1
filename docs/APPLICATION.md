@@ -55,10 +55,12 @@ test environment can resolve both; it also includes HTTP test support.
    have caught over the whole month, compared with a whole-month ranking, random
    calls and a ranking by R2B's buffer, plus R2B's timing accuracy. This page uses
    pre-computed scores and works while the API is asleep.
-8. Open **Explore the data** for the Phase 1 dashboard rebuilt on Phase 2
-   definitions: filters by month, state, route and category (canceled and unavailable orders are not counted as late); tabs for orders,
-   delivery, geography, sellers, customers (repeat purchases and reviews), model
-   outputs and data definitions. Refresh its tables with
+8. Open **Explore the data** for the exploratory dashboard: filters by month,
+   state, route and category; tabs for orders, delivery, geography, sellers,
+   customers (repeat purchases and reviews), model outputs and data definitions.
+   Late-delivery rates count delivered orders only (late = delivered after the
+   promised day). The Model outputs tab uses the models' label, which also counts
+   orders still undelivered once the promised day passed. Refresh its tables with
    `python -m deployment.export.export_eda`.
 9. Use **Single-order API demo** to submit a sample or edit its engineered inputs.
    This calls the same services as the worklist and shows whether the order is

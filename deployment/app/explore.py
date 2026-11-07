@@ -1,4 +1,4 @@
-"""Explore the data: the Phase 1 dashboard rebuilt on Phase 2 definitions, plus model outputs.
+"""Explore the data: exploratory dashboard on the modelling data, plus model outputs.
 
 Reads only the small tables written by deployment/export/export_eda.py, never the raw data.
 """
@@ -43,8 +43,8 @@ def rate_bars(table, x, title, sort=None, height=300):
     return alt.Chart(table).mark_bar(color=FOLLOW).encode(
         x=alt.X(f'{x}:N', title=None, sort=sort or '-y', axis=alt.Axis(labelAngle=-30, labelLimit=180, labelOverlap=False)),
         y=alt.Y('late_rate:Q', title='Late-delivery rate', axis=alt.Axis(format='%')),
-        tooltip=[alt.Tooltip(f'{x}:N', title=title), alt.Tooltip('late_rate:Q', title='Late rate', format='.1%'),
-                 alt.Tooltip('orders:Q', title='Orders with known outcome', format=',')]).properties(height=height)
+        tooltip=[alt.Tooltip(f'{x}:N', title=title), alt.Tooltip('late_rate:Q', title='Late-delivery rate', format='.1%'),
+                 alt.Tooltip('orders:Q', title='Delivered orders', format=',')]).properties(height=height)
 
 
 def count_bars(table, x, y, title, color=INK, horizontal=False, height=300, fmt=','):
@@ -90,6 +90,13 @@ def filters(orders):
     return orders[mask]
 
 
+def delivered_basis(orders):
+    """Late rates on this page count delivered orders only: late = delivered after the promised day."""
+    orders = orders.copy()
+    orders.loc[orders['order_status'].ne('delivered'), 'late'] = float('nan')
+    return orders
+
+
 def overview_tab(orders):
     monthly = orders.groupby('approved_month').agg(orders=('order_id', 'size'), revenue=('payment_value', 'sum')).reset_index()
     monthly['average_order'] = monthly['revenue'] / monthly['orders']
@@ -97,10 +104,10 @@ def overview_tab(orders):
     with left:
         card('Approved orders and average order value by month',
              volume_and_rate(monthly, 'approved_month', 'orders', 'average_order', 'Approved orders', 'Average order value (R$)', line_format=',.0f'),
-             'November 2017 (Black Friday) is the busiest month.')
+             'Average order value = total payment value ÷ approved orders.')
     with right:
         cats = orders['primary_category'].value_counts().head(12).rename_axis('category').reset_index(name='orders')
-        card('Top categories by orders', count_bars(cats, 'category', 'orders', 'Orders', horizontal=True), 'Category of each order’s first item.')
+        card('Top categories by orders', count_bars(cats, 'category', 'orders', 'Orders', horizontal=True), 'Top 12 categories; each order counts under its first item’s category.')
     left, right = st.columns(2)
     with left:
         status = orders['order_status'].value_counts().rename_axis('Status').reset_index(name='Orders')
@@ -109,13 +116,13 @@ def overview_tab(orders):
             st.markdown('**Order status**')
             st.dataframe(status, hide_index=True, width='stretch', column_config={'Orders': st.column_config.NumberColumn(format='localized'),
                          'Share': st.column_config.ProgressColumn(format='percent', min_value=0.0, max_value=1.0)})
-            st.caption('Approved orders only (payment processed), as in Phase 2.')
+            st.caption('Approved orders only (payment processed).')
     with right:
         heat = orders.groupby(['purchase_weekday', 'purchase_hour']).size().reset_index(name='orders')
         heat['weekday'] = heat['purchase_weekday'].map(dict(enumerate(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], 1)))
         chart = alt.Chart(heat).mark_rect().encode(
             x=alt.X('purchase_hour:O', title='Hour of purchase'), y=alt.Y('weekday:N', title=None, sort=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']),
-            color=alt.Color('orders:Q', title='Orders', scale=alt.Scale(scheme='oranges')), tooltip=['weekday:N', 'purchase_hour:O', alt.Tooltip('orders:Q', format=',')]).properties(height=300)
+            color=alt.Color('orders:Q', title='Orders', scale=alt.Scale(scheme='oranges')), tooltip=[alt.Tooltip('weekday:N', title='Day'), alt.Tooltip('purchase_hour:O', title='Hour'), alt.Tooltip('orders:Q', title='Orders', format=',')]).properties(height=300)
         card('When customers buy', chart, 'Purchase time, Brazilian local time.')
 
 
@@ -127,8 +134,7 @@ def delivery_tab(orders):
     monthly = late_rate(orders, 'approved_month')
     left, right = st.columns(2)
     with left:
-        card('Orders and late-delivery rate by month', volume_and_rate(monthly, 'approved_month', 'orders', 'late_rate', 'Orders with known outcome', 'Late-delivery rate'),
-             'Late = delivered after the promised day, or still undelivered once it passed (Phase 2 label, checked 45 days after approval).')
+        card('Orders and late-delivery rate by month', volume_and_rate(monthly, 'approved_month', 'orders', 'late_rate', 'Delivered orders', 'Late-delivery rate'))
     with right:
         days = orders['days_from_promise'].dropna()
         low, high = days.quantile([0.01, 0.99])
@@ -138,8 +144,8 @@ def delivery_tab(orders):
         chart = alt.Chart(frame).mark_bar().encode(
             x=alt.X('days:Q', title='Days from promised date (negative = early)'), y=alt.Y('orders:Q', title='Orders'),
             color=alt.Color('side:N', scale=alt.Scale(domain=['On time or early', 'Late'], range=[OTHER, FOLLOW]), legend=alt.Legend(orient='top', title=None)),
-            tooltip=['days:Q', alt.Tooltip('orders:Q', format=',')]).properties(height=320)
-        card('How early or late orders arrive', chart, 'The timing model’s target: min(lead days, 45) − promised lead days; canceled orders excluded; 1st–99th percentile shown.')
+            tooltip=[alt.Tooltip('days:Q', title='Days from promise'), alt.Tooltip('orders:Q', title='Orders', format=',')]).properties(height=320)
+        card('How early or late orders arrive', chart, 'Days from approval to delivery (capped at 45) minus days promised. Canceled orders excluded; 1st–99th percentile shown.')
     left, right = st.columns(2)
     with left:
         outcome = orders['label_status'].map(STATUS_LABELS).value_counts().rename_axis('Outcome').reset_index(name='Orders')
@@ -148,11 +154,11 @@ def delivery_tab(orders):
             st.markdown('**Delivery outcome against the promise**')
             st.dataframe(outcome, hide_index=True, width='stretch', column_config={'Orders': st.column_config.NumberColumn(format='localized'),
                          'Share': st.column_config.ProgressColumn(format='percent', min_value=0.0, max_value=1.0)})
-            st.caption('Unknown = not yet delivered 45 days after approval and the promise had not passed. Unknown and canceled orders are left out of late rates.')
+            st.caption('Status 45 days after approval. Late-delivery rates on this page use delivered orders only.')
     with right:
-        frame = orders.assign(window=bands(orders['promised_lead_days'], [-999, 10, 20, 30, 40, 999], ['< 10 days', '10–19', '20–29', '30–39', '40+']))
-        card('Late rate by promised delivery window', rate_bars(late_rate(frame, 'window'), 'window', 'Promised window', sort=['< 10 days', '10–19', '20–29', '30–39', '40+']),
-             'Days from approval to the promised date. The shortest promises are missed most often, the longest least.')
+        frame = orders.assign(window=bands(orders['promised_lead_days'], [-999, 11, 21, 31, 999], ['0–10 days', '11–20', '21–30', '31+']))
+        card('Late rate by promised delivery window', rate_bars(late_rate(frame, 'window'), 'window', 'Promised window', sort=['0–10 days', '11–20', '21–30', '31+']),
+             'Days from approval to the promised delivery date.')
     left, right = st.columns(2)
     with left:
         routes = late_rate(orders, 'route_type')
@@ -172,16 +178,16 @@ def delivery_tab(orders):
         chart = alt.Chart(stages).mark_bar().encode(
             y=alt.Y('outcome:N', title=None), x=alt.X('days:Q', title='Median days', stack='zero'),
             color=alt.Color('stage:N', scale=alt.Scale(range=[TEAL, OTHER]), legend=alt.Legend(orient='top', title=None)),
-            tooltip=['outcome:N', 'stage:N', alt.Tooltip('days:Q', format='.1f')]).properties(height=200)
-        card('Where the time goes', chart, 'Delivered orders. Late orders lose most of their time after handover to the carrier.')
+            tooltip=[alt.Tooltip('outcome:N', title='Outcome'), alt.Tooltip('stage:N', title='Stage'), alt.Tooltip('days:Q', title='Median days', format='.1f')]).properties(height=200)
+        card('Where the time goes', chart, 'Delivered orders; median days per stage.')
     with right.container(border=True):
         st.markdown('**Late rate by order attribute**')
-        options = {'Payment method': 'payment_combination', 'Number of items': 'item_count', 'Number of sellers': 'seller_count', 'Instalments': 'payment_installments_max'}
+        options = {'Payment method': 'payment_combination', 'Number of items': 'item_count', 'Number of sellers': 'seller_count', 'Installments': 'payment_installments_max'}
         choice = st.selectbox('Attribute', list(options), key='eda_attribute', label_visibility='collapsed')
         table = late_rate(orders, options[choice], min_orders=100)
         table[options[choice]] = table[options[choice]].astype(str)
         st.altair_chart(rate_bars(table, options[choice], choice, sort='x' if choice != 'Payment method' else '-y', height=220), width='stretch')
-        st.caption('Groups with at least 100 orders.')
+        st.caption('Groups with at least 100 delivered orders.')
 
 
 def geography_tab(orders):
@@ -189,7 +195,7 @@ def geography_tab(orders):
     by_state['state'] = by_state['customer_state'].astype(str).map(lambda s: f'{s} · {STATES.get(s, s)}')
     left, right = st.columns(2)
     with left:
-        card('Late rate by customer state', rate_bars(by_state, 'state', 'State', height=340), 'States with at least 200 orders.')
+        card('Late rate by customer state', rate_bars(by_state, 'state', 'State', height=340), 'States with at least 200 delivered orders.')
     with right:
         volume = orders['customer_state'].value_counts().head(10).rename_axis('state').reset_index(name='orders')
         card('Where orders go', count_bars(volume, 'state', 'orders', 'Orders', horizontal=True, height=340), 'Top 10 customer states.')
@@ -197,11 +203,11 @@ def geography_tab(orders):
         route=lambda f: f['primary_seller_state'].astype(str) + ' → ' + f['customer_state'].astype(str))
     table = late_rate(routes, 'route', min_orders=500)
     card('Late rate on the busiest routes', rate_bars(table, 'route', 'Seller state → customer state', height=300),
-         'Routes with at least 500 orders, using the first item’s seller.')
+         'Routes with at least 500 delivered orders, using the first item’s seller.')
 
 
 def sellers_tab(tables, orders):
-    history = tables['sellers'][tables['sellers']['order_id'].isin(orders['order_id'])].copy()
+    history = tables['sellers'][tables['sellers']['order_id'].isin(orders.loc[orders['late'].notna(), 'order_id'])].copy()
     history['experience'] = bands(history['prior_completed_orders'], [0, 1, 10, 50, 200, 10**9], ['New seller', '1–9', '10–49', '50–199', '200+'])
     history['track_record'] = bands(history['prior_late_rate'], [0, 0.05, 0.10, 0.20, 1.01], ['< 5%', '5–10%', '10–20%', '20%+'])
     history['track_record'] = history['track_record'].fillna('No history')
@@ -211,32 +217,31 @@ def sellers_tab(tables, orders):
              'Deliveries the seller had completed before the order was approved.')
     with right:
         card('Late rate by seller track record', rate_bars(late_rate(history, 'track_record'), 'track_record', 'Seller’s past late rate', sort=['No history', '< 5%', '5–10%', '10–20%', '20%+']),
-             'Only deliveries completed before approval count, so nothing from the future leaks in.')
+             'Seller’s late rate on deliveries completed before the order was approved.')
     minimum = st.slider('Minimum delivered orders per seller', 5, 200, 30, step=5, key='eda_min_seller')
     per_seller = history.groupby('seller_id').agg(orders=('late', 'size'), late_rate=('late', 'mean')).reset_index()
     per_seller = per_seller[per_seller['orders'] >= minimum]
     chart = alt.Chart(per_seller).mark_circle(color=FOLLOW, opacity=0.6, size=60).encode(
         x=alt.X('orders:Q', title='Delivered orders', scale=alt.Scale(type='log')), y=alt.Y('late_rate:Q', title='Late-delivery rate', axis=alt.Axis(format='%')),
-        tooltip=[alt.Tooltip('orders:Q', format=','), alt.Tooltip('late_rate:Q', format='.1%')]).properties(height=320)
-    card(f'Seller volume and late rate ({len(per_seller):,} sellers)', chart, 'Each dot is a seller; delivered orders only.')
+        tooltip=[alt.Tooltip('orders:Q', title='Delivered orders', format=','), alt.Tooltip('late_rate:Q', title='Late-delivery rate', format='.1%')]).properties(height=320)
+    card(f'Seller volume and late rate ({len(per_seller):,} sellers)', chart, 'Each dot is a seller; the x-axis is on a log scale.')
 
 
 def customers_tab(tables, orders):
-    st.caption('Our other two Phase 1 candidate problems: repeat purchases and customer satisfaction.')
     repeat = tables['repeat'].copy()
     repeat['window'] = repeat['complete_window'].map({True: 'Full 3-month window', False: 'Window cut off by data end'})
     chart = alt.Chart(repeat).mark_bar().encode(
         x=alt.X('approved_month:T', title=None, axis=alt.Axis(format='%b %Y')), y=alt.Y('repeat_rate:Q', title='Repeat within 3 months', axis=alt.Axis(format='%')),
         color=alt.Color('window:N', scale=alt.Scale(domain=['Full 3-month window', 'Window cut off by data end'], range=[TEAL, OTHER]), legend=alt.Legend(orient='top', title=None)),
-        tooltip=[alt.Tooltip('approved_month:T', format='%b %Y'), alt.Tooltip('repeat_rate:Q', format='.2%'), alt.Tooltip('customers:Q', format=',')]).properties(height=300)
-    card('Customers who order again within three months', chart, 'Only about 1% of customers return within three months: too rare to predict well, one reason we chose late delivery.')
+        tooltip=[alt.Tooltip('approved_month:T', title='Month', format='%b %Y'), alt.Tooltip('repeat_rate:Q', title='Repeat rate', format='.2%'), alt.Tooltip('customers:Q', title='Customers', format=',')]).properties(height=300)
+    card('Customers who order again within three months', chart, 'Share of customers who order again within three months. Covers all orders (not affected by the filters).')
     left, right = st.columns(2)
     with left:
         scores = orders['review_score'].dropna().round().astype(int).value_counts().sort_index().rename_axis('score').reset_index(name='orders')
         card('Review scores', count_bars(scores.assign(score=scores['score'].astype(str)), 'score', 'orders', 'Orders', color=INK).encode(x=alt.X('score:N', title='Review score', sort=None)))
     with right:
         card('Late rate by review score', rate_bars(late_rate(orders, 'review_group'), 'review_group', 'Review group', sort=['Low (1-2)', 'Mid (3-4)', 'High (5)']),
-             'Phase 2 late label, which also counts orders never delivered by the promise. On delivered orders only (the Phase 1 definition) the low-score rate is lower.')
+             'Review groups: Low = 1–2 stars, Mid = 3–4, High = 5.')
 
 
 def model_tab(orders, scores, codes):
@@ -249,7 +254,8 @@ def model_tab(orders, scores, codes):
     replay['timing'] = [p[1] for p in pairs]
     if replay.empty:
         st.info('No June–August 2018 orders match the current filters.'); return
-    st.caption(f'June–August 2018, scored with the deployed {risk} and {timing} models. June is out of sample, assessed retrospectively; July and August are monitoring months the models never saw.')
+    st.caption(f'June–August 2018, scored with the deployed {risk} and {timing} models (June: test month; July and August: monitoring). '
+               'Late here also counts orders still undelivered once the promised day passed, the label the models were trained and evaluated on.')
     monthly = replay.groupby('approved_month').agg(late_rate=('late', 'mean'), risk=('risk', 'mean'), actual=('days_from_promise', 'mean'), timing=('timing', 'mean')).reset_index()
     left, right = st.columns(2)
     with left:
@@ -258,16 +264,16 @@ def model_tab(orders, scores, codes):
         chart = alt.Chart(long).mark_line(point=True, strokeWidth=2.5).encode(
             x=alt.X('approved_month:T', title=None, axis=alt.Axis(format='%b %Y', tickCount='month')), y=alt.Y('value:Q', title=None, axis=alt.Axis(format='%')),
             color=alt.Color('series:N', scale=alt.Scale(range=[INK, FOLLOW]), legend=alt.Legend(orient='top', title=None)),
-            tooltip=[alt.Tooltip('approved_month:T', format='%b %Y'), 'series:N', alt.Tooltip('value:Q', format='.1%')]).properties(height=280)
-        card(f'Actual late rate and {risk}’s average risk', chart, f'{risk} scores rank orders and are not calibrated, so compare the trends, not the levels.')
+            tooltip=[alt.Tooltip('approved_month:T', title='Month', format='%b %Y'), alt.Tooltip('series:N', title='Series'), alt.Tooltip('value:Q', title='Value', format='.1%')]).properties(height=280)
+        card(f'Actual late rate and {risk}’s average risk', chart, f'{risk} scores rank orders by risk and are not probabilities, so compare the trends, not the levels.')
     with right:
         long = monthly.melt(id_vars='approved_month', value_vars=['actual', 'timing'], var_name='series', value_name='days')
         long['series'] = long['series'].map({'actual': 'Actual', 'timing': f'{timing} prediction'})
         chart = alt.Chart(long).mark_line(point=True, strokeWidth=2.5).encode(
             x=alt.X('approved_month:T', title=None, axis=alt.Axis(format='%b %Y', tickCount='month')), y=alt.Y('days:Q', title='Average days from promise'),
             color=alt.Color('series:N', scale=alt.Scale(range=[INK, FOLLOW]), legend=alt.Legend(orient='top', title=None)),
-            tooltip=[alt.Tooltip('approved_month:T', format='%b %Y'), 'series:N', alt.Tooltip('days:Q', format='+.1f')]).properties(height=280)
-        card(f'{timing} against the actual buffer', chart, 'Negative = before the promised date.')
+            tooltip=[alt.Tooltip('approved_month:T', title='Month', format='%b %Y'), alt.Tooltip('series:N', title='Series'), alt.Tooltip('days:Q', title='Days from promise', format='+.1f')]).properties(height=280)
+        card(f'{timing} prediction against actual days from promise', chart, 'Negative = before the promised date.')
     known = replay[replay['late'].notna()].copy()
     known['decile'] = known.groupby('approved_month')['risk'].transform(lambda s: pd.qcut(s.rank(method='first'), 10, labels=False) + 1)
     lift = known.groupby(['approved_month', 'decile']).agg(late_rate=('late', 'mean')).reset_index()
@@ -275,15 +281,15 @@ def model_tab(orders, scores, codes):
     chart = alt.Chart(lift).mark_line(point=True, strokeWidth=2.5).encode(
         x=alt.X('decile:O', title=f'{risk} risk decile (10 = riskiest tenth of the month)', axis=alt.Axis(labelAngle=0)), y=alt.Y('late_rate:Q', title='Late-delivery rate', axis=alt.Axis(format='%')),
         color=alt.Color('month:N', scale=alt.Scale(domain=['June', 'July', 'August'], range=[FOLLOW, TEAL, INK]), legend=alt.Legend(orient='top', title=None)),
-        tooltip=['month:N', 'decile:O', alt.Tooltip('late_rate:Q', format='.1%')]).properties(height=300)
+        tooltip=[alt.Tooltip('month:N', title='Month'), alt.Tooltip('decile:O', title='Risk decile'), alt.Tooltip('late_rate:Q', title='Late-delivery rate', format='.1%')]).properties(height=300)
     card(f'Does higher {risk} risk mean more late orders?', chart, 'A useful score slopes upward: the riskiest decile should have the highest late rate. Compare how the slope changes from June to August.')
     by_state = known.groupby('customer_state', observed=True).agg(orders=('late', 'size'), late_rate=('late', 'mean'), risk=('risk', 'mean')).reset_index()
     by_state = by_state[by_state['orders'] >= 100]
     chart = alt.Chart(by_state).mark_circle(color=FOLLOW, size=120, opacity=0.8).encode(
         x=alt.X('risk:Q', title=f'Average {risk} risk', axis=alt.Axis(format='%'), scale=alt.Scale(zero=False, padding=20)), y=alt.Y('late_rate:Q', title='Actual late rate', axis=alt.Axis(format='%')),
-        tooltip=['customer_state:N', alt.Tooltip('orders:Q', format=','), alt.Tooltip('late_rate:Q', format='.1%'), alt.Tooltip('risk:Q', format='.1%')])
+        tooltip=[alt.Tooltip('customer_state:N', title='State'), alt.Tooltip('orders:Q', title='Orders', format=','), alt.Tooltip('late_rate:Q', title='Late-delivery rate', format='.1%'), alt.Tooltip('risk:Q', title='Average risk', format='.1%')])
     labels = chart.mark_text(dx=12, align='left', color=INK, fontSize=12).encode(text='customer_state:N')
-    card('Do the model’s risky states match reality?', alt.layer(chart, labels).properties(height=320), 'Customer states with at least 100 orders, June–August 2018.')
+    card(f'Do {risk}’s riskiest states match reality?', alt.layer(chart, labels).properties(height=320), 'Customer states with at least 100 orders, June–August 2018.')
 
 
 def data_tab(tables, orders):
@@ -294,7 +300,7 @@ def data_tab(tables, orders):
     chart = alt.Chart(coverage).mark_bar().encode(
         x=alt.X('month:T', title=None, axis=alt.Axis(format='%b %Y')), y=alt.Y('orders:Q', title='Orders placed'),
         color=alt.Color('in_scope:N', scale=alt.Scale(domain=[True, False], range=[FOLLOW, OTHER]), legend=alt.Legend(orient='top', title='In analysis window', labelExpr="datum.value ? 'Yes' : 'No'")),
-        tooltip=[alt.Tooltip('month:T', format='%b %Y'), alt.Tooltip('orders:Q', format=','), alt.Tooltip('approved:Q', format=','), alt.Tooltip('delivered:Q', format=',')]).properties(height=280)
+        tooltip=[alt.Tooltip('month:T', format='%b %Y'), alt.Tooltip('orders:Q', title='Orders placed', format=','), alt.Tooltip('approved:Q', title='Approved', format=','), alt.Tooltip('delivered:Q', title='Delivered', format=',')]).properties(height=280)
     card('Why the analysis covers January 2017 to August 2018', chart, 'Months outside the window have too few orders or incomplete outcomes.')
     left, right = st.columns(2)
     with left:
@@ -303,26 +309,28 @@ def data_tab(tables, orders):
     with right:
         st.markdown('**Join and quality checks**')
         st.dataframe(pd.DataFrame(checks['checks']).rename(columns={'check': 'Check', 'result': 'Result'}).astype(str), hide_index=True, width='stretch')
-    with st.expander('Definitions (from the Phase 2 report)', expanded=True):
+    with st.expander('Definitions', expanded=True):
         st.markdown(
             '- **Orders:** approved orders (payment processed), approved January 2017 to August 2018; one row per order.\n'
             '- **Time axis:** approval date (calendar dates).\n'
-            '- **Late:** delivered after the promised day, or still undelivered once it passed; checked 45 days after approval. Otherwise unknown and left out of rates. Canceled and unavailable orders have no outcome and are left out too.\n'
-            '- **Days from promise:** min(lead days, 45) − promised lead days, lead days from approval; canceled and unavailable orders excluded.\n'
-            '- **Distance, route type, payment method:** the Phase 2 engineered features.')
-    st.caption(f'{len(orders):,} orders match the current filters.')
+            '- **Late-delivery rate:** share of delivered orders that arrived after the promised day. Canceled, unavailable and undelivered orders are left out.\n'
+            '- **Model outputs tab:** late also counts orders still undelivered once the promised day passed, checked 45 days after approval: the label the models were trained and evaluated on.\n'
+            '- **Days from promise:** days from approval to delivery (capped at 45) minus days from approval to the promised date; negative = early. Canceled and unavailable orders excluded.\n'
+            '- **Distance, route type, payment method:** derived from seller and customer locations and payment records; also used as model inputs.')
 
 
 def explore_page(page_header, scores, codes):
-    page_header('Explore the data', 'Olist orders approved January 2017 to August 2018: what drives late deliveries, plus our two other candidate problems.')
+    page_header('Explore the data', 'Olist orders approved January 2017 to August 2018: delivery performance, sellers, customers and model outputs.')
     tables = load_tables()
-    orders = filters(tables['orders'])
-    if orders.empty:
+    scoped = filters(tables['orders'])
+    if scoped.empty:
         st.info('No orders match these filters.'); return
+    orders = delivered_basis(scoped)
     known = orders['late'].notna()
+    rate = f"{orders.loc[known, 'late'].mean():.1%}" if known.any() else 'n/a'
     cards = st.columns(4)
     cards[0].metric('Approved orders', f'{len(orders):,}', border=True)
-    cards[1].metric('Late-delivery rate', f"{orders.loc[known, 'late'].mean():.1%}", help='Share of orders with a known outcome that were late (Phase 2 label).', border=True)
+    cards[1].metric('Late-delivery rate', rate, help='Share of delivered orders that arrived after the promised day.', border=True)
     cards[2].metric('Median days from promise', f"{orders['days_from_promise'].median():+.0f}", help='Negative = arrived before the promised date.', border=True)
     cards[3].metric('Average review score', f"{orders['review_score'].mean():.2f} / 5", border=True)
     tabs = st.tabs(['Overview', 'Delivery', 'Geography', 'Sellers', 'Customers', 'Model outputs', 'Data and definitions'])
@@ -331,5 +339,5 @@ def explore_page(page_header, scores, codes):
     with tabs[2]: geography_tab(orders)
     with tabs[3]: sellers_tab(tables, orders)
     with tabs[4]: customers_tab(tables, orders)
-    with tabs[5]: model_tab(orders, scores, codes)
+    with tabs[5]: model_tab(scoped, scores, codes)
     with tabs[6]: data_tab(tables, orders)
