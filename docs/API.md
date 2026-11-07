@@ -8,11 +8,10 @@ The Team 8 Delivery Operations API serves the two Phase 2 models over HTTPS:
 - **R2B** (OLS, 17 BIC-selected features): predicted days from the promised delivery
   date (negative = early), bounded to a 0-45 day lead time.
 
-> **Local verification only.** The models above passed Docker and HTTP checks on
-> 26-27 October 2026. The live Render service is redeployed after the merge to
-> `main`; until that is re-verified it may still serve the previous C3/R1 versions.
-> Check `/health` for the model versions actually being served. The response
-> examples below were captured from the packaged models run locally on 27 October 2026.
+> `/health` reports the model versions being served
+> (`phase2-c2b-logistic-2018-06-02` and `phase2-r2b-ols-2018-06-02`). The response
+> examples below were captured from the packaged models, which the live service
+> matches exactly.
 
 | | |
 |---|---|
@@ -219,7 +218,7 @@ for row in batch["results"]:
 
 ### Monitoring
 
-The example below is illustrative (values from the previous deployment).
+The example below is illustrative; values depend on recent traffic.
 
 ```bash
 curl https://team8-delivery-api.onrender.com/logs/summary

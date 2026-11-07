@@ -12,7 +12,7 @@ From the repository root:
 
 ```bash
 python3.13 -m venv .venv-phase3
-source .venv-deployment/bin/activate
+source .venv-phase3/bin/activate
 python -m pip install -r deployment/requirements-test.txt
 python -m uvicorn deployment.api.api:app --host 127.0.0.1 --port 8002
 ```
@@ -36,8 +36,9 @@ test environment can resolve both; it also includes HTTP test support.
    It opens on 2 June 2018, the first scoring morning for the frozen models,
    covering orders approved on 1 June. Dates range from 2 June to 30 August 2018,
    scoring the previous day's approvals.
-   The models were chosen on Validation: June is their held-out test month, and
-   July and August are unseen monitoring months.
+   The models were chosen on Validation: June is a retrospective out-of-sample
+   month (no June outcome was used, but its results were seen in Milestone 2), and
+   July and August are out-of-sample monitoring months.
 2. Move with the date picker or **Previous day / Next day**. The cutoff is
    midnight at the start of the simulated date in the source's local wall time.
 3. Set the follow-up proportion (30% initially) and minimum days remaining
@@ -78,7 +79,7 @@ test environment can resolve both; it also includes HTTP test support.
 | `deployment/export/` | Offline training and export utilities; never run at web startup |
 | `deployment/scripts/` | `score_replay.py` (pre-scores the replay for Month-end review), `evaluate_daily.py`, `verify_http.py` |
 | `tests/deployment/` | Model, API, temporal policy, packaging and Streamlit checks |
-| `docs/` | API guide, deployment, model contracts, verification and archived prototype guide |
+| `docs/` | API guide, deployment, model contracts, verification record; `docs/archive/` keeps the earlier classification-only prototype guide |
 
 See [calling the API](API.md), [model and simulation contracts](TECHNICAL.md),
 [hosting instructions](DEPLOYMENT.md) and [verification record](VERIFICATION.md).
@@ -93,31 +94,15 @@ python -m pytest tests/phase2 -q
 Backend and frontend deployment images deliberately exclude the raw
 source data, Phase 2 modules, offline training utilities and tests.
 
-## Deployment status
+## Live deployment
 
-The repository migration was published on `main` as merge commit `456262a`, and
-the Render API at https://team8-delivery-api.onrender.com
-([Swagger](https://team8-delivery-api.onrender.com/docs)) was verified live on
-25 October 2026 serving the previous C3/R1 models.
+- [Delivery Watch](https://team8-delivery-watch.streamlit.app/): `deployment/app/app.py` (Python 3.14).
+- [Phase 1 dashboard](https://team8-olist-dashboard.streamlit.app/): `deployment/phase1_dashboard/streamlit_app.py` (Python 3.14).
+- [Model API](https://team8-delivery-api.onrender.com) ([Swagger](https://team8-delivery-api.onrender.com/docs)): serves C2B and R2B (Python 3.13.5).
 
-The C2B/R2B model switch was merged and pushed as `cfd8f41` and verified live on
-27 October 2026. Render deploy `dep-dbfnp8ajnfac73clqoeg` succeeded; all eight
-HTTP check groups pass and hosted predictions match the local packaged models.
-Delivery Watch shows **API connected · C2B + R2B**, renders the new model-choice
-and confusion tables, and scores the default daily list (129 orders, 39 selected).
-All 180 local tests pass. See the [live verification](render_c2b_r2b_verification.json).
-
-Both replacement Streamlit apps were deployed from `main` at commit
-`453076cf41a27e92c9850ae37f109283b09e9196` and verified on 26 October 2026:
-
-- [Delivery Watch](https://team8-delivery-watch.streamlit.app/): `deployment/app/app.py`.
-- [Phase 1 dashboard](https://team8-olist-dashboard.streamlit.app/): `deployment/phase1_dashboard/streamlit_app.py`.
-
-Both use Python 3.14, matching the previous apps' runtime settings. Delivery
-Watch's seven pages and the 10/10 example batch passed hosted checks; Phase 1's
-filters and charts also passed. The old apps were deleted after verification.
-See [deployment settings](DEPLOYMENT.md) and the
-[verification record](VERIFICATION.md). For API clients, see [API.md](API.md).
+Hosted predictions match the locally packaged models, and every page passed hosted
+checks. See [deployment settings](DEPLOYMENT.md), the
+[verification record](VERIFICATION.md) and, for API clients, [API.md](API.md).
 
 ## Refreshing packaged data
 
@@ -137,6 +122,6 @@ python -m deployment.scripts.evaluate_daily       # writes docs/daily_policy_eva
 
 Render serves `/health`, `/model-info`, `/predict`, `/predict/batch`, independent
 model routes and aggregate monitoring. Historical dates, orders, outcomes and
-follow-up policy live only in Streamlit’s Python layer. The old demo endpoints
-and `/explain` have been removed. Streamlit does not load models or reproduce
-fitted preprocessing.
+follow-up policy live only in Streamlit’s Python layer; the API exposes no
+historical data routes. Streamlit does not load models or reproduce fitted
+preprocessing.

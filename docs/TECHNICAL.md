@@ -30,7 +30,7 @@ No future delivery values or outcomes are model inputs.
 `/predict/classification`, `/predict/regression` and `/model-info/<task>` routes
 keep models usable separately. `/health` succeeds only when both load.
 `/logs/summary` holds bounded process-local aggregates without order IDs or inputs.
-`/samples`, `/simulation`, `/worklist`, `/outcomes` and `/explain` are removed.
+The API exposes no historical order, outcome or worklist routes.
 There is no sensitivity/explanation UI: independent feature resets could create
 inconsistent calendar values and do not provide causal or intervention guidance.
 
@@ -46,7 +46,9 @@ on explicit reveal. Changing date or policy hides revealed outcomes again.
 
 Models were chosen on Validation only: a day-level bootstrap of each candidate
 against the Validation leader, then the simplest tied model. CV only tunes and
-selects features inside a model family, and June is an independent held-out test.
+selects features inside a model family, and June is a retrospective out-of-sample
+assessment: no June outcome fits, tunes or selects a model, but its results were
+seen in Milestone 2.
 
 - **C2B**: plain logistic regression on 13 BIC-selected features
   (`phase2-c2b-logistic-2018-06-02`). Log1p of skewed amounts, sine/cosine calendar
@@ -100,7 +102,7 @@ implemented daily filtered policy.
 ## Daily simulation
 
 - Current dates: **2 June–30 August 2018**; batch date: previous calendar day.
-  June is the held-out test month; July and August are frozen-model monitoring.
+  June is the retrospective out-of-sample month; July and August are frozen-model monitoring.
   The cohort is approved orders, not purchase dates or a cumulative unresolved queue.
 - Source timestamps have no offset. Treat them as Brazilian local wall time
   (America/Sao_Paulo convention), without conversion to Singapore/UTC.
@@ -184,8 +186,8 @@ python -m deployment.scripts.verify_http https://team8-delivery-api.onrender.com
 ```
 
 The verifier checks integrated vs independent model outputs, single/batch numerical
-equivalence, invalid single/empty-batch422 errors, Swagger and404 responses for
-removed demo/explanation paths. Last-bit linear algebra differences are compared
+equivalence, invalid single/empty-batch422 errors, Swagger, and 404 responses for
+the data and explanation routes the API does not serve. Last-bit linear algebra differences are compared
 with `rtol=atol=1e-12`.
 
 A minimal client, given a valid 24-feature dictionary:

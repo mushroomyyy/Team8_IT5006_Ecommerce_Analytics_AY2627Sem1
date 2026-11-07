@@ -489,7 +489,7 @@ def daily_page(api_url, metadata):
 
 
 MONTH_NOTES = {
-    '2018-06': ('Test month', 'The models were fitted on history before 2 June and chosen on Validation: June is their held-out test month.'),
+    '2018-06': ('Test month', 'The models were fitted on history before 2 June and chosen on Validation. No June outcome was used, but June results were seen in Milestone 2, so this is a retrospective out-of-sample test.'),
     '2018-07': ('Monitoring month', 'The models were frozen on 2 June and never saw July: this is the true hold-out.'),
     '2018-08': ('Monitoring month', 'The models were frozen on 2 June and never saw August: this is the true hold-out.'),
 }
@@ -828,7 +828,7 @@ GUIDE = [
      'It opens on 2 June 2018, the first scoring morning for the frozen models, covering 1 June approvals in the test month; any day from 2 June to 30 August works. Optionally change the share to call. Press **Reveal eventual outcomes** to see which orders were actually late.'),
     ('Month-end review',
      'The same daily list replayed for a whole month: how many late deliveries it caught, how effort trades off against catches, and how accurate the timing model was.',
-     'It opens on July. Compare July and August (monitoring months the models never saw) with June (their held-out test month).'),
+     'It opens on July. Compare July and August (monitoring months the models never saw) with June (their retrospective out-of-sample test month).'),
     ('Explore the data',
      'The data behind the models, from all 98,958 approved orders (January 2017 to August 2018): what drives late deliveries, plus our other two candidate problems (repeat purchases and reviews) and the models’ outputs.',
      'Filter by month, state, route or category, then move through the tabs.'),
@@ -856,7 +856,7 @@ def start_page():
         st.markdown(
             f'- **{risk}** ({short_label(risk)}) ranks orders by late-delivery risk; its scores are for ranking, not calibrated probabilities.\n'
             f'- **{timing}** ({short_label(timing)}) predicts days from the promised date: negative = early, positive = late.\n'
-            '- Data: real Olist orders from 2017–2018, replayed as if new. The models were fitted on history before 2 June and chosen on Validation; June is their test month and July and August are unseen.\n'
+            '- Data: real Olist orders from 2017–2018, replayed as if new. The models were fitted on history before 2 June and chosen on Validation; June is a retrospective out-of-sample test month and July and August are unseen.\n'
             '- The prediction API sleeps when idle; the first call can take 30–60 seconds. Use **Retry API connection** in the sidebar if needed.\n'
             '- API documentation: https://team8-delivery-api.onrender.com/docs')
 

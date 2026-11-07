@@ -1,5 +1,9 @@
 # Verification record
 
+Evidence that the notebooks, packaged models and live services work as documented,
+newest first. The first three sections cover the current C2B/R2B models; the
+sections after them record the earlier C3/R1 deployment.
+
 ## Full notebook rerun — 27 October 2026
 
 All four current notebooks ran sequentially, top to bottom in fresh kernels, in
@@ -58,8 +62,8 @@ Pre-release local checks; live verification is recorded above.
 - Deployed models are now C2B (`phase2-c2b-logistic-2018-06-02`, 13 BIC-selected
   features, operating cut-off 0.1282 from Validation) and R2B
   (`phase2-r2b-ols-2018-06-02`, 17 BIC-selected features). They were chosen on
-  Validation only; June is an independent held-out test and July/August are
-  monitoring. Canceled and unavailable orders are excluded from training and
+  Validation only; June is a retrospective out-of-sample assessment and
+  July/August are monitoring. Canceled and unavailable orders are excluded from training and
   evaluation.
 - Artifacts are `classification_model.joblib` and `regression_model.joblib`.
   `classification_c3_rf.joblib`, `regression_r1_ols.joblib`,
@@ -75,7 +79,7 @@ Pre-release local checks; live verification is recorded above.
   remaining, rounding up): 6,164 June approvals, 6,134 known, 8 unknown, 116 known
   late; 1,863 selected, 1,855 known, 3 unknown, 78 known late. Selected late rate
   78/1,855 = 4.20%; eligible/all known late coverage 78/116 = 67.24%. The remaining
-  22 approvals (5 of them selected) are canceled and have no outcome. June is held-out test data, but
+  22 approvals (5 of them selected) are canceled and have no outcome. June is out of sample, but
   the policy settings are demonstration assumptions.
 - C2B on June: average precision 0.0815, ROC-AUC 0.729; at the cut-off it flags
   6.3% of orders (34 of 116 known late caught); at 0.5 it flags none. R2B on June:
@@ -83,7 +87,13 @@ Pre-release local checks; live verification is recorded above.
 - Completed on 27 October 2026: release merge, Render redeploy, live HTTP checks
   and hosted Streamlit model-guidance/daily-simulation checks (see above).
 
-## Streamlit replacements verified — 26 October 2026 (previous C3/R1 deployment)
+---
+
+**Earlier deployment (C3/R1).** The sections below record the previous C3 Random
+Forest and R1 OLS deployment, which C2B/R2B replaced on 27 October 2026. Their
+model names, counts and results do not describe the current models.
+
+## Streamlit apps verified — 26 October 2026 (C3/R1)
 
 - Owner: `mushroomyyy`. Both apps were created from repository `main` at source
   commit `453076cf41a27e92c9850ae37f109283b09e9196`.
@@ -117,10 +127,9 @@ Pre-release local checks; live verification is recorded above.
 - Existing local UI and simulation checks: 39 tests and 14 subtests passed.
 - Both old Streamlit apps were deleted after replacement verification. The
   Streamlit dashboard now lists only the two migrated entry points above.
-- No outstanding failed deployment checks. Separately maintained slides/PDF,
-  final report and previously shared links still need the team's new URLs.
+- No outstanding failed deployment checks.
 
-## Reorganization published — 25 October 2026 (previous C3/R1 deployment)
+## Repository reorganisation published — 25 October 2026 (C3/R1)
 
 - Render deploy `dep-dbeto2g473hc739eqrig` serves merge `456262a` using
   `./deployment/Dockerfile.api`; the dashboard reports Live after 1m21s.
@@ -129,11 +138,8 @@ Pre-release local checks; live verification is recorded above.
   invalid-input 422s and removed-route 404s.
 - C3/R1 model versions are unchanged; hosted predictions agree with the local
   models. The documented example batch succeeds 10/10.
-- Detailed migration evidence and screenshots are retained locally.
-- Only `main` was pushed. Both Streamlit replacement deployments remain pending;
-  the detailed collaborator instructions are retained locally.
+- Only `main` was pushed. The Streamlit apps were redeployed on 26 October 2026.
 
-The dated sections below are historical verification records of the previous C3/R1 deployment; their model names, counts and results do not describe C2B/R2B.
 
 ## Streamlit / inference split — 20 October 2026 (C3/R1)
 
@@ -168,8 +174,8 @@ The dated sections below are historical verification records of the previous C3/
 
 ## Initial integration checks (before the boundary refactor; C3/R1)
 
-- Regression branch merged into `classification-deployment`; original dirty work
-  backed up before integration and retained in moved sources/artifacts/archives.
+- Regression branch merged into `classification-deployment`; earlier working files
+  were retained in the moved sources, artifacts and archives.
 - **52 Phase 3 tests pass**: actual-model contracts, single/batch equality, strict
   input validation, temporal eligibility, ties/rounding/small and empty batches,
   unknown-outcome denominators, date navigation, outcome reveal/reset, HTTP-only
@@ -197,7 +203,7 @@ The dated sections below are historical verification records of the previous C3/
 - Phase 1 launcher restored to the exploratory dashboard; bundled source ZIP
   remains available. Existing Phase 1 requirements and application paths remain intact.
 
-## Fixed daily-policy retrospective results (previous C3 deployment)
+## Fixed daily-policy retrospective results (C3/R1)
 
 `python -m deployment.scripts.evaluate_daily` writes
 [daily_policy_evaluation.json](daily_policy_evaluation.json), now regenerated for
@@ -261,17 +267,12 @@ Zero denominators and unknown labels remain explicit in daily records.
   differences from platform/BLAS arithmetic are checked with numerical tolerance.
 - The default 2 June worklist returns 147 total/eligible, zero excluded and 45
   selected orders. R1 output is signed capped days from promise; C3 is a risk score.
-- Python on this Mac initially lacked a usable default CA store. Verification used
-  the installed certifi trusted CA bundle, with TLS certificate checking enabled.
+- TLS certificate checking stayed enabled throughout (certifi CA bundle).
 - Initial hosted application startup and prediction succeeded. Idle-to-awake
   cold-start timing and sustained resource/load limits have not been measured.
-- **Streamlit public deployment is pending at Andrew’s explicit request.** Its
-  code and local verification remain complete; no public frontend URL is claimed.
-- The separate course technical HTML guide was not found; the verified course
-  PDF and professor examples were reviewed.
+- The Streamlit front end was published later (see the 26 October section).
 
 ## Screenshots
 
 Integrated UI screenshots are under [screenshots/](screenshots/).
-The superseded classification-only guide and five original improved screenshots
-are deliberately archived under [archive/classification-only/](archive/classification-only/).
+The earlier classification-only guide and its screenshots are archived under [archive/classification-only/](archive/classification-only/).

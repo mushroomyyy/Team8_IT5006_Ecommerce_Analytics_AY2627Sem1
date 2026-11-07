@@ -249,7 +249,7 @@ def model_tab(orders, scores, codes):
     replay['timing'] = [p[1] for p in pairs]
     if replay.empty:
         st.info('No June–August 2018 orders match the current filters.'); return
-    st.caption(f'June–August 2018, scored with the deployed {risk} and {timing} models. June was the held-out test month; July and August are monitoring months the models never saw.')
+    st.caption(f'June–August 2018, scored with the deployed {risk} and {timing} models. June is out of sample, assessed retrospectively; July and August are monitoring months the models never saw.')
     monthly = replay.groupby('approved_month').agg(late_rate=('late', 'mean'), risk=('risk', 'mean'), actual=('days_from_promise', 'mean'), timing=('timing', 'mean')).reset_index()
     left, right = st.columns(2)
     with left:

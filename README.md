@@ -12,15 +12,10 @@ to a deployed operations application (Phase 3).
 | Model API (FastAPI on Render) | https://team8-delivery-api.onrender.com |
 | API docs (Swagger, with examples) | https://team8-delivery-api.onrender.com/docs |
 
-The free API sleeps when idle; the first request can take 30–60 seconds to wake it.
-The C2B/R2B release (`cfd8f41`) was deployed and verified on 27 October 2026.
-Render serves the new model versions, and Delivery Watch connects to them.
-See the [live verification](docs/render_c2b_r2b_verification.json).
-The directory migration is merged into `main`; Render was redeployed and verified
-on 25 October 2026. Both replacement Streamlit apps were deployed and verified on
-26 October 2026, using Python 3.14 and the migrated entry points. The old apps
-have been deleted. See [deployment settings](docs/DEPLOYMENT.md) and the
-[verification record](docs/VERIFICATION.md). The API service and URL are unchanged.
+The API runs on Render's free tier and sleeps when idle; the first request can take
+30–60 seconds to wake it. Every service deploys from `main`. See
+[deployment](docs/DEPLOYMENT.md) for the hosting settings and
+[verification](docs/VERIFICATION.md) for the live checks.
 
 ## Selected models
 
@@ -58,7 +53,7 @@ Fitted preprocessing travels with each model; the API serves the packaged Phase 
 | `deployment/phase1_dashboard/` | Original Phase 1 dashboard and hosted `streamlit_app.py` launcher |
 | `deployment/Dockerfile.*`, `render.yaml` | Container builds and Render configuration |
 | `docs/` | Application, API, modelling, deployment and verification guides |
-| `archive/phase2_archive/` | Earlier exploratory work, preserved without edits |
+| `archive/phase2_archive/` | Earlier exploratory notebooks and snapshots (not part of the workflow) |
 | `requirements.txt`, `requirements-modelling.txt` | Full local environment and modelling dependencies |
 
 ## Phase 1: exploratory analysis
@@ -80,7 +75,7 @@ definitions and small precomputed tables in `deployment/app/data/eda/`.
 
 ## Phase 2: modelling
 
-The current modelling workflow consists of four notebooks, run in this order:
+The modelling workflow consists of four notebooks, run in this order:
 
 | Notebook | Purpose |
 |---|---|
@@ -131,8 +126,8 @@ not run when the API or application starts.
 
 ## Setup
 
-Python 3.13.5 matches the model API and fitted artifacts. The hosted Streamlit
-apps use Python 3.14, matching their previous app settings.
+Use Python 3.13.5, the version the model API and fitted artifacts were built with.
+(The hosted Streamlit apps run on Python 3.14.)
 
 ```bash
 python3.13 -m venv .venv
@@ -169,14 +164,15 @@ python -m streamlit run deployment/phase1_dashboard/streamlit_app.py
 
 Each simulated morning between 2 June and 30 August 2018, the app scores the
 previous day's eligible approvals and puts the riskiest share (30% by default)
-on a follow-up list. Models were chosen on Validation; June is their held-out test
-month and July and August are unseen monitoring months. Its seven pages cover getting started, daily simulation,
+on a follow-up list. Models were chosen on Validation; June is a retrospective out-of-sample
+month (no June outcome was used, but its results were seen in Milestone 2), and July
+and August are out-of-sample monitoring months. Its seven pages cover getting started, daily simulation,
 month-end review, data exploration, single-order and batch API demos, and models.
 
 - [Application guide](docs/APPLICATION.md)
 - [Calling the API](docs/API.md) · [Model and simulation contracts](docs/TECHNICAL.md)
 - [Deployment](docs/DEPLOYMENT.md)
-- [Verification history](docs/VERIFICATION.md)
+- [Verification record](docs/VERIFICATION.md)
 
 ## Tests
 
@@ -185,7 +181,4 @@ python -m pytest tests/deployment -q
 python -m pytest tests/phase2 -q
 ```
 
-Hosting uses the smaller dependency sets under `deployment/`. A normal push to
-`main` redeploys Render; its Dockerfile setting must match the new path before
-that push. Both migrated Streamlit entry points now have verified replacement apps.
-The final report and presentation are maintained separately by the team.
+Hosted services install only the smaller dependency sets under `deployment/`.

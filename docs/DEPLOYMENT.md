@@ -1,61 +1,34 @@
-# Deploy the reorganized repository
+# Deployment
 
-The existing Render API stays at https://team8-delivery-api.onrender.com
-([Swagger](https://team8-delivery-api.onrender.com/docs)). Both replacement
-Streamlit apps were deployed from `main` at commit
-`453076cf41a27e92c9850ae37f109283b09e9196` and verified on 26 October 2026:
+The project runs as three hosted services, all deployed from `main`:
 
-| App | URL | Main file | Python |
+| Service | URL | Entry point | Python |
 |---|---|---|---|
-| Delivery Watch | https://team8-delivery-watch.streamlit.app/ | `deployment/app/app.py` | 3.14 |
-| Phase 1 dashboard | https://team8-olist-dashboard.streamlit.app/ | `deployment/phase1_dashboard/streamlit_app.py` | 3.14 |
+| Model API (FastAPI, Render) | https://team8-delivery-api.onrender.com ([Swagger](https://team8-delivery-api.onrender.com/docs)) | `deployment/Dockerfile.api` | 3.13.5 |
+| Delivery Watch (Streamlit) | https://team8-delivery-watch.streamlit.app/ | `deployment/app/app.py` | 3.14 |
+| Phase 1 dashboard (Streamlit) | https://team8-olist-dashboard.streamlit.app/ | `deployment/phase1_dashboard/streamlit_app.py` | 3.14 |
 
-Python versions match the previous apps' settings; the model API and local
-artifact checks retain Python 3.13.5. Both old Streamlit apps were deleted only
-after their replacements passed hosted checks. See [verification](VERIFICATION.md).
+The API serves the Validation-selected models C2B (`phase2-c2b-logistic-2018-06-02`)
+and R2B (`phase2-r2b-ols-2018-06-02`). Live checks are recorded in
+[verification](VERIFICATION.md) and
+[render_c2b_r2b_verification.json](render_c2b_r2b_verification.json).
 
-**Current change: model switch to C2B and R2B.** The deployed models are now C2B
-(`phase2-c2b-logistic-2018-06-02`) and R2B (`phase2-r2b-ols-2018-06-02`), replacing
-C3 and R1. Merged and pushed to `main` as `cfd8f41` on 27 October 2026. Render deploy
-`dep-dbfnp8ajnfac73clqoeg` succeeded in 56.4 seconds; all eight live HTTP
-check groups pass and hosted predictions match local packaged models. Delivery
-Watch shows C2B/R2B and its daily worklist scores successfully. See the
-[live verification record](render_c2b_r2b_verification.json).
-
-## Previous release (C3/R1) — 25 October 2026
-
-Andrew approved publication of the repository reorganization. Merge commit `456262a` is on remote `main`, and Render
-deploy `dep-dbeto2g473hc739eqrig` is live after a 1m21s build/deployment. The service's
-Dockerfile path is `./deployment/Dockerfile.api`. Public HTTP checks, the C3/R1
-model versions then served, hosted/local prediction agreement and the 10/10 batch example pass.
-Detailed live verification records and screenshots are retained locally. The working branch was
-never pushed. At this release, the Streamlit replacements were pending; they
-were completed on 26 October 2026 as recorded above.
-
-## Historical migration release gate
-
-`ta-feedback-rework` was merged into `main` as `cfd8f41` for this release.
-The merge commit triggered Render's auto-deploy. Jordan's `model-deployment-r1`
-branch was not changed. The existing Streamlit apps also update from `main`;
-Delivery Watch's new model guidance and daily simulation were verified after release.
-
-## Existing Render service
+## Render (model API)
 
 | Setting | Value |
 |---|---|
-| Service name | `team8-delivery-api` (keep the existing service) |
+| Service name | `team8-delivery-api` |
 | Branch | `main` |
 | Runtime | Docker |
 | Dockerfile | `./deployment/Dockerfile.api` |
 | Build context | repository root (`.`) |
 | Health check | `/health` |
-| Region / plan | Singapore / free (unchanged) |
+| Region / plan | Singapore / free |
 | Environment | `PORT=10000` |
 
-The service, branch (`main`), Dockerfile path, health check and environment
-variables are unchanged by the model switch, so no Render settings need editing.
-Deploy the newly approved `main` commit; do not add `[skip render]` to this merge.
-Verify the live commit matches it and wait for `/health` to become healthy.
+These settings are also declared in `render.yaml`. Each push to `main` triggers an
+automatic deploy (commits marked `[skip render]` do not); wait for `/health` to
+report healthy before checking the service.
 
 The API image installs `deployment/requirements-api.txt` with
 `deployment/constraints-api.txt`. It copies only `deployment/api/`, its package
@@ -75,9 +48,8 @@ Confirm `/health` reports `phase2-c2b-logistic-2018-06-02` and `phase2-r2b-ols-2
 and batch examples score successfully. Observe logs for import or model-loading
 failures. Local checks do not establish live success.
 
-Rollback: use Render's previous successful deployment, or revert the approved
-merge on `main`. A Git revert must also restore the corresponding Dockerfile
-setting. Coordinate with Jordan if Streamlit apps have already been replaced.
+Rollback: redeploy Render's previous successful deployment, or revert the commit
+on `main`.
 
 ## Local checks
 
@@ -85,13 +57,10 @@ From repository root:
 
 ```bash
 docker build -f deployment/Dockerfile.api -t team8-api .
-docker run --rm --name team8-api-reorg -p 10000:10000 team8-api
+docker run --rm --name team8-api -p 10000:10000 team8-api
 # In another shell:
 python -m deployment.scripts.verify_http http://127.0.0.1:10000
 ```
-
-On 26-27 October 2026 a linux/amd64 build of this image served the C2B/R2B
-versions on `/health`, and `verify_http` passed all checks against it.
 
 Optional UI container:
 
@@ -114,7 +83,7 @@ launcher is `deployment/phase1_dashboard/streamlit_app.py`.
 
 ## Streamlit
 
-Both live apps deploy from `main` using the paths and runtimes listed above.
+Both apps deploy from `main` using the entry points and runtimes listed above.
 Delivery Watch uses the adjacent `deployment/app/requirements.txt` and the secret:
 
 ```toml
@@ -123,8 +92,7 @@ DELIVERY_API_URL = "https://team8-delivery-api.onrender.com"
 
 Phase 1 uses `deployment/phase1_dashboard/requirements.txt` and no secrets.
 Its launcher sets `OLIST_HOSTED_RELEASE=1` and extracts `data/olist_csv.zip`
-into a temporary cache. First load can take a minute. The hosted dashboard
-loaded successfully, its filters updated the metrics and its charts rendered.
+into a temporary cache, so the first load can take a minute.
 
 ## Troubleshooting
 

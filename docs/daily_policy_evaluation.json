@@ -1,5 +1,5 @@
 {
-  "notice": "Retrospective evaluation of preset daily policy; models were chosen on Validation, so June is held-out test data, but the policy settings are demonstration assumptions.",
+  "notice": "Retrospective evaluation of preset daily policy; models were chosen on Validation, so June is out of sample (assessed retrospectively), but the policy settings are demonstration assumptions.",
   "policy": {
     "review_proportion": 0.3,
     "minimum_days_remaining": 1,

@@ -26,7 +26,7 @@ def snapshot_datetime(value):
         raise SimulationDataError("Malformed historical snapshot timestamp") from exc
 
 MINIMUM_DATE = date(2018, 6, 2)
-# June is the held-out test month; July and August are frozen-model monitoring months.
+# June is the retrospective out-of-sample test month; July and August are frozen-model monitoring months.
 MAXIMUM_DATE = date(2018, 8, 30)
 # Open on the first scoring morning for the frozen models, within the June test month.
 DEFAULT_DATE = MINIMUM_DATE

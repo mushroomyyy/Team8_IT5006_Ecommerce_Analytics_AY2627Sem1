@@ -40,7 +40,7 @@ def evaluate():
     pooled.update(selected_late_rate=ratio(pooled['selected']['late'],pooled['selected']['known']),
                   eligible_late_coverage=ratio(pooled['selected']['late'],pooled['eligible']['late']),
                   all_late_coverage=ratio(pooled['selected']['late'],pooled['all']['late']))
-    result={'notice':'Retrospective evaluation of preset daily policy; models were chosen on Validation, so June is held-out test data, but the policy settings are demonstration assumptions.',
+    result={'notice':'Retrospective evaluation of preset daily policy; models were chosen on Validation, so June is out of sample (assessed retrospectively), but the policy settings are demonstration assumptions.',
             'policy':{'review_proportion':.3,'minimum_days_remaining':1,'rounding':'ceil each day','ranking':f"{c.metadata['model_code']} descending, order ID ascending"},
             'pooled':pooled,'days':days}
     (ROOT/'docs/daily_policy_evaluation.json').write_text(json.dumps(result,indent=2)+'\n')
