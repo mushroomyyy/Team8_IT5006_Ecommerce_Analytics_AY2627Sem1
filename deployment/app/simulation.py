@@ -160,7 +160,7 @@ def month_summary(replay, review_proportion):
 
 
 def monthly_ranking(data, scores, known_outcomes, review_proportion, month=None):
-    """Phase 2 style comparison: rank a whole approval month at once (needs month-end hindsight of the cohort)."""
+    """Whole-month comparison: rank a whole approval month at once (needs month-end hindsight of the cohort)."""
     rows = [row for key, day in data["days"].items() if not month or key.startswith(month)
             for row in day if scores.get(row["order_id"]) is not None]
     rows.sort(key=lambda row: (-scores[row["order_id"]][0], row["order_id"]))
@@ -178,7 +178,7 @@ def buffer_ranking_scores(scores):
 
 
 def timing_accuracy(data, scores, actual_days, known_outcomes, month=None):
-    """Timing-model error against its Phase 2 target (days from promise), overall and per approval day."""
+    """Timing-model error against its target (days from promise), overall and per approval day."""
     pairs, by_day = [], {}
     for key, day in data["days"].items():
         if month and not key.startswith(month):

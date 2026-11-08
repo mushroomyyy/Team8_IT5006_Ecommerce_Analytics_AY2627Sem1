@@ -119,7 +119,7 @@ How to read it:
 |---|---|
 | `classification.late_probability` | C2B late-delivery risk score, 0–1. Use it to rank orders; it is not a calibrated probability. Compare it with `threshold` from `/model-info` (0.1282) for a flag; the response itself carries no flag. |
 | `classification.drift_warnings` | Inputs outside the training 1st–99th percentile (empty when none) |
-| `regression.predicted_days_from_promise` | R2B days from the promised date: negative = early, positive = late. Approval-to-delivery is bounded to a 0–45 day lead time when the promise is known, as in Phase 2. |
+| `regression.predicted_days_from_promise` | R2B days from the promised date: negative = early, positive = late. Approval-to-delivery is bounded to a 0–45 day lead time when the promise is known. |
 | `regression.raw_days_from_promise` | R2B before that bounding |
 | `regression.late_by_days`, `regression.early_by_days` | The prediction split into lateness and earliness |
 | `model_version` | Exact fitted model that produced the score |

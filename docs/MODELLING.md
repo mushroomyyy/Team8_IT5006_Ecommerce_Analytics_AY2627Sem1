@@ -101,7 +101,7 @@ jupyter lab
 python -m pytest tests/phase2 -q
 ```
 
-Optional regeneration commands (write results; not part of a path-only migration):
+Optional regeneration commands (these overwrite the saved results):
 
 ```bash
 python -m src.feature_selection

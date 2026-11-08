@@ -70,8 +70,9 @@ The original interactive dashboard lives in
 
 Both the notebook and dashboard use the raw tables bundled in `data/olist_csv.zip`.
 The dashboard generates its charts when it runs. Delivery Watch's **Explore the
-data** page is a separate implementation under `deployment/app/`, using Phase 2
-definitions and small precomputed tables in `deployment/app/data/eda/`.
+data** page is a separate implementation under `deployment/app/`, built on the
+modelling data and small precomputed tables in `deployment/app/data/eda/`. Its
+late-delivery rates count delivered orders only.
 
 ## Phase 2: modelling
 

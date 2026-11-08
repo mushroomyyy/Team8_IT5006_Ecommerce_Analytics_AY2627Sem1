@@ -132,7 +132,7 @@ and delivery timestamps for as-of logic, never final status. These stay in the
 Streamlit Python server; only order identifiers and engineered features are sent
 to Render. Displayed worklist rows omit delivery timestamps.
 `deployment/app/data/simulation_outcomes.json` is separate and never read for eligibility
-or scoring. Its labels follow Phase 2's
+or scoring. Its labels follow the models'
 approval-day-plus-45-days inclusive evaluation rule, preserving unknowns.
 
 ## Retrospective daily evaluation
@@ -225,9 +225,9 @@ Historical dates and outcome reveal are Streamlit operations, not API endpoints.
   orders with the packaged C2B/R2B artifacts into `deployment/app/data/replay_scores.json`.
 - Each month replays every morning with the daily list rules; outcomes are
   attached only after ranking. Comparisons: whole-month ranking by the
-  risk model (Phase 2 style), random calls, and the same daily rules ranked by
+  risk model, random calls, and the same daily rules ranked by
   R2B's predicted days from promise.
-- `deployment/app/data/simulation_timing.json` holds R2B's Phase 2 target per order
+- `deployment/app/data/simulation_timing.json` holds R2B's target per order
   (`attach_regression_actuals`, 45-day cap, final canceled/unavailable excluded).
   June reproduces the reported R2B RMSE 7.374 and MAE 5.81.
 
