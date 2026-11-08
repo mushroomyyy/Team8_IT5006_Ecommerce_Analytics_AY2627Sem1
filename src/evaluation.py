@@ -293,17 +293,22 @@ def drift_table(results, metrics, periods=('June', 'July', 'August')):
 
 
 def classification_success_criteria(results, linear_models, forest_model, splits=('June', 'Validation'),
-                                    lift_target=2.0, rf_precision_ratio=1.10):
-    """Pass/fail table: top-10% lift >= 2 for every model; forest precision >= 1.10 x best linear."""
+                                    ap_ratio_target=2.0, rf_precision_ratio=1.10, baseline_model='C0'):
+    """Pass/fail table: AP >= 2 x the no-skill baseline's AP for every model; forest precision >= 1.10 x best linear.
+
+    The no-skill AP equals the split's late rate, so the ratio is the AP uplift over predicting
+    the late rate for every order (the AP-to-baseline ratio reported for monitoring).
+    """
     lookup = results.set_index(['model', 'split'])
     rows = []
     for split in splits:
+        baseline_ap = lookup.loc[(baseline_model, split), 'avg_precision']
         for model in results['model'].unique():
             if model.startswith('C0'):
                 continue
-            lift = lookup.loc[(model, split), 'top10_lift']
-            rows.append({'split': split, 'criterion': f'Top-10% lift >= {lift_target:g}', 'model': model,
-                         'value': lift, 'threshold': lift_target, 'passed': bool(lift >= lift_target)})
+            ratio = lookup.loc[(model, split), 'avg_precision'] / baseline_ap
+            rows.append({'split': split, 'criterion': f'AP >= {ap_ratio_target:g} x no-skill AP', 'model': model,
+                         'value': ratio, 'threshold': ap_ratio_target, 'passed': bool(ratio >= ap_ratio_target)})
         best_linear = max(linear_models, key=lambda m: lookup.loc[(m, split), 'precision_top10'])
         threshold = rf_precision_ratio * lookup.loc[(best_linear, split), 'precision_top10']
         for model in forest_model:

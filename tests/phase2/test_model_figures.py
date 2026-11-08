@@ -34,7 +34,13 @@ class TableTests(unittest.TestCase):
 
     def test_success_criteria(self):
         results, _ = toy_results()
-        table = ev.classification_success_criteria(results, ['C1'], ['C3'])
+        baseline = pd.DataFrame([{'model': 'C0', 'split': s, 'avg_precision': .10, 'top10_lift': 1.0, 'precision_top10': .10}
+                                 for s in ev.SPLIT_ORDER if s != 'CV'])
+        table = ev.classification_success_criteria(pd.concat([results, baseline], ignore_index=True), ['C1'], ['C3'])
+        ap = table[table['criterion'].str.startswith('AP >=')].set_index(['model', 'split'])
+        self.assertNotIn('C0', ap.index.get_level_values('model'))
+        self.assertAlmostEqual(ap.loc[('C1', 'June'), 'value'], 2.0)  # .20 / .10
+        self.assertTrue(ap['passed'].all())
         rf = table[table['criterion'].str.contains('precision')]
         self.assertTrue(rf['passed'].all())
 
